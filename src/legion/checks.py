@@ -163,6 +163,26 @@ def append_csv(out: Path, r: RecordCheck) -> None:
         })
 
 
+def check_report(path: Path, sections: list[str], min_chars: int) -> int:
+    if not path.exists():
+        print(f"NG 報告不存在：{path}")
+        return 1
+    text = path.read_text(encoding="utf-8")
+    heads = [ln for ln in text.splitlines() if ln.lstrip().startswith("#")]
+    missing = [s for s in sections if not any(s in h for h in heads)]
+    print(f"報告 {path}：{len(text)} 字元、{len(heads)} 個標題")
+    for s in sections:
+        print(f"  章節「{s}」：{'有' if s not in missing else '缺'}")
+    if len(text) < min_chars:
+        print(f"NG 報告過短（< {min_chars} 字元）")
+        return 1
+    if missing:
+        print(f"NG 缺少章節：{missing}")
+        return 1
+    print("OK")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="legion.checks")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -171,7 +191,13 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--criteria-json", default=None)
     rp.add_argument("--criterion", action="append", default=None, help="驗收標準原文，可重複")
     rp.add_argument("--csv", type=Path, default=None)
+    rpt = sub.add_parser("report", help="檢查唯讀任務的報告存在、夠長、含必要章節")
+    rpt.add_argument("path", type=Path)
+    rpt.add_argument("--section", action="append", default=[])
+    rpt.add_argument("--min-chars", type=int, default=800)
     args = ap.parse_args(argv)
+    if args.cmd == "report":
+        return check_report(args.path, args.section, args.min_chars)
     crit = json.loads(args.criteria_json) if args.criteria_json else args.criterion
     all_ok = True
     for p in args.paths:

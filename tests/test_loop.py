@@ -219,3 +219,24 @@ def test_reviewers_use_fresh_sessions(env: Env) -> None:
     argv = ClaudeCliAgent().build_cmd(call, env.tmp / "s.json")
     assert "--resume" not in argv and "--continue" not in argv and "-c" not in argv and "--bare" not in argv
     assert argv[argv.index("--tools") + 1] == ",".join(tool_profile("reviewer").tools)
+
+
+REPORT = "# 健檢報告\n\n## 架構\n" + "說明 calc.py 的結構。" * 60 + "\n\n## 測試缺口\n- test_calc.py 未涵蓋負數。\n"
+
+
+def test_readonly_task_reports_and_leaves_repo_untouched(env: Env) -> None:
+    env.idea("ro", "health check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
+                                            exec=[{"claim": "done", "report_md": REPORT}]), kind="readonly")
+    t = run(env.run_until())[0]
+    assert t.state == State.DONE, t.halt_reason
+    assert any("legion.checks report" in c for c in t.accept_cmds)
+    check = t.meta["verify_runs"][-1]["checks"][0]
+    assert check["ok"] and "未被修改" in check["name"]
+    assert (env.settings.ai_dir / "reports" / f"{t.id}-report.md").exists()
+
+
+def test_readonly_task_without_proper_report_is_not_accepted(env: Env) -> None:
+    env.idea("ro", "lazy check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
+                                          exec=[{"claim": "done", "report_md": "# 很短"}]), kind="readonly")
+    t = run(env.run_until())[0]
+    assert t.state == State.HALT and (t.halt_reason or "").startswith("retry_exceeded")

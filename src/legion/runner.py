@@ -287,6 +287,9 @@ class Runner:
         desc = f"{wd}（{task.kind}）"
         out = await self._agent(task, "planner", prompts.planner_prompt(task, self.s.commander_preamble, desc), wd)
         accept = [str(c) for c in out.get("accept_cmds", [])]
+        if task.kind == "readonly":  # 唯讀任務的產出是報告：由 runner 以程式檢查報告存在且章節齊全
+            rp = (self.s.ai_dir / "reports" / f"{task.id}-report.md").resolve().as_posix()
+            accept.append(f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口')
         actions = list(out.get("actions", []))
         planned_installs = list(out.get("installs", []) or [])
         lvls = []

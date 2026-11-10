@@ -130,7 +130,8 @@ def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str]) -> str:
 def executor_prompt(task: Task, preamble: str, spec_md: str, last_failure: str | None) -> str:
     extra = f"\n## 上一輪驗證失敗（runner 親自執行的輸出）\n```\n{last_failure}\n```\n" if last_failure else ""
     if task.kind == "readonly":
-        mode = "本任務唯讀：不得修改任何檔案。把完整報告（Markdown）放在 report_md。"
+        mode = ("本任務唯讀：不得修改任何檔案。把完整報告（Markdown，至少 800 字）放在 report_md，"
+                "必須有標題含「架構」與「測試缺口」的章節；每個判斷附上檔案路徑作為依據。")
     else:
         mode = "只能修改目前工作目錄內的檔案；完成後可用 git add／git commit 在此 worktree 內提交。"
     return f"""{preamble}
