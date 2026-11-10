@@ -1,4 +1,4 @@
-# 未查證事項 2、3 的實測：在工作排程器（使用者層級、不需管理員）下跑一次極小的 claude -p，跑完即刪除排程
+﻿# 未查證事項 2、3 的實測：在工作排程器（使用者層級、不需管理員）下跑一次極小的 claude -p，跑完即刪除排程
 # 驗證：訂閱登入可用、JSON 輸出欄位、--tools 限縮、deny 規則（以 canary 檔代替 .env）、Bash 白名單外指令被拒
 # 用法：powershell -ExecutionPolicy Bypass -File scripts\smoke_claude.ps1
 $ErrorActionPreference = 'Stop'

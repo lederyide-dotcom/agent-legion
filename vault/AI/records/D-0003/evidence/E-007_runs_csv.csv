@@ -1,5 +1,5 @@
 state,step,role,backend,model,session_id,cost_usd,duration_s
-PLAN,1,planner,mock,mock,mock-25a33608-da1c-48d5-b6f0-bacac0f4c60c,0.010000,0.010
-SPEC_REVIEW,2,spec_reviewer,mock,mock,mock-8505bdbd-a00f-4b81-8fa9-d462c68784b2,0.010000,0.010
-EXEC,4,executor,mock,mock,mock-6fd17276-7143-4804-bdb7-be201821bf27,0.010000,0.010
-REVIEW,6,reviewer,mock,mock,mock-fc16e8f6-7522-42d5-86ee-a08ff2471f44,0.010000,0.010
+PLAN,1,planner,mock,mock,mock-e00fa773-8c17-46bf-a978-de2477172ba0,0.010000,0.010
+SPEC_REVIEW,2,spec_reviewer,mock,mock,mock-51a13f63-f1da-4b40-8e64-f50b0ada519c,0.010000,0.010
+EXEC,4,executor,mock,mock,mock-65602dbd-9c7b-42b2-ab4f-a388adfc4fd2,0.010000,0.010
+REVIEW,6,reviewer,mock,mock,mock-26feb3b7-610c-4066-a9dd-7b0769ae8dcb,0.010000,0.010

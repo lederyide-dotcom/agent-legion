@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 import psycopg
@@ -283,8 +283,12 @@ class Store:
         return [_row_to_run(r) for r in await cur.fetchall()]
 
     async def cost_on(self, day: date) -> float:
+        """本地時區當日（午夜起算）的 agent 成本合計；不用 ::date，避免 DB 的 UTC 日期與本地日期錯開。"""
+        start = datetime(day.year, day.month, day.day).astimezone()
+        end = start + timedelta(days=1)
         cur = await self.conn.execute(
-            "SELECT COALESCE(SUM(cost_usd), 0) AS c FROM agent_runs WHERE finished_at::date = %s", (day,)
+            "SELECT COALESCE(SUM(cost_usd), 0) AS c FROM agent_runs WHERE finished_at >= %s AND finished_at < %s",
+            (start, end),
         )
         row = await cur.fetchone()
         return float(row["c"]) if row else 0.0

@@ -22,8 +22,12 @@ dependencies = [
 dev = ["pytest==8.3.4", "ruff==0.8.4"]
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]  # 中文字串行長以視覺寬度計算不準，改由人工把關
 
 [project.scripts]
 legion = "legion.cli:main"
@@ -34,3 +38,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-p no:cacheprovider"
+filterwarnings = ["ignore::DeprecationWarning:matplotlib.*"]

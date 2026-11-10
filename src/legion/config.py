@@ -17,13 +17,18 @@ def _default_dsn() -> str:
     return f"postgresql://{user}:{pw}@127.0.0.1:{port}/{name}"
 
 
+def _env_path(name: str, default: Path) -> Path:
+    v = os.environ.get(name)
+    return Path(v) if v else default
+
+
 class Settings(BaseModel):
     dsn: str = Field(default_factory=_default_dsn)
     schema_name: str = "legion"
-    vault: Path = PROJECT_ROOT / "vault"
-    data_dir: Path = PROJECT_ROOT / "02_data"
-    output_dir: Path = PROJECT_ROOT / "01_output"
-    worktrees_dir: Path = PROJECT_ROOT / ".worktrees"
+    vault: Path = Field(default_factory=lambda: _env_path("LEGION_VAULT", PROJECT_ROOT / "vault"))
+    data_dir: Path = Field(default_factory=lambda: _env_path("LEGION_DATA_DIR", PROJECT_ROOT / "02_data"))
+    output_dir: Path = Field(default_factory=lambda: _env_path("LEGION_OUTPUT_DIR", PROJECT_ROOT / "01_output"))
+    worktrees_dir: Path = Field(default_factory=lambda: _env_path("LEGION_WORKTREES", PROJECT_ROOT / ".worktrees"))
     task_prefix: str = "T"
 
     # 熔斷
@@ -42,7 +47,7 @@ class Settings(BaseModel):
     commander_preamble: str = ""  # 指揮官前置指令（例如 /poteto-mode），本輪預設空白
 
     # 紀錄文件
-    render_mermaid: bool = True
+    render_mermaid: bool = Field(default_factory=lambda: os.environ.get("LEGION_RENDER_MERMAID", "1") != "0")
     mermaid_cli: Path = PROJECT_ROOT / "tools" / "mermaid" / "node_modules" / ".bin" / "mmdc.cmd"
     mermaid_puppeteer_cfg: Path = PROJECT_ROOT / "tools" / "mermaid" / "puppeteer.json"
     soffice: Path = Path(r"C:\Program Files\LibreOffice\program\soffice.exe")

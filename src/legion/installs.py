@@ -27,8 +27,11 @@ _REMOTE_SCRIPT = re.compile(
     re.IGNORECASE,
 )
 _UNPINNED = re.compile(r"^(|\*|latest|any|x)$|[*^~><]", re.IGNORECASE)
-_ADMIN_HINT = re.compile(r"\b(sudo|runas|--global|-g\b|/machine|--scope\s+machine|setx\s+/m|reg\s+add|netsh|sc\s+create)",
-                         re.IGNORECASE)
+_ADMIN_HINT = re.compile(
+    r"(?:^|\s)(?:sudo|runas|--global|-g|/machine|--scope[\s=]+machine|--location)(?=\s|$)"
+    r"|\bsetx\s+/m\b|\breg\s+add\b|\bnetsh\b|\bsc\s+create\b|\bStart-Process\b.*-Verb\s+RunAs",
+    re.IGNORECASE,
+)
 
 AUTO_SOURCES = {
     "pip": {"pypi"},
