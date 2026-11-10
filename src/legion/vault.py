@@ -167,6 +167,12 @@ def inbox_files(settings: Settings) -> tuple[list[tuple[Path, str, dict[str, Any
     return out, bad
 
 
+def existing_ids(settings: Settings, prefix: str) -> set[str]:
+    ids = {p.stem for p in (settings.ai_dir / "tasks").glob(f"{prefix}-*.md")}
+    ids |= {p.name for p in (settings.ai_dir / "records").glob(f"{prefix}-*") if p.is_dir()}
+    return ids
+
+
 def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str) -> Path:
     path = settings.inbox_dir / f"fu-{parent.id}-{n}.md"
     fm = {

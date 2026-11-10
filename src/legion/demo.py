@@ -65,6 +65,8 @@ def clean_demo_vault(settings: Settings, prefix: str) -> None:
         _rm(p)
     for p in settings.inbox_dir.glob("demo-*.md"):
         p.unlink()
+    for p in (settings.ai_dir / "inbox_done").glob(f"{prefix}-*__*.md"):
+        p.unlink()
     for p in settings.inbox_dir.glob(f"fu-{prefix}-*.md"):
         p.unlink()
 

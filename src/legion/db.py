@@ -142,13 +142,15 @@ class Store:
         await self.conn.execute("SELECT pg_advisory_unlock(%s)", (self.lock_key,))
 
     # ---- tasks ----
-    async def next_task_id(self, prefix: str) -> str:
+    async def next_task_id(self, prefix: str, existing: set[str] | None = None) -> str:
+        """下一個編號；同時參考 vault 已有的任務筆記，DB 重建後也不會覆蓋舊紀錄。"""
         cur = await self.conn.execute(
             "SELECT id FROM tasks WHERE id LIKE %s ORDER BY id DESC LIMIT 1", (f"{prefix}-%",)
         )
         row = await cur.fetchone()
-        n = int(row["id"].split("-")[-1]) + 1 if row else 1
-        return f"{prefix}-{n:04d}"
+        nums = [int(row["id"].split("-")[-1])] if row else []
+        nums += [int(x.split("-")[-1]) for x in (existing or set()) if x.split("-")[-1].isdigit()]
+        return f"{prefix}-{max(nums, default=0) + 1:04d}"
 
     async def insert_task(self, task: Task) -> Task:
         data = task.model_dump(exclude={"created_at", "updated_at"})

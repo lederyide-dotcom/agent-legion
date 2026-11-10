@@ -210,8 +210,14 @@ class Runner:
             except (ValueError, TypeError, ValidationError) as exc:
                 self.bad_inbox.append(f"{path.name}: {exc}")
                 continue
-            tid = await self.store.next_task_id(self.s.task_prefix)
+            tid = await self.store.next_task_id(self.s.task_prefix, vault.existing_ids(self.s, self.s.task_prefix))
             task = await self.store.insert_task(task.model_copy(update={"id": tid}))
+            # 領取後封存：避免 DB 重建後被重複領取（重複花費）
+            done_dir = self.s.ai_dir / "inbox_done"
+            done_dir.mkdir(parents=True, exist_ok=True)
+            archived = done_dir / f"{tid}__{path.name}"
+            path.replace(archived)
+            task = await self.store.update_task(tid, source_path=str(archived))
             await self._after_change(task)
             created.append(tid)
         return created

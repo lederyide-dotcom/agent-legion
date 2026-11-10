@@ -311,3 +311,19 @@ def test_timeout_cost_is_recorded_conservatively(env: Env) -> None:
     env.idea("t", "slow2", low_mock(timeout_roles=["executor"]))
     t = run(env.run_until())[0]
     assert t.state == State.HALT and t.cost_usd > 0.02  # 逾時以單次呼叫上限入帳
+
+
+def test_ingested_idea_is_archived_and_ids_never_reuse_vault_records(env: Env) -> None:
+    (env.settings.ai_dir / "tasks" / "T-0007.md").write_text("---\nid: T-0007\n---\n", encoding="utf-8")
+    env.idea("arch", "archived idea", low_mock())
+
+    async def go() -> None:
+        st = await env.store()
+        await Runner(env.settings, st, env.agent).tick()
+        t = (await st.list_tasks())[0]
+        assert t.id == "T-0008"  # DB 是空的，但 vault 已有 T-0007：不得覆蓋
+        assert not (env.settings.inbox_dir / "arch.md").exists()
+        assert (env.settings.ai_dir / "inbox_done" / "T-0008__arch.md").exists()
+        await st.close()
+
+    run(go())
