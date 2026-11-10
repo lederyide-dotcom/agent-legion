@@ -1,0 +1,9 @@
+flowchart LR
+    INBOX([INBOX]) --> PLAN([PLAN])
+    PLAN([PLAN]) --> SPEC_REVIEW([SPEC_REVIEW])
+    SPEC_REVIEW([SPEC_REVIEW]) --> GATE([GATE])
+    GATE([GATE]) --> EXEC([EXEC])
+    EXEC([EXEC]) -->|2 次| VERIFY([VERIFY])
+    VERIFY([VERIFY]) --> EXEC([EXEC])
+    VERIFY([VERIFY]) --> REVIEW([REVIEW])
+    REVIEW([REVIEW]) --> LEARN([LEARN])

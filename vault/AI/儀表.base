@@ -1,0 +1,61 @@
+filters:
+  and:
+    - 'file.inFolder("AI/tasks")'
+    - 'file.ext == "md"'
+formulas:
+  cost_label: 'if(cost_usd, "$" + cost_usd.toFixed(4), "")'
+properties:
+  state:
+    displayName: "狀態"
+  risk:
+    displayName: "風險"
+  cost_usd:
+    displayName: "成本 USD"
+  human_touches:
+    displayName: "人工介入"
+  verdict:
+    displayName: "審查結論"
+  formula.cost_label:
+    displayName: "成本"
+views:
+  - type: table
+    name: "依狀態"
+    groupBy:
+      property: state
+      direction: ASC
+    order:
+      - file.name
+      - title
+      - state
+      - risk
+      - formula.cost_label
+      - human_touches
+      - verdict
+    summaries:
+      cost_usd: Sum
+      human_touches: Sum
+  - type: table
+    name: "依風險"
+    groupBy:
+      property: risk
+      direction: DESC
+    order:
+      - file.name
+      - title
+      - risk
+      - state
+      - cost_usd
+    summaries:
+      cost_usd: Sum
+  - type: table
+    name: "等待 David"
+    filters:
+      or:
+        - 'state == "WAIT_HUMAN"'
+        - 'state == "HALT"'
+    order:
+      - file.name
+      - title
+      - state
+      - wait_reason
+      - halt_reason

@@ -1,0 +1,23 @@
+# 只有 PostgreSQL 在 Docker；runner 跑主機。
+# 主機已有原生 PostgreSQL 17 佔用 5432，故對外用 55432。
+# 帳密僅本機開發用，可用環境變數覆寫（不讀 .env 內容）。
+services:
+  db:
+    image: postgres:16.6
+    container_name: legion-db
+    environment:
+      POSTGRES_USER: ${LEGION_DB_USER:-legion}
+      POSTGRES_PASSWORD: ${LEGION_DB_PASSWORD:-legion_local_only}
+      POSTGRES_DB: ${LEGION_DB_NAME:-legion}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - legion_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 3s
+volumes:
+  legion_pgdata:

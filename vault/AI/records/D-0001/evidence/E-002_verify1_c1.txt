@@ -1,0 +1,18 @@
+$ python -m pytest -q
+# cwd: D:\202611_agent-legion\.legion_tmp\demo_worktrees\D-0001
+# exit: 2
+
+=================================== ERRORS ====================================
+_______ ERROR collecting .legion_tmp/demo_worktrees/D-0001/test_calc.py _______
+ImportError while importing test module 'D:\202611_agent-legion\.legion_tmp\demo_worktrees\D-0001\test_calc.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Program Files\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test_calc.py:1: in <module>
+    from calc import add, multiply
+E   ImportError: cannot import name 'multiply' from 'calc' (D:\202611_agent-legion\.legion_tmp\demo_worktrees\D-0001\calc.py)
+=========================== short test summary info ===========================
+ERROR test_calc.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.10s

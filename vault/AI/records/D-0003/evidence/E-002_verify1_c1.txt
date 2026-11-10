@@ -1,0 +1,6 @@
+$ python -m pytest -q
+# cwd: D:\202611_agent-legion\.legion_tmp\demo_worktrees\D-0003
+# exit: 0
+
+..                                                                       [100%]
+2 passed in 0.01s
