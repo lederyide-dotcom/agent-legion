@@ -1,0 +1,11 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "驗收指令 `git status --short` 只會輸出文字，不論結果如何 exit code 皆為 0，無法機械化驗證「test_calc.py 已被刪除」（驗收標準 2 實質上未被驗證）。建議改用能以結果判定的指令，例如 `git ls-files --deleted`（需符合白名單 git 子命令的話則不行）；在白名單內可改為 `git diff --name-status --diff-filter=D` 並明定期望輸出為 `D\\ttest_calc.py`，或要求 runner 比對 stdout 與期望字串。",
+    "驗收標準 2 假設 test_calc.py 已被 git 追蹤（` D` 表示已追蹤且工作樹刪除）。repo 內 test_calc.py 確實存在，但規格沒有先確認它是 tracked；建議加入前置檢查（如 `git ls-files test_calc.py`），避免若為 untracked/ignored 時狀態不是 ` D`。",
+    "驗收指令沒有涵蓋「範圍」中的限制：未驗證 .gitignore 未被修改，也未驗證沒有其他檔案被動到。建議加 `git diff --exit-code --diff-filter=M` （不限路徑，檢查無任何已修改檔）或 `git status --short` 結果須只含 ` D test_calc.py` 一行。",
+    "驗收標準 1 的 `--diff-filter=M -- calc.py` 可行但意義較弱；`git diff --exit-code -- calc.py .gitignore` 更直接涵蓋兩個不得修改的檔案。",
+    "規則衝突需明講：runner 規則「不得刪除檔案」與本任務目標（刪除 test_calc.py）矛盾。規格雖標 high/WAIT_HUMAN，但未說明刪除如何被授權執行（由人工批准後 runner 放行，或由人手動刪除）。建議明確寫出執行主體與批准流程。",
+    "未驗證目標本身的根因（ImportError）已消除，例如沒有留下其他引用 test_calc.py 的設定；以目前 repo 內容（僅 .gitignore、calc.py、test_calc.py）風險低，可接受，但可補一條 `python -m pytest --collect-only` 預期無 ImportError 的驗證。"
+  ]
+}

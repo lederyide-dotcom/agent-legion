@@ -1,0 +1,12 @@
+worktree 以外沒有檔案被修改（主 repo git 狀態相同）
+
+before HEAD: d724fcd6b17dab39f2207d1b0dcab66772ab38b5
+after  HEAD: d724fcd6b17dab39f2207d1b0dcab66772ab38b5
+
+before status:
+(clean)
+
+after status:
+(clean)
+
+result: SAME

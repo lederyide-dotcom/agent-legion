@@ -1,0 +1,5 @@
+state,step,role,backend,model,session_id,cost_usd,duration_s
+PLAN,1,planner,claude,sonnet,f829a722-9c91-4d8c-b10b-df2e132759af,0.027968,10.000
+SPEC_REVIEW,2,spec_reviewer,claude,sonnet,6a1a017f-842d-4086-bbf2-00f782d74076,0.027596,10.735
+EXEC,4,executor,claude,sonnet,a25aaf67-99e7-4ff9-810b-21e7617d2d0b,0.047787,18.282
+REVIEW,6,reviewer,claude,sonnet,f7884339-fbc5-45e0-b2fe-18058969904c,0.026136,5.766

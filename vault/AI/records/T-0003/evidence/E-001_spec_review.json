@@ -1,0 +1,11 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "現況描述屬實：calc.py 只有 add 且無 docstring；test_calc.py 匯入 multiply，目前 import 階段就會失敗。範圍與目標清楚，可執行。",
+    "主要缺口：驗收標準「add 與 multiply 都有非空 docstring」沒有任何指令能驗證。pytest 只檢查行為，不檢查 docstring。就算沒有 docstring，測試也會通過。建議二選一：(a) 在驗收指令加入 `python -m pydoc calc`，用輸出人工確認；(b) 放寬規則，讓驗收指令允許 `python -c`，或新增一個 docstring 檢查測試，但這會違反「只改 calc.py」。目前這項標準只能靠人工讀 diff，應在規格註明，或把驗收指令加入 `git diff`。",
+    "`git status --short` 只能證明變更的檔案是哪些，不能證明內容正確。建議加上 `git diff -- calc.py`，讓審查者看到實際的 docstring 與 multiply 實作。",
+    "「只改 calc.py」的檢查有漏洞：runner 是在 worktree（legion/D-xxxx 分支）內執行，`git status --short` 若未提交只顯示工作區變更。若執行者已經 commit，輸出會是空的，造成誤判。請明定驗收時的狀態是未提交，或改用 `git diff --stat main` 之類的指令，並確認 .gitignore 沒有忽略 __pycache__ 之外的東西。pytest 產生的 __pycache__ 與 .pytest_cache 若未被忽略，會出現在 git status，使「只出現 calc.py」失敗。請確認 .gitignore 涵蓋這兩者。",
+    "「清楚的 docstring」「說明參數與回傳值」沒有客觀格式要求（例如 Google 或 NumPy 風格、必須含 Args 與 Returns 段落）。建議明定風格，以免驗收主觀。",
+    "multiply 的備註要求「書記官在結案時註明」，但這不在驗收標準內，也無法由指令驗證。可以保留為流程備註，但別當成驗收項目。"
+  ]
+}

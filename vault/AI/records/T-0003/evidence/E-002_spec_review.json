@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "規格與現況相符：calc.py 只有 add 且無 docstring；test_calc.py 確實匯入 multiply，現在收集階段會 ImportError。",
+    "範圍擴充（新增 multiply）合理且必要：test_multiply 斷言 multiply(4,5)==20，規格要求的實作與之一致。已確認此擴充。",
+    "驗收指令皆符合 runner 規則（python -m pytest、git status），不含 shell 符號。",
+    "指令 1 驗證既有測試，指令 2 驗證 docstring 的 doctest 範例，合起來足以涵蓋目標。",
+    "小建議（不影響通過）：指令 3 的 `git status --short` 只輸出狀態，exit 0 不能證明「變更只有 calc.py」，需由人或 runner 檢視輸出；可改為 `git diff --stat` 或 `git diff --name-only` 更直接。另外 pytest 可能產生 __pycache__/.pytest_cache，若 .gitignore 未排除，status 會出現未追蹤檔案，需留意。",
+    "小建議：可明說 docstring 以 Args 區段或其他固定格式撰寫，並要求 doctest 以 `>>>` 後接預期輸出行（5、20），避免實作者格式不一。"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "規格的「現況」描述與實際檔案相符：calc.py 只有 add，test_calc.py 有 test_add、test_multiply 並 import multiply。補上 multiply 的範圍合理，也已說明理由。",
+    "必修（驗收缺口）：「git diff --stat」不足以驗證「git diff 只出現 calc.py 與 test_calc.py」。它只會列出已追蹤檔案的變更，不會顯示新建的未追蹤檔，例如 conftest.py 或 __pycache__ 以外的新檔。建議驗收指令加入「git status --short」，才能看到未追蹤的檔案。",
+    "必修：「git diff --stat」只輸出統計，不會自動判定通過或失敗，需要由審查者或 runner 比對檔名。建議在驗收標準寫明判定方式，例如「輸出只列出 calc.py 與 test_calc.py」。可改用「git diff --name-only」，輸出更容易比對。",
+    "建議：驗收標準應要求 test_power 實際涵蓋 power(2, 3) == 8，也就是正整數次方的具體案例。規格只寫「涵蓋正整數次方」，沒有指定數值。另外 pytest 只驗證測試通過，不保證 test_power 存在。建議加上「python -m pytest test_calc.py -k power」，或用 -v 確認 test_power 被收集並執行。",
+    "小問題：power(2, -1) == 0.5 依賴浮點數，這個值在二進位下可精確表示，所以沒有問題。負指數若換成其他底數，則應改用 pytest.approx。"
+  ]
+}

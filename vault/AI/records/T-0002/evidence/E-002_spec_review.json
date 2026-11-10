@@ -1,0 +1,10 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "驗收指令無法驗證目標：`git diff --quiet HEAD -- calc.py` 只檢查 calc.py，即使 test_calc.py 沒被刪也會通過；`git status --short` 永遠 exit 0，runner 沒有斷言依據。兩者合起來無法證明第 1 點（已刪除）與第 3 點（沒有其他檔案被改動）。",
+    "建議補上可程式判定的檢查：`git diff --name-status HEAD`，預期輸出恰為 `D\\ttest_calc.py`（runner 需比對輸出內容）；或 `git diff --quiet HEAD -- . :(exclude)test_calc.py`，非 test_calc.py 的路徑無變動時 exit 0。也可在驗收標準註明 `git status --short` 應恰為 ` D test_calc.py`，且沒有其他行（含 untracked）。",
+    "前提未確認：規格假設 test_calc.py 已被 git 追蹤。若是 untracked，刪除後 git status 不會顯示 deleted，第 1 點不成立。「import 不存在的 multiply」只是背景說明，建議執行前先驗證（例如 `git show HEAD:calc.py`）。",
+    "規則衝突已知但處理不夠明確：執行規則禁止刪除檔案而任務本身就是刪除，備註已走 WAIT_HUMAN 合理，但建議寫清楚人工核准後以哪個動作執行刪除（如 `git rm test_calc.py` 或直接刪檔），且核准前不得動手。",
+    "範圍（只刪一個檔、不 push/merge/install）與 high 風險判定清楚合理，無問題。"
+  ]
+}

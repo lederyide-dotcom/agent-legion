@@ -1,0 +1,10 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "變更內容符合規格：calc.py 只新增 `multiply(a, b)`，回傳 `a * b`，沒有其他修改。",
+    "驗收標準 1：E-002 顯示 `python -m pytest test_calc.py` 的 exit 為 0，2 個測試（test_add、test_multiply）都通過。",
+    "驗收標準 2：E-007 顯示相對於起點 commit，只有 calc.py 變更（4 行新增）。E-004 的 `git status --short` 輸出是空的，這是因為變更已提交為 commit 1c76eef（工作樹乾淨），不是範圍問題。範圍要看 E-007 的 diff 統計才準確。",
+    "E-006 顯示主 repo 的 HEAD 與 status 在前後相同，worktree 以外沒有檔案被改動。",
+    "沒有新增依賴、沒有刪檔、沒有碰網路。"
+  ]
+}

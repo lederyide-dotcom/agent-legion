@@ -1,0 +1,5 @@
+$ git status --short
+# cwd: D:\202611_agent-legion\.worktrees\T-0004
+# exit: 0
+
+

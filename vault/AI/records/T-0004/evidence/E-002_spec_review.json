@@ -1,0 +1,9 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "規格與實際檔案相符：calc.py 只有 add；test_calc.py 已 import multiply 並含 test_add、test_multiply，所以目前確實會 ImportError。範圍清楚，也有說明補 multiply 的原因。",
+    "驗收指令符合 runner 規則（python -m pytest 與 git status --short，沒有 shell 符號）。pytest 能驗證三個 power 案例與既有測試；git status --short 能確認只動到 calc.py 和 test_calc.py。",
+    "小建議（不擋行）：「python -m pytest 全數通過」和指令 `python -m pytest test_calc.py -q` 範圍略有不同，目前 repo 只有一個測試檔，所以實質等價。建議在驗收標準註明 power 的測試要覆蓋 (2,3)、(5,0)、(2,-1) 三個案例，這樣 pytest 通過才真的代表驗收標準成立。",
+    "小建議：git status --short 只列出變動檔，不會自動判定對錯。審查時要確認輸出只有 calc.py 和 test_calc.py，沒有多出其他檔案，例如 __pycache__ 或 .pytest_cache（若未被 gitignore 會顯示為未追蹤檔）。"
+  ]
+}

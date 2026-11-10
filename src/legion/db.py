@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import zlib
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
@@ -127,13 +128,18 @@ class Store:
         await self.conn.execute(f'DROP SCHEMA IF EXISTS "{self.schema}" CASCADE')
 
     # ---- 鎖 ----
+    @property
+    def lock_key(self) -> int:
+        """每個 schema 一把鎖：正式、demo、測試互不干擾。"""
+        return LOCK_KEY * 1000 + zlib.crc32(self.schema.encode("utf-8")) % 1000
+
     async def try_lock(self) -> bool:
-        cur = await self.conn.execute("SELECT pg_try_advisory_lock(%s) AS ok", (LOCK_KEY,))
+        cur = await self.conn.execute("SELECT pg_try_advisory_lock(%s) AS ok", (self.lock_key,))
         row = await cur.fetchone()
         return bool(row and row["ok"])
 
     async def unlock(self) -> None:
-        await self.conn.execute("SELECT pg_advisory_unlock(%s)", (LOCK_KEY,))
+        await self.conn.execute("SELECT pg_advisory_unlock(%s)", (self.lock_key,))
 
     # ---- tasks ----
     async def next_task_id(self, prefix: str) -> str:
@@ -253,7 +259,7 @@ class Store:
     # ---- agent_runs ----
     async def find_run(self, task_id: str, state: str, step: int, role: str) -> AgentRun | None:
         cur = await self.conn.execute(
-            "SELECT * FROM agent_runs WHERE task_id=%s AND state=%s AND step=%s AND role=%s",
+            "SELECT * FROM agent_runs WHERE task_id=%s AND state=%s AND step=%s AND role=%s AND status='completed'",
             (task_id, state, step, role),
         )
         row = await cur.fetchone()

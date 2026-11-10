@@ -151,14 +151,20 @@ def parse_md(text: str) -> tuple[dict[str, Any], str]:
     return {}, text
 
 
-def inbox_files(settings: Settings) -> list[tuple[Path, str, dict[str, Any], str]]:
+def inbox_files(settings: Settings) -> tuple[list[tuple[Path, str, dict[str, Any], str]], list[str]]:
+    """回傳 (可領取的想法, 壞檔清單)。壞檔逐檔隔離，不讓一個檔案卡住整個系統。"""
     out = []
+    bad: list[str] = []
     for p in sorted(settings.inbox_dir.glob("*.md")):
-        raw = p.read_bytes()
-        sha = hashlib.sha256(raw + p.name.encode("utf-8")).hexdigest()
-        fm, body = parse_md(raw.decode("utf-8"))
+        try:
+            raw = p.read_bytes()
+            sha = hashlib.sha256(raw + p.name.encode("utf-8")).hexdigest()
+            fm, body = parse_md(raw.decode("utf-8"))
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+            bad.append(f"{p.name}: {exc!r}"[:300])
+            continue
         out.append((p, sha, fm, body))
-    return out
+    return out, bad
 
 
 def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str) -> Path:

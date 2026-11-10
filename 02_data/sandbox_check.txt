@@ -1,0 +1,22 @@
+﻿# 實戰 B 獨立檢查（2026-11-11T07:42:06.0183891+08:00）
+task: T-0005  state: DONE  cost_usd: 0.166917（sonnet，用戶端估算）  human_touches: 0
+worktree: .worktrees\T-0005  base_commit: 25be70f
+
+## 1. sandbox_repo 測試（在 worktree 內重跑）
+......                                                                   [100%]
+6 passed in 0.01s
+
+exit=0
+## 2. worktree 內變更（相對 base_commit）
+M	sandbox_repo/tests/test_textkit.py
+M	sandbox_repo/textkit.py
+
+## 3. 變更是否全在 sandbox_repo/ 內
+outside_sandbox: (none)
+## 4. 主 repo（worktree 以外）
+main HEAD: 25be70ff473590f4ef49e964a17a5f840651d1e9
+main tracked changes outside vault/:  M src/legion/cli.py;  M src/legion/demo.py;  M src/legion/runner.py
+（runner 在 VERIFY 當下的比對證據：vault/AI/records/T-0005/evidence/E-006，結果 SAME）
+
+result: PASS
+註：第 4 節列出的 src/legion/{cli,demo,runner}.py 是 T-0005 結案（tick 8）之後，開發者為修正 demo 誤領取問題所做的修改，不是 agent 造成；T-0005 VERIFY 當下的主 repo 狀態比對為 SAME（E-006）。

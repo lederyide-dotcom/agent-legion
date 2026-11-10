@@ -1,0 +1,10 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "有一項驗收標準沒有對應指令:「刪除可由 git 還原(檔案在 d724fcd)」目前沒有任何指令驗證。建議加上 `git rev-parse d724fcd:test_calc.py`(在白名單內,可確認 blob 存在),或 `git show --stat d724fcd`。",
+    "`git diff --stat -- calc.py` 的輸出是空的,容易誤判:空輸出代表未修改,但也可能是指令或路徑寫錯。請在規格中寫明預期輸出為空。`git status --short` 的預期輸出也應寫成只有一行刪除紀錄(` D test_calc.py`),這樣才能同時證明 .gitignore 與其他檔案沒被動。",
+    "刪除的狀態有歧義:「git status 顯示為刪除」沒說是未暫存(` D`)還是已暫存(`D `)。規格應指定其一或兩者都接受,並寫明刪除後不 commit,只留在工作樹。",
+    "規則與任務互相衝突:runner 規則寫「不得…刪除檔案」,但任務本身就是刪除。規格只用風險備註帶過,沒說明誰、用什麼方式執行刪除。建議註明這是經人工確認後的例外,否則 runner 可能直接擋掉,任務無法完成。",
+    "缺少前置檢查(次要):規格宣稱 calc.py 沒有 multiply、test_multiply 會失敗,但驗收沒有確認這一點,也沒確認執行前 git status 是乾淨的。可加一次 `git status --short` 作為執行前基準。"
+  ]
+}

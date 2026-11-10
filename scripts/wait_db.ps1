@@ -1,5 +1,5 @@
 ﻿# 等待 legion-db 變成 healthy，印出耗時；超過上限回傳 exit 1
-param([int]$TimeoutSeconds = 60)
+param([int]$TimeoutSeconds = 30)
 $t = [Diagnostics.Stopwatch]::StartNew()
 do {
   Start-Sleep -Milliseconds 500

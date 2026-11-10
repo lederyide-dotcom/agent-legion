@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import hashlib
 import io
 import json
 import os
@@ -21,23 +22,25 @@ from typing import Any
 from pydantic import ValidationError
 
 from . import prompts, vault
-from .agents import REVIEWER_ROLES, AgentBackend, AgentCall, AgentError, AgentTimeout
+from .agents import REVIEWER_ROLES, AgentBackend, AgentCall, AgentError, AgentFailure, AgentTimeout
 from .checks import narrative_violations
 from .config import Settings
 from .db import Store, utcnow
 from .evidence import EvidenceStore, render_mermaid, render_runs_chart, render_terminal, snapshot_hashes
-from .installs import Installer, RecordingInstaller, append_ledger, classify
+from .installs import Installer, RecordingInstaller, append_ledger, canonical_argv, classify
 from .models import (
     DOC_APPROVED,
     PAUSED_STATES,
+    RISK_ORDER,
     TERMINAL_STATES,
     AgentRun,
     InstallRequest,
     State,
     Task,
+    max_risk,
 )
 from .record import mermaid_flow, render_record
-from .risk import assess
+from .risk import assess, assess_diff
 
 
 class Halt(Exception):
@@ -65,7 +68,7 @@ async def git(args: list[str], cwd: Path, check: bool = True) -> str:
 
 def normalize_cmd(cmd: str) -> list[str]:
     """把驗收指令轉成 argv：python／py -3.x／pytest 一律換成目前 venv 的 python，pytest 關閉快取避免寫檔。"""
-    argv = shlex.split(cmd, posix=True)
+    argv = shlex.split(cmd.replace("\\", "/"), posix=True)
     if not argv:
         raise ValueError("空的驗收指令")
     if argv[0] == "py":
@@ -82,9 +85,12 @@ def normalize_cmd(cmd: str) -> list[str]:
 
 async def run_cmd(cmd: str, cwd: Path, timeout: int) -> tuple[int, str]:
     argv = normalize_cmd(cmd)
-    env = dict(os.environ)
+    # 只傳必要的環境變數：驗收指令會跑 agent 寫的測試，輸出會成為證據並進 git，避免機密外洩
+    keep = {"PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC", "TEMP", "TMP", "USERPROFILE",
+            "HOMEDRIVE", "HOMEPATH", "LOCALAPPDATA", "APPDATA", "PROGRAMDATA", "PROGRAMFILES", "NUMBER_OF_PROCESSORS",
+            "PROCESSOR_ARCHITECTURE", "OS", "USERNAME", "LANG", "PYTHONIOENCODING", "PYTHONUTF8"}
+    env = {k: v for k, v in os.environ.items() if k.upper() in keep}
     env["PYTHONDONTWRITEBYTECODE"] = "1"
-    env.pop("LEGION_CRASH_AT", None)
 
     def go() -> subprocess.CompletedProcess[str]:
         return subprocess.run(argv, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace",
@@ -112,6 +118,7 @@ class Runner:
         self.reviewer = reviewer_agent or agent
         self.installer = installer or RecordingInstaller()
         self.ev = EvidenceStore(store, settings)
+        self.bad_inbox: list[str] = []
 
     # ------------------------------------------------------------ tick
     async def tick(self) -> dict[str, Any]:
@@ -125,6 +132,8 @@ class Runner:
                 summary["halted"] = await self._halt_all("stop_file")
                 return summary
             summary["ingested"] = await self.ingest_inbox()
+            if self.bad_inbox:
+                summary["bad_inbox"] = self.bad_inbox
             active = [t for t in await self.store.list_tasks()
                       if t.state not in TERMINAL_STATES and t.state not in PAUSED_STATES]
             for task in active:
@@ -140,6 +149,10 @@ class Runner:
                     task = await self._halt(await self.store.get_task(task.id), f"timeout: {exc}")
                 except AgentError as exc:
                     task = await self._halt(await self.store.get_task(task.id), f"agent_error: {exc}")
+                except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+                    raise
+                except Exception as exc:  # noqa: BLE001 — 單張任務出錯不得卡住整個系統：轉 HALT 並保留錯誤
+                    task = await self._halt(await self.store.get_task(task.id), f"error: {exc!r}"[:500])
                 summary["advanced"][task.id] = f"{before}→{task.state.value}"
         finally:
             await self.store.unlock()
@@ -174,19 +187,31 @@ class Runner:
     # ------------------------------------------------------------ INBOX
     async def ingest_inbox(self) -> list[str]:
         created = []
-        for path, sha, fm, body in vault.inbox_files(self.s):
+        files, bad = vault.inbox_files(self.s)
+        self.bad_inbox = bad  # 壞檔逐檔隔離：略過並回報，不影響其他想法與任務
+        for path, sha, fm, body in files:
             if await self.store.has_source(sha):
+                continue
+            if "mock" in fm and getattr(self.agent, "name", "") != "mock":
+                # 帶 mock 劇本的想法檔只給 MockAgent；真實 backend 一律跳過，避免 demo 檔被真實 agent 領取花錢
                 continue
             title = str(fm.get("title") or next((ln.strip("# ").strip() for ln in body.splitlines() if ln.strip()),
                                                 path.stem))
+            try:
+                kind = fm.get("kind", "write")
+                if kind not in {"readonly", "write"}:
+                    raise ValueError(f"kind 必須是 readonly 或 write：{kind!r}")
+                task = Task(
+                    id="pending", title=title, body=body.strip(), kind=kind,
+                    parent_id=fm.get("parent_id"), depth=int(fm.get("depth", 0)), repo=fm.get("repo"),
+                    subdir=fm.get("subdir"), source_path=str(path), source_sha=sha,
+                    meta={"mock": fm["mock"]} if "mock" in fm else {},
+                )
+            except (ValueError, TypeError, ValidationError) as exc:
+                self.bad_inbox.append(f"{path.name}: {exc}")
+                continue
             tid = await self.store.next_task_id(self.s.task_prefix)
-            task = Task(
-                id=tid, title=title, body=body.strip(), kind=fm.get("kind", "write"),
-                parent_id=fm.get("parent_id"), depth=int(fm.get("depth", 0)), repo=fm.get("repo"),
-                subdir=fm.get("subdir"), source_path=str(path), source_sha=sha,
-                meta={"mock": fm["mock"]} if "mock" in fm else {},
-            )
-            task = await self.store.insert_task(task)
+            task = await self.store.insert_task(task.model_copy(update={"id": tid}))
             await self._after_change(task)
             created.append(tid)
         return created
@@ -225,7 +250,17 @@ class Runner:
                          attempt=attempt, timeout_s=self.s.call_timeout_s, budget_usd=max(remaining, 0.01),
                          add_dirs=add_dirs or [])
         started = utcnow()
-        res = await backend.run(call)
+        try:
+            res = await backend.run(call)
+        except AgentFailure as exc:
+            # 失敗或逾時也要把花費入帳，避免預算熔斷低估
+            await self.store.record_run(AgentRun(
+                task_id=task.id, state=task.state.value, step=task.step, role=role, backend=backend.name,
+                session_id=exc.session_id or "(none)", cost_usd=exc.cost_usd, duration_s=exc.duration_s,
+                status="timeout" if isinstance(exc, AgentTimeout) else "error", output={"error": str(exc)[:500]},
+                started_at=started,
+            ))
+            raise
         await self.store.record_run(AgentRun(
             task_id=task.id, state=task.state.value, step=task.step, role=role, backend=res.backend,
             model=res.model, session_id=res.session_id, cost_usd=res.cost_usd, duration_s=res.duration_s,
@@ -266,9 +301,10 @@ class Runner:
     def _allowed_prefixes(self, repo: Path) -> list[str]:
         """repo 內允許 runner 自己寫入的區域（vault/AI、install ledger），比對 worktree 外變更時排除。"""
         out = []
-        for p in (self.s.ai_dir, self.s.install_ledger, self.s.worktrees_dir):
+        for p, is_dir in ((self.s.ai_dir, True), (self.s.inbox_dir, True), (self.s.install_ledger, False)):
             try:
-                out.append(p.resolve().relative_to(repo.resolve()).as_posix())
+                rel = p.resolve().relative_to(repo.resolve()).as_posix()
+                out.append(rel + "/" if is_dir else rel)
             except ValueError:
                 continue
         return out
@@ -286,7 +322,14 @@ class Runner:
         wd = self._workdir(task) if task.repo else self.s.ai_dir
         desc = f"{wd}（{task.kind}）"
         out = await self._agent(task, "planner", prompts.planner_prompt(task, self.s.commander_preamble, desc), wd)
-        accept = [str(c) for c in out.get("accept_cmds", [])]
+        # agent 輸出一律視為不可信：型別不符就以保守值處理
+        accept = [str(c).replace("\\", "/") for c in (out.get("accept_cmds") or []) if isinstance(c, str)]
+        proposed = out.get("risk_proposed")
+        if proposed not in RISK_ORDER:
+            proposed = "high"
+        actions_raw = out.get("actions") or []
+        out = {**out, "risk_proposed": proposed,
+               "actions": [a for a in actions_raw if isinstance(a, dict)] if isinstance(actions_raw, list) else []}
         if task.kind == "readonly":  # 唯讀任務的產出是報告：由 runner 以程式檢查報告存在且章節齊全
             rp = (self.s.ai_dir / "reports" / f"{task.id}-report.md").resolve().as_posix()
             accept.append(f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口')
@@ -413,16 +456,61 @@ class Runner:
     async def _do_installs(self, task: Task, reqs: list[InstallRequest], wd: Path, approved: bool) -> None:
         if task.state != State.EXEC:  # 安裝只能發生在 EXEC
             raise Halt("install_outside_exec")
+        done = list(task.meta.get("installed", []))
+        n = 0
         for r in reqs:
+            key = f"{r.manager}:{r.tool}=={r.version}"
+            if key in done:  # 續跑時不重複安裝、不重複寫清冊
+                continue
+            if canonical_argv(r) is None:
+                # MCP／plugin／skill／hook／官方發行檔：runner 不代裝，由 David 手動處理
+                await self.store.add_event(task.id, "install", {"message": f"{r.tool}：需 David 手動安裝（runner 不代裝）"})
+                continue
             level = "ask" if approved else classify(r).level
             await self.installer.install(r, wd)
             row = append_ledger(self.s.install_ledger, task.id, r, level)
+            done.append(key)
+            n += 1
+            meta = dict((await self.store.get_task(task.id)).meta)
+            meta["installed"] = done
+            await self.store.update_task(task.id, meta=meta)
             await self.store.add_event(task.id, "install", {"message": f"{r.tool} {r.version}（{row['level']}）",
                                                             **row})
-        await self.store.update_task(task.id, install_count=task.install_count + len(reqs))
+        await self.store.update_task(task.id, install_count=task.install_count + n)
 
     # ------------------------------------------------------------ VERIFY
+    async def _diff_gate(self, task: Task) -> Task | None:
+        """依實際 diff 重新判定風險（agent 自報的 actions 可能漏列）；high → WAIT_HUMAN，mid → 記通知。"""
+        if task.kind != "write" or not task.worktree:
+            return None
+        wt = Path(task.worktree)
+        await git(["add", "-A"], wt)
+        ns = await git(["diff", "--cached", "--name-status", task.base_commit or "HEAD"], wt)
+        risk, reasons = assess_diff(ns)
+        if risk == "low":
+            return None
+        sig = hashlib.sha256(ns.encode("utf-8")).hexdigest()
+        meta = dict(task.meta)
+        if meta.get("approved_diff_sig") == sig:
+            return None  # David 已核准這份 diff
+        new_risk = max_risk(task.risk, risk)
+        reasons_all = [*task.risk_reasons, *[r for r in reasons if r not in task.risk_reasons]]
+        if risk == "mid":
+            if not meta.get("diff_mid_notified") == sig:
+                await self.store.add_event(task.id, "notify", {"message": "實際變更為 mid：" + "；".join(reasons)})
+                meta["diff_mid_notified"] = sig
+            await self.store.update_task(task.id, risk=new_risk, risk_reasons=reasons_all, meta=meta)
+            return None
+        vault.write_question(self.s, task, "實際變更判定為 high 風險，需 David 核准", reasons)
+        meta["pending_diff_sig"] = sig
+        task = await self.store.update_task(task.id, risk=new_risk, risk_reasons=reasons_all, meta=meta)
+        return await self._go(task, State.WAIT_HUMAN, {"reason": "diff_high"}, wait_reason="實際變更為 high 風險",
+                              return_state=State.VERIFY)
+
     async def _verify(self, task: Task) -> Task:
+        gated = await self._diff_gate(task)
+        if gated is not None:
+            return gated
         wd = self._workdir(task)
         n = len(task.meta.get("verify_runs", [])) + 1
         cmds_res: list[dict[str, Any]] = []
@@ -594,6 +682,8 @@ class Runner:
         meta = dict(task.meta)
         if meta.get("pending_installs"):
             meta["pending_installs_approved"] = True
+        if meta.get("pending_diff_sig"):
+            meta["approved_diff_sig"] = meta.pop("pending_diff_sig")
         task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state or State.EXEC, {"approved_by": by}, wait_reason=None)
 
@@ -603,6 +693,15 @@ class Runner:
             raise ValueError(f"{task_id} 不是可續跑的 HALT")
         task = await self.store.human_touch(task_id, "manual_state_change", {"by": by, "action": "resume"})
         return await self._go(task, task.return_state, {"resumed_by": by}, halt_reason=None, retries=0)
+
+    async def cancel(self, task_id: str, by: str, reason: str) -> Task:
+        """人工取消：轉入 HALT（計入 human_touches）。"""
+        task = await self.store.get_task(task_id)
+        if task.state in TERMINAL_STATES:
+            raise ValueError(f"{task_id} 已是 {task.state.value}")
+        task = await self.store.human_touch(task_id, "manual_state_change", {"by": by, "action": "cancel",
+                                                                            "reason": reason})
+        return await self._halt(task, f"operator_cancel: {reason}")
 
     async def approve_doc(self, task_id: str, by: str) -> Task:
         task = await self.store.human_touch(task_id, "doc_approval", {"by": by})

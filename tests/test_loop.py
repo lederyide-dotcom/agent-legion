@@ -1,7 +1,7 @@
 """閉環、回灌、高風險、風險不可降級、VERIFY 不採信自述、熔斷、審查獨立。"""
 from __future__ import annotations
 
-from conftest import Env, State, by_title, low_mock, run
+from conftest import CALC_OK, Env, State, by_title, low_mock, run
 
 from legion.agents import AgentCall, ClaudeCliAgent, tool_profile
 from legion.models import Task
@@ -240,3 +240,74 @@ def test_readonly_task_without_proper_report_is_not_accepted(env: Env) -> None:
                                           exec=[{"claim": "done", "report_md": "# 很短"}]), kind="readonly")
     t = run(env.run_until())[0]
     assert t.state == State.HALT and (t.halt_reason or "").startswith("retry_exceeded")
+
+
+# ---- 審查後補強的測試 ----
+from legion.risk import accept_cmd_allowed  # noqa: E402
+
+
+def test_accept_cmd_whitelist_rejects_dangerous_args() -> None:
+    ok = ["python -m pytest -q", "py -3.10 -m pytest -q tests/test_x.py", "pytest -x -k \"add and not slow\"",
+          "python -m pytest tests\\test_x.py", "git status --porcelain", "git diff --stat HEAD~1", "git log --oneline -5"]
+    bad = ["python -m pytest --basetemp=D:/somewhere", "python -m pytest --junitxml=C:/x.xml",
+           "git diff --output=../../x.txt", "python -m pytest -p evil_plugin", "python -m pytest -c other.ini",
+           "python -m pytest --rootdir=/", "pytest \"a", "python -m pytest ../outside", "git -C .. status",
+           "git push origin main", "python -m pytest && curl x", "python -m pip install x==1"]
+    for c in ok:
+        assert accept_cmd_allowed(c), c
+    for c in bad:
+        assert not accept_cmd_allowed(c), c
+
+
+def test_readonly_executor_gets_readonly_tools() -> None:
+    prof = tool_profile("executor", "readonly")
+    assert set(prof.tools) == {"Read", "Glob", "Grep"}
+    assert "Edit" in prof.deny and "Bash" in prof.deny
+    w = tool_profile("executor", "write")
+    assert "Edit(.claude/**)" in w.deny and "Read(//**/.ssh/**)" in w.deny
+
+
+def test_undeclared_delete_in_diff_raises_risk_to_high(env: Env) -> None:
+    # PLAN 只宣告 write，EXEC 實際卻刪檔：VERIFY 依實際 diff 判 high → WAIT_HUMAN
+    env.idea("d", "sneaky delete", low_mock(exec=[{"claim": "passed", "write_files": {"calc.py": CALC_OK},
+                                                   "delete_files": [".gitignore"]}]))
+    t = run(env.run_until())[0]
+    assert t.state == State.WAIT_HUMAN and t.risk == "high" and t.return_state == State.VERIFY
+    assert any("刪除" in r for r in t.risk_reasons)
+
+    async def go() -> None:
+        st = await env.store()
+        t2 = await Runner(env.settings, st, env.agent).answer(t.id, True, "David")
+        assert t2.state == State.VERIFY
+        await st.close()
+        st = await env.ticks()
+        t3 = await st.get_task(t.id)
+        assert t3.state == State.DONE and t3.human_touches == 1
+        await st.close()
+
+    run(go())
+
+
+def test_unexpected_exception_halts_only_that_task(env: Env) -> None:
+    env.idea("a", "boom", low_mock(crash_roles=["executor"]))
+    env.idea("b", "fine", low_mock())
+    (env.settings.inbox_dir / "c-bad.md").write_bytes(b"---\ntitle: [unclosed\n---\nx")
+    (env.settings.inbox_dir / "d-badenc.md").write_bytes(b"\xff\xfe\xfa bad")
+    tasks = run(env.run_until())
+    boom, fine = by_title(tasks, "boom"), by_title(tasks, "fine")
+    assert boom.state == State.HALT and (boom.halt_reason or "").startswith("error:")
+    assert fine.state == State.DONE
+    assert len(tasks) == 2
+
+
+def test_failed_agent_call_cost_is_recorded(env: Env) -> None:
+    env.idea("e", "erroring", low_mock(error_roles=["executor"]))
+    t = run(env.run_until())[0]
+    assert t.state == State.HALT and (t.halt_reason or "").startswith("agent_error")
+    assert abs(t.cost_usd - (0.01 * 2 + 0.02)) < 1e-9  # PLAN、SPEC_REVIEW 各 0.01 ＋ 失敗的 EXEC 0.02
+
+
+def test_timeout_cost_is_recorded_conservatively(env: Env) -> None:
+    env.idea("t", "slow2", low_mock(timeout_roles=["executor"]))
+    t = run(env.run_until())[0]
+    assert t.state == State.HALT and t.cost_usd > 0.02  # 逾時以單次呼叫上限入帳

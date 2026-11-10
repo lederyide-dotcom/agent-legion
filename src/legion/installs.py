@@ -4,7 +4,10 @@ from __future__ import annotations
 import asyncio
 import csv
 import re
+import shlex
+import shutil
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Protocol
@@ -32,6 +35,8 @@ _ADMIN_HINT = re.compile(
     r"|\bsetx\s+/m\b|\breg\s+add\b|\bnetsh\b|\bsc\s+create\b|\bStart-Process\b.*-Verb\s+RunAs",
     re.IGNORECASE,
 )
+
+_TOOL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/@\[\],]{0,127}$")
 
 AUTO_SOURCES = {
     "pip": {"pypi"},
@@ -65,6 +70,22 @@ def classify(req: InstallRequest) -> InstallDecision:
         need_ask(f"授權條款非開放原始碼或無法判定：{req.license!r}")
     if req.name_source not in {"official_docs", "lockfile"}:
         need_ask("套件名稱未出自官方文件或既有 lockfile（防仿冒套件）")
+    if not _TOOL_RE.match(req.tool):
+        need_ask(f"套件名稱含不允許的字元：{req.tool!r}")
+    if req.manager == "official-release":
+        need_ask("本輪 runner 不支援自動下載官方發行檔（無法以程式驗證來源與完整性）")
+    canon = canonical_argv(req)
+    if canon is not None and not ask:
+        try:
+            given = shlex.split(req.command.replace("\\", "/"), posix=True)
+        except ValueError:
+            given = []
+        if given[:1] in (["py"],) and len(given) > 1 and given[1].startswith("-3"):
+            given = ["python", *given[2:]]
+        if given != canon:
+            need_ask(f"安裝指令必須逐字為 `{' '.join(canon)}`（不得有額外參數、來源或 shell 符號），收到：{req.command!r}")
+    if req.uninstall_command:
+        need_ask("移除指令由 runner 產生，不接受 agent 自填")
 
     level = "ask"
     if not ask:
@@ -77,17 +98,29 @@ def classify(req: InstallRequest) -> InstallDecision:
         elif req.manager == "winget" and req.source.lower() == "winget" and req.scope == "user":
             level = "auto_notify"
             reasons.append("winget 官方來源、使用者層級")
-        elif req.manager == "official-release" and req.scope == "user":
-            level = "auto_notify"
-            reasons.append("工具官方發行頁、使用者層級")
         else:
             reasons.append("不符合任何自動條件")
     return InstallDecision(level=level, reasons=reasons)  # type: ignore[arg-type]
 
 
+def canonical_argv(req: InstallRequest) -> list[str] | None:
+    """runner 唯一接受（也是唯一會執行）的安裝指令形式。"""
+    v = req.version or ""
+    if req.manager == "pip":
+        return ["python", "-m", "pip", "install", f"{req.tool}=={v}"]
+    if req.manager == "uv":
+        return ["uv", "pip", "install", f"{req.tool}=={v}"]
+    if req.manager == "npm":
+        return ["npm", "install", "--save-exact", f"{req.tool}@{v}"]
+    if req.manager == "docker":
+        return ["docker", "pull", f"{req.tool}:{v}"]
+    if req.manager == "winget":
+        return ["winget", "install", "--id", req.tool, "--version", v, "--scope", "user", "--exact",
+                "--source", "winget"]
+    return None
+
+
 def uninstall_command(req: InstallRequest) -> str:
-    if req.uninstall_command:
-        return req.uninstall_command
     if req.manager in {"pip", "uv"}:
         return f"python -m pip uninstall -y {req.tool}"
     if req.manager == "npm":
@@ -136,11 +169,23 @@ class RecordingInstaller:
 
 
 class ShellInstaller:
-    """真實安裝：只會被 runner 對 auto／auto_notify 等級呼叫，且只在 EXEC 狀態。"""
+    """真實安裝：只會被 runner 對 auto／auto_notify 等級（或 David 核准後）呼叫，且只在 EXEC 狀態。
+    一律執行 canonical_argv（argv、不經 shell），不執行 agent 提供的原始字串。"""
 
     async def install(self, req: InstallRequest, cwd: Path) -> None:
+        argv = canonical_argv(req)
+        if argv is None:
+            raise RuntimeError(f"{req.manager} 沒有可自動執行的標準安裝指令，需人工安裝")
+        if argv[0] == "python":
+            argv = [sys.executable, *argv[1:]]
+        else:
+            exe = shutil.which(argv[0])
+            if exe is None:
+                raise RuntimeError(f"找不到 {argv[0]}")
+            argv = [exe, *argv[1:]]
+
         def run() -> subprocess.CompletedProcess[str]:
-            return subprocess.run(req.command, shell=True, cwd=cwd, capture_output=True, text=True, timeout=900)
+            return subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=900)
 
         proc = await asyncio.to_thread(run)
         if proc.returncode != 0:

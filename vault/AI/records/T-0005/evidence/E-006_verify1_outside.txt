@@ -1,0 +1,12 @@
+worktree 以外沒有檔案被修改（主 repo git 狀態相同）
+
+before HEAD: 25be70ff473590f4ef49e964a17a5f840651d1e9
+after  HEAD: 25be70ff473590f4ef49e964a17a5f840651d1e9
+
+before status:
+?? vault/INBOX/real-b-word-count.md
+
+after status:
+?? vault/INBOX/real-b-word-count.md
+
+result: SAME

@@ -1,0 +1,10 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "我實際讀了這兩個檔案，規格與現況一致。calc.py 目前只有 add。test_calc.py 已經有 test_multiply，內容是 multiply(4,5)==20，並從 calc 匯入 add 和 multiply。因此現在 pytest 會在匯入時失敗，加入 multiply 後就會通過。",
+    "範圍明確，只改 calc.py 並新增一個函式，實作 `return a * b` 就足夠。",
+    "兩條驗收指令都符合 runner 規則：`python -m pytest` 和 `git status --short`，沒有 shell 符號，也不需要安裝套件或連網。",
+    "小建議，不影響 pass：`git status --short` 只能確認有哪些檔案變更，不會自動判定通過或失敗。審查時要確認輸出只有 ` M calc.py`。也可以另外加 `git diff --stat` 讓範圍更清楚。",
+    "小建議，不影響 pass：目前只有一個測試案例 (4,5)。這個任務很簡單，足夠使用。"
+  ]
+}

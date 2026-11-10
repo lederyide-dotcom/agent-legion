@@ -148,6 +148,9 @@ async def run_demo(settings: Settings, max_ticks: int = 40) -> dict[str, Any]:
             if new:
                 w.writeheader()
             w.writerows(rows)
+        # demo 的想法檔與回灌檔不留在共用 INBOX，避免被正式 tick 領取
+        for p in [*settings.inbox_dir.glob("demo-*.md"), *settings.inbox_dir.glob(f"fu-{settings.task_prefix}-*.md")]:
+            p.unlink()
         states = {t.title: t.state for t in tasks}
         result["ok"] = (
             states.get("demo：為 calc 新增 multiply") == State.DONE

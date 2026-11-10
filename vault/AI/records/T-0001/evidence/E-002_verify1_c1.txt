@@ -1,0 +1,13 @@
+$ python -m pytest test_calc.py
+# cwd: D:\202611_agent-legion\.worktrees\T-0001
+# exit: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-8.3.4, pluggy-1.7.0
+rootdir: D:\202611_agent-legion
+configfile: pyproject.toml
+collected 2 items
+
+test_calc.py ..                                                          [100%]
+
+============================== 2 passed in 0.01s ==============================

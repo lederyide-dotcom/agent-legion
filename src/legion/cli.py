@@ -12,6 +12,7 @@ from typing import Any
 from .agents import AgentBackend, ClaudeCliAgent, MockAgent, reviewer_backend
 from .config import Settings
 from .db import Store
+from .installs import RecordingInstaller, ShellInstaller
 from .runner import Runner
 from .vault import init_vault, weekly_report
 
@@ -65,6 +66,10 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("resume")
     r.add_argument("task_id")
     r.add_argument("--by", default=os.environ.get("USERNAME", "David"))
+    cc = sub.add_parser("cancel")
+    cc.add_argument("task_id")
+    cc.add_argument("--by", default=os.environ.get("USERNAME", "David"))
+    cc.add_argument("--reason", required=True)
     ad = sub.add_parser("approve-doc")
     ad.add_argument("task_id")
     ad.add_argument("--by", default=os.environ.get("USERNAME", "David"))
@@ -112,7 +117,8 @@ def main(argv: list[str] | None = None) -> int:
             print(note)
 
         async def go(st: Store) -> Any:
-            return await Runner(s, st, main_b, rev_b).tick()
+            installer = ShellInstaller() if args.backend == "claude" else RecordingInstaller()
+            return await Runner(s, st, main_b, rev_b, installer=installer).tick()
 
         print(json.dumps(asyncio.run(_with_store(s, go)), ensure_ascii=False, indent=2))
         return 0
@@ -125,6 +131,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "resume":
             t = await runner.resume(args.task_id, args.by)
             return f"{t.id} → {t.state.value}"
+        if args.cmd == "cancel":
+            t = await runner.cancel(args.task_id, args.by, args.reason)
+            return f"{t.id} → {t.state.value}（{t.halt_reason}）"
         if args.cmd == "approve-doc":
             t = await runner.approve_doc(args.task_id, args.by)
             return f"{t.id} 文件 → {t.doc_status}（{t.doc_approved_by}）"

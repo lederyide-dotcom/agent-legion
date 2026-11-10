@@ -28,7 +28,15 @@ READONLY_ROLES = frozenset({"planner", "spec_reviewer", "reviewer", "scribe"})
 REVIEWER_ROLES = frozenset({"spec_reviewer", "reviewer"})
 ALL_ROLES = READONLY_ROLES | {"executor"}
 
-ENV_DENY = ["Read(**/.env)", "Read(**/.env.*)", "Bash(*.env*)"]
+ENV_DENY = [
+    "Read(**/.env)", "Read(**/.env.*)", "Bash(*.env*)",
+    # 金鑰與憑證（spec：讀取須先問）
+    "Read(//**/.ssh/**)", "Read(//**/*.pem)", "Read(//**/*.key)", "Read(//**/*.pfx)", "Read(//**/id_rsa*)",
+    "Read(//**/id_ed25519*)", "Read(//**/.credentials.json)", "Read(~/.claude/**)", "Read(~/.aws/**)",
+    "Bash(*.ssh*)", "Bash(*.pem*)", "Bash(*credentials*)",
+]
+# executor 不得改寫會改變 agent 行為的設定（hook、權限、MCP）
+CONFIG_DENY = ["Edit(.claude/**)", "Edit(**/.claude/**)", "Edit(**/.mcp.json)"]
 INSTALL_DENY = [
     "Bash(pip *)", "Bash(pip3 *)", "Bash(* -m pip *)", "Bash(uv *)", "Bash(npm *)", "Bash(npx *)", "Bash(pnpm *)",
     "Bash(yarn *)", "Bash(winget *)", "Bash(choco *)", "Bash(scoop *)", "Bash(curl *)", "Bash(wget *)",
@@ -55,8 +63,9 @@ class ToolProfile(BaseModel):
     permission_mode: str
 
 
-def tool_profile(role: str) -> ToolProfile:
-    if role in READONLY_ROLES:
+def tool_profile(role: str, kind: str = "write") -> ToolProfile:
+    """依角色與任務類型決定工具。唯讀任務的 executor 也只給唯讀工具（報告經由 report_md 回傳）。"""
+    if role in READONLY_ROLES or (role == "executor" and kind == "readonly"):
         return ToolProfile(
             tools=["Read", "Glob", "Grep"],
             allow=["Read", "Glob", "Grep"],
@@ -67,7 +76,7 @@ def tool_profile(role: str) -> ToolProfile:
         return ToolProfile(
             tools=["Read", "Glob", "Grep", "Edit", "Write", "Bash"],
             allow=["Read", "Glob", "Grep", "Edit", "Write", *EXEC_BASH_ALLOW],
-            deny=[*ENV_DENY, *INSTALL_DENY, *GIT_DENY, "WebFetch", "WebSearch"],
+            deny=[*ENV_DENY, *CONFIG_DENY, *INSTALL_DENY, *GIT_DENY, "WebFetch", "WebSearch"],
             permission_mode="acceptEdits",
         )
     raise ValueError(f"未知角色：{role}")
@@ -87,12 +96,34 @@ class AgentCall(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class AgentTimeout(Exception):
+class AgentFailure(Exception):
+    """agent 呼叫失敗；cost_usd 為已花掉（或保守估計）的金額，runner 會照記入帳，避免預算低估。"""
+
+    def __init__(self, msg: str, cost_usd: float = 0.0, session_id: str | None = None,
+                 duration_s: float = 0.0) -> None:
+        super().__init__(msg)
+        self.cost_usd = cost_usd
+        self.session_id = session_id
+        self.duration_s = duration_s
+
+
+class AgentTimeout(AgentFailure):
     pass
 
 
-class AgentError(Exception):
+class AgentError(AgentFailure):
     pass
+
+
+def _kill_tree(pid: int) -> None:
+    """逾時時連同子孫行程一起結束（Bash 工具開的 shell 可能握著 stdout 管線）。"""
+    if sys.platform == "win32":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(pid)], capture_output=True, timeout=30)
+    else:
+        try:
+            os.killpg(pid, 9)
+        except OSError:
+            pass
 
 
 class AgentBackend(Protocol):
@@ -112,7 +143,7 @@ class ClaudeCliAgent:
         self.exe = exe
 
     def build_cmd(self, call: AgentCall, settings_path: Path) -> list[str]:
-        prof = tool_profile(call.role)
+        prof = tool_profile(call.role, call.task.kind)
         cmd = [
             self.exe, "-p", "--output-format", "json",
             "--json-schema", json.dumps(call.schema_, ensure_ascii=False),
@@ -132,7 +163,7 @@ class ClaudeCliAgent:
         return cmd
 
     async def run(self, call: AgentCall) -> AgentResult:
-        prof = tool_profile(call.role)
+        prof = tool_profile(call.role, call.task.kind)
         with tempfile.TemporaryDirectory(prefix="legion-") as td:
             settings_path = Path(td) / "settings.json"
             settings_path.write_text(
@@ -143,29 +174,48 @@ class ClaudeCliAgent:
             env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
             t0 = time.monotonic()
 
-            def go() -> subprocess.CompletedProcess[str]:
-                return subprocess.run(
-                    cmd, input=call.prompt, capture_output=True, text=True, encoding="utf-8",
-                    cwd=call.cwd, timeout=call.timeout_s, env=env,
+            def go() -> tuple[int, str, str]:
+                flags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                p = subprocess.Popen(
+                    cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    encoding="utf-8", errors="replace", cwd=call.cwd, env=env, creationflags=flags,
                 )
+                try:
+                    so, se = p.communicate(call.prompt, timeout=call.timeout_s)
+                except subprocess.TimeoutExpired:
+                    _kill_tree(p.pid)
+                    try:
+                        p.communicate(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        pass
+                    raise
+                return p.returncode, so, se
 
             try:
-                proc = await asyncio.to_thread(go)
+                code, stdout, stderr = await asyncio.to_thread(go)
             except subprocess.TimeoutExpired as exc:
-                raise AgentTimeout(f"{call.role} 超過 {call.timeout_s} 秒") from exc
+                # 實際花費未知，以本次呼叫上限（--max-budget-usd）保守入帳
+                raise AgentTimeout(f"{call.role} 超過 {call.timeout_s} 秒", cost_usd=call.budget_usd,
+                                   duration_s=float(call.timeout_s)) from exc
         dur = time.monotonic() - t0
         try:
-            data = json.loads(proc.stdout)
+            data = json.loads(stdout)
         except json.JSONDecodeError as exc:
-            raise AgentError(f"claude 輸出不是 JSON（exit {proc.returncode}）：{proc.stderr[-400:]}") from exc
+            raise AgentError(f"claude 輸出不是 JSON（exit {code}）：{stderr[-400:]}", duration_s=dur) from exc
+        cost = float(data.get("total_cost_usd") or 0.0)
+        sid = str(data.get("session_id") or "") or None
         if data.get("is_error") or data.get("subtype") != "success":
-            raise AgentError(f"claude 回報錯誤：subtype={data.get('subtype')} result={str(data.get('result'))[:300]}")
+            raise AgentError(f"claude 回報錯誤：subtype={data.get('subtype')} result={str(data.get('result'))[:300]}",
+                             cost_usd=cost, session_id=sid, duration_s=dur)
         out = data.get("structured_output")
         if not isinstance(out, dict):  # structured_output 可能不存在，退回解析 result
             try:
                 out = json.loads(data.get("result") or "")
             except json.JSONDecodeError as exc:
-                raise AgentError("沒有 structured_output，result 也不是 JSON") from exc
+                raise AgentError("沒有 structured_output，result 也不是 JSON", cost_usd=cost, session_id=sid,
+                                 duration_s=dur) from exc
+            if not isinstance(out, dict):
+                raise AgentError("result 不是 JSON 物件", cost_usd=cost, session_id=sid, duration_s=dur)
         out["_permission_denials"] = data.get("permission_denials") or []
         return AgentResult(
             output=out,
@@ -215,7 +265,11 @@ class MockAgent:
     async def run(self, call: AgentCall) -> AgentResult:
         sc: dict[str, Any] = call.task.meta.get("mock", {})
         if call.role in sc.get("timeout_roles", []):
-            raise AgentTimeout(f"mock：{call.role} 逾時")
+            raise AgentTimeout(f"mock：{call.role} 逾時", cost_usd=call.budget_usd)
+        if call.role in sc.get("error_roles", []):
+            raise AgentError(f"mock：{call.role} 回報錯誤", cost_usd=0.02, session_id=f"mock-{uuid.uuid4()}")
+        if call.role in sc.get("crash_roles", []):
+            raise RuntimeError(f"mock：{call.role} 非預期例外")
         sid = f"mock-{uuid.uuid4()}"
         self.calls.append((call.task.id, call.role, sid))
         cost = float(sc.get("cost", self.cost))
@@ -240,6 +294,8 @@ class MockAgent:
                 p = call.cwd / rel
                 p.parent.mkdir(parents=True, exist_ok=True)
                 p.write_text(content, encoding="utf-8")
+            for rel in beh.get("delete_files", []):  # 模擬 agent 未在 PLAN 宣告就刪檔
+                (call.cwd / rel).unlink()
             out = {
                 "summary": beh.get("summary", "mock 執行完成"),
                 "claim": beh.get("claim", "passed"),
