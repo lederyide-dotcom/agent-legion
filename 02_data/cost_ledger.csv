@@ -1,0 +1,54 @@
+time,schema,task,role,backend,model,session_id,status,cost_usd,note
+2026-11-10T17:45:43+00:00,legion,T-0001,(task total),claude,sonnet,(backfill),backfill,0.220523,回填：vault/AI/tasks 筆記的任務總額（DB 已重建，無逐次紀錄）
+2026-11-10T23:41:20+00:00,legion,T-0002,(task total),claude,sonnet,(backfill),backfill,0.194787,回填：vault/AI/tasks 筆記的任務總額（DB 已重建，無逐次紀錄）
+2026-11-10T23:41:20+00:00,legion,T-0003,(task total),claude,sonnet,(backfill),backfill,0.130540,回填：vault/AI/tasks 筆記的任務總額（DB 已重建，無逐次紀錄）
+2026-11-10T23:41:21+00:00,legion,T-0004,(task total),claude,sonnet,(backfill),backfill,0.104797,回填：vault/AI/tasks 筆記的任務總額（DB 已重建，無逐次紀錄）
+2026-11-10T17:46:16+00:00,legion,T-0005,(task total),claude,sonnet,(backfill),backfill,0.166917,回填：vault/AI/tasks 筆記的任務總額（DB 已重建，無逐次紀錄）
+2026-11-11T12:28:38+00:00,legion,T-0006,planner,claude,sonnet,5ed85c77-b460-424d-91d9-145eb7a7fac9,completed,0.054800,回填：DB agent_runs
+2026-11-11T12:29:18+00:00,legion,T-0006,spec_reviewer,claude,sonnet,e1277e7f-5e71-4f2b-8065-638a92e9c330,completed,0.048130,回填：DB agent_runs
+2026-11-11T12:29:34+00:00,legion,T-0006,planner,claude,sonnet,6966a56b-fd35-4ed2-a506-e4704821d732,completed,0.019024,回填：DB agent_runs
+2026-11-11T12:30:10+00:00,legion,T-0006,spec_reviewer,claude,sonnet,6a8f66fb-163a-4fcc-b646-54dd727e32b2,completed,0.042173,回填：DB agent_runs
+2026-11-11T12:30:32+00:00,legion,T-0006,planner,claude,sonnet,8b734425-eba7-4436-9f85-dad91d89ecf0,completed,0.043298,回填：DB agent_runs
+2026-11-11T12:31:02+00:00,legion,T-0006,spec_reviewer,claude,sonnet,15143d20-6005-47e7-b9cf-872c9adf8cd1,completed,0.056826,回填：DB agent_runs
+2026-11-11T12:31:30+00:00,legion,T-0006,planner,claude,sonnet,86570c24-3aaf-4a9a-a905-0798f1df419e,completed,0.022798,回填：DB agent_runs
+2026-11-11T12:32:09+00:00,legion,T-0006,spec_reviewer,claude,sonnet,18827f17-6275-4dc6-9f09-3c0164ec718e,completed,0.048363,回填：DB agent_runs
+2026-11-11T12:37:22+00:00,legion,T-0007,planner,claude,sonnet,0d2a741b-1099-4cde-a0ea-51d4c2ea9441,completed,0.061518,回填：DB agent_runs
+2026-11-11T12:38:08+00:00,legion,T-0007,spec_reviewer,claude,sonnet,93465b74-eda4-4e97-8c34-c24a31818f32,completed,0.031325,回填：DB agent_runs
+2026-11-11T12:38:23+00:00,legion,T-0007,planner,claude,sonnet,e3e46515-18d4-4516-ab20-2489121583e8,completed,0.069230,回填：DB agent_runs
+2026-11-11T12:38:53+00:00,legion,T-0007,spec_reviewer,claude,sonnet,bd3124ff-ea41-4ea4-83a5-d557f05c8d4a,completed,0.057535,回填：DB agent_runs
+2026-11-11T12:39:27+00:00,legion,T-0007,planner,claude,sonnet,377a0c4b-7967-4271-aef3-bff7b37fa0f0,completed,0.046911,回填：DB agent_runs
+2026-11-11T12:39:49+00:00,legion,T-0007,spec_reviewer,claude,sonnet,a1e6395b-0071-43fd-b493-dc6f8830ed2f,completed,0.045312,回填：DB agent_runs
+2026-11-11T12:40:14+00:00,legion,T-0007,planner,claude,sonnet,004b9e1a-00c9-460b-b909-ef213faa57ad,completed,0.047600,回填：DB agent_runs
+2026-11-11T12:40:37+00:00,legion,T-0007,spec_reviewer,claude,sonnet,309161bb-79fb-4358-93ce-68dcf742281c,completed,0.060655,回填：DB agent_runs
+2026-11-11T12:46:09+00:00,legion,T-0008,planner,claude,sonnet,2a0fe4c2-8c55-4add-a3f6-43db4c783307,completed,0.056869,回填：DB agent_runs
+2026-11-11T12:46:54+00:00,legion,T-0008,spec_reviewer,claude,sonnet,65ee7c72-ce97-487f-a3f6-252377b1713b,completed,0.032827,回填：DB agent_runs
+2026-11-11T12:47:11+00:00,legion,T-0008,executor,claude,sonnet,604cb007-2b10-488f-92f3-ad3e3f2545b8,completed,0.313547,回填：DB agent_runs
+2026-11-11T12:49:08+00:00,legion,T-0008,reviewer,claude,sonnet,97ddac6d-4d81-4b2d-9d95-ee32f5e6d7a9,completed,0.096738,回填：DB agent_runs
+2026-11-11T12:49:26+00:00,legion,T-0008,scribe,claude,sonnet,b2c7bae3-00f2-4b6e-bf0b-c301dd8ad01b,completed,0.070814,回填：DB agent_runs
+2026-11-11T12:49:48+00:00,legion,T-0009,planner,claude,sonnet,85deb0ef-f9c6-4fdb-b649-081afbf243be,completed,0.033487,回填：DB agent_runs
+2026-11-11T12:51:18+00:00,legion,T-0009,spec_reviewer,claude,sonnet,ef44a6c6-0c14-4b3c-a01a-43057e6cb608,completed,0.045435,回填：DB agent_runs
+2026-11-11T12:52:08+00:00,legion,T-0009,executor,claude,sonnet,1842ab7f-de3b-46d2-98f2-74b9f5b10429,completed,0.105562,回填：DB agent_runs
+2026-11-11T12:54:47+00:00,legion,T-0009,reviewer,claude,sonnet,b244ef0c-853d-401e-89d4-3cf6eb31a684,completed,0.072827,回填：DB agent_runs
+2026-11-11T12:55:15+00:00,legion,T-0009,scribe,claude,sonnet,edc1cb85-353d-4ad7-89f6-fffcab4ce373,completed,0.048682,回填：DB agent_runs
+2026-11-11T12:50:38+00:00,legion,T-0010,planner,claude,sonnet,4693a13b-44ee-45d5-9a1a-d7b40446af4a,completed,0.043060,回填：DB agent_runs
+2026-11-11T12:51:47+00:00,legion,T-0010,spec_reviewer,claude,sonnet,c12d3e42-f270-4da3-a5aa-3f201bac1cc8,completed,0.035700,回填：DB agent_runs
+2026-11-11T12:53:38+00:00,legion,T-0010,executor,claude,sonnet,dc455ee4-a114-44aa-9550-68f818bba20d,completed,0.216208,回填：DB agent_runs
+2026-11-11T12:55:00+00:00,legion,T-0010,reviewer,claude,sonnet,0509bacb-e63b-4277-b36c-26d86ebf7a40,completed,0.069140,回填：DB agent_runs
+2026-11-11T12:55:33+00:00,legion,T-0010,scribe,claude,sonnet,5f4abf9b-0925-4116-8c42-216ececd31bd,completed,0.053668,回填：DB agent_runs
+2026-11-11T12:55:52+00:00,legion,T-0011,planner,claude,sonnet,cd33ee10-0442-418e-b019-bcd68f8c5191,completed,0.034807,回填：DB agent_runs
+2026-11-11T12:57:37+00:00,legion,T-0011,spec_reviewer,claude,sonnet,60825ca7-0d9c-4716-8798-2ceadade73e7,completed,0.033301,回填：DB agent_runs
+2026-11-11T12:58:17+00:00,legion,T-0011,executor,claude,sonnet,8d04aa3d-c76e-4921-a456-29ba7d88626d,completed,0.135381,回填：DB agent_runs
+2026-11-11T13:00:54+00:00,legion,T-0011,reviewer,claude,sonnet,30eedf6f-5fa5-4abc-ab00-14d04476e756,completed,0.060454,回填：DB agent_runs
+2026-11-11T13:01:37+00:00,legion,T-0011,scribe,claude,sonnet,7dec2e65-39af-4152-99c7-0967b7684cd7,completed,0.056480,回填：DB agent_runs
+2026-11-11T12:56:26+00:00,legion,T-0012,planner,claude,sonnet,4657b97c-924f-4ebb-aeb8-b3ed9cb4670f,completed,0.033892,回填：DB agent_runs
+2026-11-11T12:57:50+00:00,legion,T-0012,spec_reviewer,claude,sonnet,dcad6063-24cb-4b6d-83cb-8070e23465b2,completed,0.026787,回填：DB agent_runs
+2026-11-11T12:56:41+00:00,legion,T-0013,planner,claude,sonnet,eadb5c8a-baf6-4271-af72-e413d9cca6da,completed,0.043627,回填：DB agent_runs
+2026-11-11T12:57:57+00:00,legion,T-0013,spec_reviewer,claude,sonnet,456a46bb-c937-4d2f-ad28-87a4427d6fad,completed,0.032193,回填：DB agent_runs
+2026-11-11T12:59:21+00:00,legion,T-0013,executor,claude,sonnet,f3a8ab27-e87a-4c15-b00c-a427c384d48f,completed,0.168462,回填：DB agent_runs
+2026-11-11T13:01:07+00:00,legion,T-0013,reviewer,claude,sonnet,6dcb9ad0-400c-4a9f-981b-ca7d15477e49,completed,0.069886,回填：DB agent_runs
+2026-11-11T13:01:57+00:00,legion,T-0013,scribe,claude,sonnet,adc04e63-6ece-4b27-979b-dba5b97c7d74,completed,0.054146,回填：DB agent_runs
+2026-11-11T12:57:21+00:00,legion,T-0014,planner,claude,sonnet,1cc69d2c-4333-4a1b-8eae-0a4f2be728ab,completed,0.034930,回填：DB agent_runs
+2026-11-11T12:58:09+00:00,legion,T-0014,spec_reviewer,claude,sonnet,122806cc-4cb7-4f1a-80bd-57c41b5c4f53,completed,0.025221,回填：DB agent_runs
+2026-11-11T13:00:25+00:00,legion,T-0014,executor,claude,sonnet,9b8c4c9e-5f0f-48d4-affa-73f3ab6d302a,completed,0.054858,回填：DB agent_runs
+2026-11-11T13:01:22+00:00,legion,T-0014,reviewer,claude,sonnet,9a4e7054-5e71-4c2b-b019-b1818acc2179,completed,0.040885,回填：DB agent_runs
+2026-11-11T13:02:16+00:00,legion,T-0014,scribe,claude,sonnet,053ffe0c-f867-43fc-b379-93a1f99688db,completed,0.047430,回填：DB agent_runs

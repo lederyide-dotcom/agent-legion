@@ -3,10 +3,10 @@ id: T-0012
 title: 實作 report 檢查擴充（--require-refs／--require-tags）
 doc_status: 草稿（AI 產生，未經核可）
 version: '0.4'
-state: WAIT_HUMAN
+state: HALT
 risk: high
 cost_usd: 0.060679
-human_touches: 0
+human_touches: 1
 approved_by: null
 approved_at: null
 ---
@@ -22,12 +22,12 @@ approved_at: null
 | 編號 | T-0012 |
 | 任務 | 實作 report 檢查擴充（--require-refs／--require-tags） |
 | 日期 | 2026-11-11 20:55:51 |
-| 版本 | 0.4（step 4） |
-| 狀態 | WAIT_HUMAN |
+| 版本 | 0.4（step 5） |
+| 狀態 | HALT |
 | 文件狀態 | 草稿（AI 產生，未經核可） |
 | 風險等級 | high |
 | 成本（USD，用戶端估算） | 0.0607 |
-| 人工介入次數 | 0 |
+| 人工介入次數 | 1 |
 | 上層任務 | T-0009（深度 2） |
 
 ## 2. 目標與範圍
@@ -75,7 +75,8 @@ approved_at: null
 | 2 | PLAN | 2026-11-11 20:55:51 | 2026-11-11 20:56:41 | 指揮官（planner） | sonnet | 15.3 |
 | 3 | SPEC_REVIEW | 2026-11-11 20:56:41 | 2026-11-11 20:57:57 | 規格審查者 | sonnet | 7.3 |
 | 4 | GATE | 2026-11-11 20:57:57 | 2026-11-11 20:58:16 | Runner | — | — |
-| 5 | WAIT_HUMAN | 2026-11-11 20:58:16 | — | David | — | — |
+| 5 | WAIT_HUMAN | 2026-11-11 20:58:16 | 2026-11-11 21:47:21 | David | — | — |
+| 6 | HALT | 2026-11-11 21:47:21 | — | Runner | — | — |
 
 ## 4. 設計與變更說明
 
@@ -87,6 +88,7 @@ flowchart LR
     PLAN([PLAN]) --> SPEC_REVIEW([SPEC_REVIEW])
     SPEC_REVIEW([SPEC_REVIEW]) --> GATE([GATE])
     GATE([GATE]) --> WAIT_HUMAN([WAIT_HUMAN])
+    WAIT_HUMAN([WAIT_HUMAN]) --> HALT([HALT])
 ```
 
 ### 4.3 變更檔案與 diff 統計
@@ -122,7 +124,7 @@ flowchart LR
 ## 7. 問題與教訓
 
 - 重試次數：0
-- HALT 原因：無
+- HALT 原因：operator_cancel: 由 spec v0.5 階段 1 的 legion.checks report --verify-refs 取代（David 同意開始階段 1）
 
 ## 8. 附錄：證據清冊
 

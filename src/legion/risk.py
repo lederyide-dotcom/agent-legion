@@ -76,8 +76,15 @@ def accept_cmd_allowed(cmd: str) -> bool:
             return False
         it = iter(rest[2:])
         for tok in it:
+            if tok == "--verify-refs":  # 無參數旗標：只讀核對行號
+                continue
             val = next(it, None)
-            if tok not in {"--section", "--min-chars"} or val is None:
+            if val is None:
+                return False
+            if tok == "--min-refs":
+                if not val.isdigit():
+                    return False
+            elif tok not in {"--section", "--min-chars"}:
                 return False
         return True
     else:

@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from .config import Settings
+from .config import PROJECT_ROOT, Settings
 from .db import Store
 from .models import Task
 
@@ -173,15 +174,33 @@ def existing_ids(settings: Settings, prefix: str) -> set[str]:
     return ids
 
 
+_SELF_REF = re.compile(
+    r"legion|runner|熔斷|風險規則|風險分級|白名單|規格審查|交付審查|書記官|回灌|agent_runs|"
+    r"(?:risk|prompts|agents|checks|runner|config)\.py|spec_review|max_retries|followup",
+    re.IGNORECASE)
+
+
+def is_self_referential(text: str) -> bool:
+    """後續想法是否在談 legion 自己（規則、角色、熔斷等）。這類想法不得掛在目標 repo 上自動執行。"""
+    return bool(_SELF_REF.search(text))
+
+
 def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str, hold: bool = False) -> Path:
-    """hold=True 時寫到 AI/inbox_hold/，不會被 tick 領取；David 把檔案移回 INBOX 才算放行。"""
+    """hold=True 時寫到 AI/inbox_hold/，不會被 tick 領取；David 把檔案移回 INBOX 才算放行。
+
+    涉及 legion 本身的想法（事故 4：T-0009～T-0013 內容在改 legion 卻掛在 PipeAI_wmt）：
+    repo 改指 legion 專案、kind 改 readonly（只提案不改）、風險下限 mid。
+    """
     folder = settings.ai_dir / "inbox_hold" if hold else settings.inbox_dir
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"fu-{parent.id}-{n}.md"
-    fm = {
+    fm: dict[str, Any] = {
         "title": title, "parent_id": parent.id, "depth": parent.depth + 1, "kind": parent.kind,
         "repo": parent.repo, "subdir": parent.subdir,
     }
+    if is_self_referential(f"{title}\n{body}"):
+        fm.update(kind="readonly", repo=str(PROJECT_ROOT), subdir=None, risk_floor="mid", self_ref=True)
+        body = f"（runner：此後續想法涉及 legion 本身，改為對 legion 的唯讀提案；實作須 David 另行決定）\n\n{body}"
     child = parent.meta.get("mock", {}).get("child")
     if child is not None:
         fm["mock"] = child

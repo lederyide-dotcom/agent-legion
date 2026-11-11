@@ -103,10 +103,11 @@ def readonly_note(task: Task, report_path: str) -> str:
 ## 唯讀任務的報告交付（runner 固定機制，不需也不得在規格中改變）
 - 執行者不寫任何檔案，只把完整報告放在結構化輸出的 report_md。
 - runner 會把 report_md 寫到 `{report_path}`。這個路徑在目標 repo 之外，不算修改目標 repo。
-- runner 會自動附加一條驗收指令：`python -m legion.checks report "{report_path}" --section 架構 --section 測試缺口`。
-  這條指令由 runner 提供、列在白名單內，用來檢查報告存在、章節齊全、長度足夠。規劃者不用自己寫這條。
+- runner 會自動附加一條驗收指令：`python -m legion.checks report "{report_path}" --section 架構 --section 測試缺口 --verify-refs`。
+  這條指令由 runner 提供、列在白名單內，用來檢查報告存在、章節齊全、長度足夠，並以程式逐一核對報告中每個
+  `檔名:行號`（檔案須在目標 repo 內、行號須在範圍內；只寫檔名時以 git 追蹤檔中唯一同名者為準）。規劃者不用自己寫這條。
 - runner 另會比對目標 repo 執行前後的 `git rev-parse HEAD` 與 `git status --porcelain`，確認沒有被修改。
-- 「每個發現附檔案:行號」等內容品質，由交付審查者（LLM，全新 session）抽查；這不是人工審查，沒有人會再確認。
+- `檔名:行號` 是否存在由上面的指令以程式核對；結論是否合理由交付審查者（LLM，全新 session）判斷；這不是人工審查，沒有人會再確認。
   規格中不得把任何項目寫成「人工審查」或「人工驗收」。
 """
 
@@ -176,7 +177,8 @@ def executor_prompt(task: Task, preamble: str, spec_md: str, last_failure: str |
     extra = f"\n## 上一輪驗證失敗（runner 親自執行的輸出）\n```\n{last_failure}\n```\n" if last_failure else ""
     if task.kind == "readonly":
         mode = ("本任務唯讀：不得修改任何檔案。把完整報告（Markdown，至少 800 字）放在 report_md，"
-                "必須有標題含「架構」與「測試缺口」的章節；每個判斷附上檔案路徑作為依據。")
+                "必須有標題含「架構」與「測試缺口」的章節；每個判斷附上 `相對路徑:行號` 作為依據。"
+                "runner 會以程式逐一核對這些行號，寫錯或引用目標 repo 以外的檔案會讓驗收失敗。")
     else:
         mode = "只能修改目前工作目錄內的檔案；完成後可用 git add／git commit 在此 worktree 內提交。"
     return f"""{preamble}

@@ -21,7 +21,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from . import prompts, vault
+from . import ledger, prompts, vault
 from .agents import REVIEWER_ROLES, AgentBackend, AgentCall, AgentError, AgentFailure, AgentTimeout
 from .checks import narrative_violations
 from .config import Settings
@@ -205,7 +205,8 @@ class Runner:
                     id="pending", title=title, body=body.strip(), kind=kind,
                     parent_id=fm.get("parent_id"), depth=int(fm.get("depth", 0)), repo=fm.get("repo"),
                     subdir=fm.get("subdir"), source_path=str(path), source_sha=sha,
-                    meta={"mock": fm["mock"]} if "mock" in fm else {},
+                    meta={**({"mock": fm["mock"]} if "mock" in fm else {}),
+                          **({"risk_floor": fm["risk_floor"]} if fm.get("risk_floor") in RISK_ORDER else {})},
                 )
             except (ValueError, TypeError, ValidationError) as exc:
                 self.bad_inbox.append(f"{path.name}: {exc}")
@@ -238,17 +239,33 @@ class Runner:
     async def _check_budget(self, task: Task) -> float:
         if task.cost_usd >= self.s.task_budget_usd:
             raise Halt(f"budget_task: {task.cost_usd:.4f} ≥ {self.s.task_budget_usd}")
-        today = await self.store.cost_on(date.today())
+        # DB 可能重建過：取 DB 與持久帳本的較大者，避免每日預算低估
+        today = max(await self.store.cost_on(date.today()),
+                    ledger.total_on(self.s.cost_ledger, date.today(), self.s.schema_name))
         if today >= self.s.daily_budget_usd:
             raise Halt(f"budget_daily: {today:.4f} ≥ {self.s.daily_budget_usd}")
         return min(self.s.task_budget_usd - task.cost_usd, self.s.daily_budget_usd - today)
 
-    async def _agent(self, task: Task, role: str, prompt: str, cwd: Path, add_dirs: list[Path] | None = None
-                     ) -> dict[str, Any]:
+    def _ledger(self, task: Task, role: str, backend: str, model: str | None, session_id: str, status: str,
+                cost: float) -> None:
+        if backend == "mock" and not self.s.ledger_include_mock:
+            return
+        ledger.append_cost(self.s.cost_ledger, schema=self.s.schema_name, task=task.id, role=role, backend=backend,
+                           model=model, session_id=session_id, status=status, cost_usd=cost)
+
+    async def _save_prompt(self, task: Task, role: str, prompt: str) -> None:
+        """提示全文存成證據（SHA-256 進證據清冊），事後可查 agent 當時拿到什麼。"""
+        await self.ev.add_text(task, task.step, f"prompt_{role}", prompt, f"{role} 提示全文",
+                               producer="runner", kind="text", ext="md")
+
+    async def _agent(self, task: Task, role: str, prompt: str, cwd: Path, add_dirs: list[Path] | None = None,
+                     save_prompt: bool = True) -> dict[str, Any]:
         existing = await self.store.find_run(task.id, task.state.value, task.step, role)
         if existing is not None:  # 續跑：上次已完成並已扣款，直接重用
             return existing.output
         remaining = await self._check_budget(task)
+        if save_prompt:
+            await self._save_prompt(task, role, prompt)
         _crash_point(task.state.value, "before_agent")
         backend = self.reviewer if role in REVIEWER_ROLES else self.agent
         attempt = len([r for r in await self.store.runs(task.id) if r.role == role])
@@ -266,12 +283,15 @@ class Runner:
                 status="timeout" if isinstance(exc, AgentTimeout) else "error", output={"error": str(exc)[:500]},
                 started_at=started,
             ))
+            self._ledger(task, role, backend.name, None, exc.session_id or "(none)",
+                         "timeout" if isinstance(exc, AgentTimeout) else "error", exc.cost_usd)
             raise
         await self.store.record_run(AgentRun(
             task_id=task.id, state=task.state.value, step=task.step, role=role, backend=res.backend,
             model=res.model, session_id=res.session_id, cost_usd=res.cost_usd, duration_s=res.duration_s,
             output=res.output, started_at=started,
         ))
+        self._ledger(task, role, res.backend, res.model, res.session_id, "completed", res.cost_usd)
         _crash_point(task.state.value, "after_agent")
         fresh = await self.store.get_task(task.id)
         if fresh.cost_usd > self.s.task_budget_usd:
@@ -346,7 +366,7 @@ class Runner:
         if task.kind == "readonly":  # 唯讀任務的產出是報告：由 runner 以程式檢查報告存在且章節齊全
             rp = self._report_path(task)
             accept = [c for c in accept if "legion.checks report" not in c]  # 規劃者自己抄的不算，只留 runner 版本
-            accept.append(f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口')
+            accept.append(f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口 --verify-refs')
         actions = list(out.get("actions", []))
         planned_installs = list(out.get("installs", []) or [])
         lvls = []
@@ -357,6 +377,10 @@ class Runner:
                 lvls.append("ask")
         risk, reasons = assess(out.get("risk_proposed"), actions, accept, task.kind,
                                self._worktree_path(task) if task.kind == "write" else None, lvls)
+        floor = task.meta.get("risk_floor")
+        if floor in RISK_ORDER and max_risk(risk, floor) != risk:
+            risk = max_risk(risk, floor)
+            reasons = [*reasons, f"回灌想法涉及 legion 本身，風險下限 {floor}"]
         spec_md = str(out.get("spec_md", ""))
         spec_path = self.s.ai_dir / "specs" / f"{task.id}.md"
         spec_path.parent.mkdir(parents=True, exist_ok=True)
@@ -585,6 +609,8 @@ class Runner:
     async def _evidence_digest(self, task: Task) -> str:
         parts = []
         for e in await self.store.evidence(task.id):
+            if e.label.startswith("prompt_"):  # 提示全文不進摘要（太長，且審查者不需要）
+                continue
             if e.kind in {"text", "json", "csv"}:
                 txt = (self.s.record_dir(task.id) / e.path).read_text(encoding="utf-8")
                 parts.append(f"### {e.id}（{e.caption}）\n```\n{txt[:1500]}\n```")
@@ -644,15 +670,15 @@ class Runner:
     async def _learn(self, task: Task) -> Task:
         task = await self._learn_evidence(task)
         rdir = self.s.record_dir(task.id)
+        scribe_prompt = prompts.scribe_prompt(task, task.plan.get("spec_md", ""), await self._evidence_digest(task),
+                                              task.meta.get("reviews", {}))
+        if await self.store.find_run(task.id, task.state.value, task.step, "scribe") is None:
+            await self._save_prompt(task, "scribe", scribe_prompt)  # 須在快照前：否則會被當成證據遭竄改
         before = snapshot_hashes(rdir)
         meta = dict(task.meta)
         meta["_evidence_ids"] = [e.id for e in await self.store.evidence(task.id)]
         task = await self.store.update_task(task.id, meta=meta)
-        out = await self._agent(
-            task, "scribe",
-            prompts.scribe_prompt(task, task.plan.get("spec_md", ""), await self._evidence_digest(task),
-                                  task.meta.get("reviews", {})),
-            rdir, add_dirs=[rdir])
+        out = await self._agent(task, "scribe", scribe_prompt, rdir, add_dirs=[rdir], save_prompt=False)
         after = snapshot_hashes(rdir)
         if after != before:
             changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))

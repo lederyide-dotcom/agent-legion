@@ -91,7 +91,7 @@ def write_ideas(settings: Settings, repo: Path) -> None:
            "mock": {"risk_proposed": "low", "accept_cmds": accept,
                     "actions": [{"type": "write", "path": "calc.py"}],
                     "exec": [{"claim": "passed", "write_files": {"calc.py": CALC_V2}}],
-                    "followups": [{"title": "demo：新增 power 函式", "body": "書記官回灌的後續想法。"}],
+                    "followups": [{"title": "demo：新增 power 函式", "body": "為 calc 加上 power(a, b)，補對應測試。"}],
                     "child": {"risk_proposed": "low", "accept_cmds": accept,
                               "actions": [{"type": "write", "path": "calc.py"}],
                               "exec": [{"claim": "passed", "write_files": {"calc.py": CALC_V3}}]}}},

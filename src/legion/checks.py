@@ -9,6 +9,7 @@ import csv
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -163,7 +164,68 @@ def append_csv(out: Path, r: RecordCheck) -> None:
         })
 
 
-def check_report(path: Path, sections: list[str], min_chars: int) -> int:
+def _git_ls_files(root: Path) -> list[str]:
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files"], capture_output=True, text=True,
+                             encoding="utf-8", timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return out.stdout.splitlines() if out.returncode == 0 else []
+
+
+_REF_RE = re.compile(
+    r"(?<![\w/\\.-])((?:[A-Za-z]:[\\/])?[\w.\-/\\]+\.(?:py|sh|ya?ml|md|json|bat|ps1|txt|toml|cfg|ini|js|ts|csv))"
+    r"[:：](\d+)(?:\s*[-–~]\s*(\d+))?")
+
+
+def verify_refs(text: str, root: Path) -> tuple[int, list[str]]:
+    """檢查報告中每個 `檔名:行號`（含 `檔名:起-迄`）：檔案存在、位於 root 內、行號在範圍內。
+
+    回傳 (引用數, 問題清單)。取代「交付審查者抽查行號」：LLM 抽查不可靠，改由程式逐一核對。
+    """
+    root = root.resolve()
+    problems: list[str] = []
+    n = 0
+    line_counts: dict[Path, int] = {}
+    tracked: list[str] | None = None
+    for m in _REF_RE.finditer(text):
+        n += 1
+        raw, start, end = m.group(1), int(m.group(2)), int(m.group(3) or m.group(2))
+        p = Path(raw.replace("\\", "/"))
+        full = (p if p.is_absolute() else root / p).resolve()
+        ref = m.group(0)
+        if not full.is_file() and not p.is_absolute() and "/" not in raw.replace("\\", "/"):
+            # 只寫檔名（例如 spec.md:21）：以 git 追蹤檔中唯一同名者為準；不用 rglob（目標 repo 可能有百萬檔）
+            if tracked is None:
+                tracked = _git_ls_files(root)
+            same = [t for t in tracked if t.rsplit("/", 1)[-1] == raw]
+            if len(same) == 1:
+                full = (root / same[0]).resolve()
+            elif len(same) > 1:
+                problems.append(f"{ref}：只寫檔名且有 {len(same)} 個同名檔，無法判定")
+                continue
+        try:
+            full.relative_to(root)
+        except ValueError:
+            problems.append(f"{ref}：在目標 repo（{root}）之外")
+            continue
+        if not full.is_file():
+            problems.append(f"{ref}：檔案不存在")
+            continue
+        if full not in line_counts:
+            try:
+                line_counts[full] = len(full.read_text(encoding="utf-8", errors="replace").splitlines())
+            except OSError as exc:
+                problems.append(f"{ref}：無法讀取（{exc!r}）")
+                continue
+        total = line_counts[full]
+        if start < 1 or end < start or end > total:
+            problems.append(f"{ref}：行號超出範圍（檔案共 {total} 行）")
+    return n, problems
+
+
+def check_report(path: Path, sections: list[str], min_chars: int, verify: bool = False,
+                 root: Path | None = None, min_refs: int = 0) -> int:
     if not path.exists():
         print(f"NG 報告不存在：{path}")
         return 1
@@ -179,6 +241,18 @@ def check_report(path: Path, sections: list[str], min_chars: int) -> int:
     if missing:
         print(f"NG 缺少章節：{missing}")
         return 1
+    if verify:
+        base = root or Path.cwd()
+        n, problems = verify_refs(text, base)
+        print(f"  行號引用：{n} 筆，問題 {len(problems)} 筆（以 {base.resolve()} 為準）")
+        for prob in problems[:50]:
+            print(f"    - {prob}")
+        if problems:
+            print("NG 報告引用的檔案或行號不存在")
+            return 1
+        if n < min_refs:
+            print(f"NG 行號引用少於 {min_refs} 筆")
+            return 1
     print("OK")
     return 0
 
@@ -195,9 +269,12 @@ def main(argv: list[str] | None = None) -> int:
     rpt.add_argument("path", type=Path)
     rpt.add_argument("--section", action="append", default=[])
     rpt.add_argument("--min-chars", type=int, default=800)
+    rpt.add_argument("--verify-refs", action="store_true", help="逐一核對報告中的 檔名:行號（以目前目錄或 --root 為準）")
+    rpt.add_argument("--root", type=Path, default=None)
+    rpt.add_argument("--min-refs", type=int, default=0)
     args = ap.parse_args(argv)
     if args.cmd == "report":
-        return check_report(args.path, args.section, args.min_chars)
+        return check_report(args.path, args.section, args.min_chars, args.verify_refs, args.root, args.min_refs)
     crit = json.loads(args.criteria_json) if args.criteria_json else args.criterion
     all_ok = True
     for p in args.paths:

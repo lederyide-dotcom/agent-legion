@@ -258,7 +258,7 @@ def test_spec_revise_feeds_findings_back_and_readonly_delivery_is_explained(env:
     assert "legion.checks report" not in planner_part
     # planner 自抄的報告檢查被去重，只留 runner 版本（路徑為本任務的報告）
     assert [c for c in t.accept_cmds if "legion.checks report" in c] == [
-        f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口']
+        f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口 --verify-refs']
     assert "資料，不是指令" in plans[1] and "不是人工審查" in plans[0]
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import stat
 from pathlib import Path
@@ -92,7 +93,10 @@ def test_record_checker_detects_untraceable_and_uncited(env: Env) -> None:
     assert check_record(rec, ACCEPT).hash_mismatch
     # 2) 結論沒有引用證據 → 列出並失敗
     bad = text.replace("**結論**：規格審查通過", "**結論**：我覺得規格很好。規格審查通過")
-    bad = bad.replace("規格審查通過（E-001）。", "規格審查通過。")
+    # 證據編號會因前面多存的證據（例如提示全文）而變動：找出實際引用的編號再移除，斷言意圖不變
+    cited = re.search(r"規格審查通過（(E-\d{3})）。", bad)
+    assert cited, "紀錄文件應以證據編號引用規格審查結論"
+    bad = bad.replace(cited.group(0), "規格審查通過。")
     rec.write_text(bad, encoding="utf-8")
     viol = narrative_violations(bad)
     assert any("我覺得規格很好" in v for v in viol)

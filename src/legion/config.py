@@ -41,6 +41,7 @@ class Settings(BaseModel):
     # 回灌想法是否直接寫進 INBOX（下一輪自動領取）。真實 backend 由 CLI 預設關閉，改寫到 AI/inbox_hold/ 等 David 放行。
     followup_auto_ingest: bool = True
     install_cap: int = 10
+    ledger_include_mock: bool = False  # 持久花費帳本預設不記 mock 呼叫（demo 不污染帳本）；測試會打開
 
     # 角色與 backend
     agent_backend: str = "mock"  # mock | claude
@@ -69,6 +70,10 @@ class Settings(BaseModel):
     @property
     def install_ledger(self) -> Path:
         return self.data_dir / "install_ledger.csv"
+
+    @property
+    def cost_ledger(self) -> Path:
+        return self.data_dir / "cost_ledger.csv"
 
     def record_dir(self, task_id: str) -> Path:
         return self.ai_dir / "records" / task_id
