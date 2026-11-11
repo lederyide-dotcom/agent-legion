@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "建議：驗收指令只比對 HEAD 與 `git status --porcelain`。`.gitignore` 排除了 result/、annotated_images/、dataset/、runs/、*.pt，所以寫入這些目錄的檔案不會在 status 中出現。「沒有修改任何檔案」只對被追蹤或未忽略的檔案成立。建議在規格註明這個限制，並補一條 `git status --porcelain --ignored`（白名單內）。不過 `--ignored` 可能掃描大目錄，建議評估後再決定。",
+    "建議:「Glob 在根目錄用 `*.py` 會遞迴進 dataset」與 Glob 的實際行為可能不符。請改成明確指示：Glob 一律帶 `path` 參數，限定在根目錄或 `tests/`，並且只用檔名模式，不加 `**`。",
+    "建議：測試相關的 Glob 搜尋（test_*.py、requirements*.txt 等）要明寫 path 只能是根目錄與 tests/。這樣不會誤入 dataset/、runs/、result/。",
+    "建議：`03_docs/spec.md`、`99_bk/`、`tests/` 不一定存在。請加一句「不存在時在報告中註明『不存在』，不算失敗」。",
+    "建議：runner 的 report 檢查只驗證章節標題與長度。「其他風險」章節、「檔案:行號」、「事實／推測」區分、「建議行動順序 3～5 項」都沒有機器檢查，只靠人工審查。可考慮加上 `--section 其他風險`，這需要 runner 支援，所以只是建議。",
+    "建議：「執行者不寫任何檔案」只是規則，沒有技術強制。可考慮在執行時限制工具為 Read／Grep／Glob，或唯讀的 shell。"
+  ]
+}

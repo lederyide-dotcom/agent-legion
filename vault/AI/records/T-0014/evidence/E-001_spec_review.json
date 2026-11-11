@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "建議：驗收指令 git status --porcelain 與 git rev-parse HEAD 只有輸出、無預期值；runner 雖會比對前後，建議規格註明「前後輸出需一致（status 為空）」。",
+    "建議：Grep 範圍請明寫為根目錄 *.py（glob=\"*.py\"，不遞迴）並加 99_bk/*.py，避免 Grep 預設遞迴進 result/、annotated_images/、dataset/。可用 path 指定檔案或 glob 限制 depth（例如分別對 99_bk 與根目錄 Glob 後逐檔 Grep）。",
+    "建議：Glob 根目錄時 pattern 不要用 **；用 *.py、tests/*、99_bk/*、03_docs/*、02_data/* 等單層樣式。02_data/ 若含大量檔案，僅看檔名清單。",
+    "建議：「無依賴宣告檔」之結論需涵蓋 requirements*.txt、environment.yml、Pipfile、setup.py 等，並提及 .sh 腳本內是否有 pip install；範圍說明需註明證據限於根目錄與指定子資料夾，不能推論 runs/ 等其他處。",
+    "建議：報告須區分「沒有自動化測試」與「有手動驗證腳本」（如 save_annotated_images.py、yolo val 指令），並把 CLAUDE.md 的驗證指令列為既有驗證手段。",
+    "建議：「章節齊全」檢查只驗章節標題與長度，內容品質靠人工審查；可接受。"
+  ]
+}

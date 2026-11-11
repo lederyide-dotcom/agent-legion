@@ -1,0 +1,12 @@
+目標 repo 未被修改（HEAD 與 git status 相同）
+
+before HEAD: 4a6c383a141e220d7c0eaea01d9e44afab9c28dc
+after  HEAD: 4a6c383a141e220d7c0eaea01d9e44afab9c28dc
+
+before status:
+(clean)
+
+after status:
+(clean)
+
+result: SAME

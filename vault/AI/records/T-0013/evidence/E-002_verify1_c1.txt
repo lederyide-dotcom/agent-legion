@@ -1,0 +1,5 @@
+$ git status --porcelain
+# cwd: D:\PipeAI_wmt
+# exit: 0
+
+

@@ -1,0 +1,8 @@
+$ python -m legion.checks report "D:/202611_agent-legion/vault/AI/reports/T-0013-report.md" --section 架構 --section 測試缺口
+# cwd: D:\PipeAI_wmt
+# exit: 0
+
+報告 D:\202611_agent-legion\vault\AI\reports\T-0013-report.md：7972 字元、13 個標題
+  章節「架構」：有
+  章節「測試缺口」：有
+OK

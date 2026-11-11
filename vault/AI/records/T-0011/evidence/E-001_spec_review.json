@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "建議：驗收指令（git status／rev-parse 加 runner 的 report 檢查）只能證明 repo 未被改動，以及報告章節和長度合格。它們驗證不了「legion.checks.__file__ 的實際值是否正確」。這部分只靠人工審查（標準 2、4）。可在報告要求附上原始指令輸出（__file__、find_spec origin、sys.executable）當證據，讓審查者能對照。",
+    "建議：python -c import 預設會寫 __pycache__，與「不寫任何檔案」略有衝突。執行時改用 `python -B`，或設 PYTHONDONTWRITEBYTECODE=1。若來源在 D:/202611_agent-legion，這樣也不會弄髒該目錄。",
+    "建議：標準 4 要求每個發現附「檔案:行號」，但 pip show、sys.path、find_spec 這類執行期輸出沒有行號。請改成「檔案發現附行號，執行期發現附指令與輸出」。",
+    "建議：請明說 python 必須是 runner 驗收時用的同一個直譯器或 venv。否則 `python -m legion.checks` 與專案的 `py -3.10` 或 venv 可能解析到不同的 legion。報告要記錄 sys.executable，並對照 `py -3.10` 的結果。",
+    "建議：若 legion 是 editable install，請補列要讀的 __editable__ finder 檔或 .pth 與 direct_url.json（都在 site-packages 內，範圍小，可讀）。測試缺口只在 D:/202611_agent-legion 下找 tests 目錄，不要遞迴掃描 PipeAI_wmt 的 result/、annotated_images/、dataset/images。",
+    "建議：「未能確認之處」建議列為必備小節。若 legion 不可 import，要寫出錯誤訊息，並說明這會影響 runner 的 report 檢查。"
+  ]
+}

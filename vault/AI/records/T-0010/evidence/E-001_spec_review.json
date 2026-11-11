@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "建議：標題與目標說「作為唯讀工具層限制（Read/Grep/Glob）與前後比對的實測案例」，但驗收只驗證 repo 沒被修改與報告章節，驗證不了「沒有讀到 result/、annotated_images/、dataset/images、runs/、video/」。建議由 runner 或審查者檢查執行的工具呼叫紀錄（Glob/Grep/Read 的 path 與 pattern），並在驗收標準寫明。",
+    "建議：git status --porcelain 看不到被 .gitignore 排除的目錄（result/、runs/、dataset/ 等），所以這些目錄若被寫入就偵測不到。這個任務只讀，風險低。可補一句：寫入保護靠工具層，不靠 git 比對。",
+    "建議：範圍的 `*.py`、`*.sh` 只限根目錄，但 Grep 沒指定 path 時預設搜尋整個工作目錄，會進入禁止目錄。請寫明 Grep 一律帶 path（根目錄加 glob 如 `*.py`）或限定 99_bk/、03_docs/，並避免遞迴搜尋 data 與輸出目錄。",
+    "建議：測試缺口要說明有無 pytest 測試。確認的方法是 Glob `test_*.py`、`*_test.py`、`pytest.ini`、`pyproject.toml`、`conftest.py`，限根目錄，不用 `**`。請把這些模式列進規格。",
+    "建議：「長度足夠」的門檻沒有數字。同時建議把「每個發現附檔案:行號」改成報告內固定格式，例如 `path:line`，方便人工審查。",
+    "確認：03_docs/spec.md 與 99_bk/*.py 都存在，範圍可執行。提議的驗收指令（git status、git rev-parse）符合白名單，沒有 shell 符號。"
+  ]
+}

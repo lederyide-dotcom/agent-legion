@@ -1,0 +1,11 @@
+{
+  "verdict": "pass",
+  "findings": [
+    "建議：「工具呼叫紀錄」是執行者自己回報，沒有外部資料可核對。目前只靠人工比對。後續 write 任務若實作 runner 紀錄，才能補上自動驗證。可在報告中註明這項限制。",
+    "建議：runner 自動附加的 legion.checks 只檢查「架構」「測試缺口」兩章。「工具呼叫紀錄」「禁止目錄檢查」「runner 建議」三章沒有程式檢查，完全依賴人工審查。可要求人工審查時逐項確認這三章存在。",
+    "建議：限制只明說 Glob 要用 `*.py` 並限定單層。Grep 也要明寫：path 必須是具體檔案或 03_docs/，不可指到根目錄，否則會遞迴進入 result/。Grep 的 glob 參數同樣不能用 `**`。",
+    "建議：「模型與資料位置」需要提到 runs/、best.pt、dataset/images。這些目錄屬禁止讀取範圍，執行者只能引用 CLAUDE.md 或腳本中的路徑字串，不可實際列出內容。這類發現的 `檔案:行號` 應指向腳本或 CLAUDE.md。",
+    "建議：讀 CLAUDE.md 與 03_docs/spec.md 也算 Read 呼叫，需列入紀錄表。可明寫「每一次 Read／Glob／Grep 都要列，包括失敗的呼叫」。",
+    "建議：驗收指令只有 `git status --porcelain`，沒有記錄 HEAD。runner 會另外比對 HEAD，所以這不影響通過。可再加 `git rev-parse HEAD` 讓驗收更完整。"
+  ]
+}

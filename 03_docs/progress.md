@@ -6,8 +6,21 @@
 - 實戰 B（T-0005）：DONE，$0.1669，human_touches 0 → 02_data/sandbox_check.txt
 - code-reviewer 審查：🔴 8 項已修（見下）；pytest 68 項全過；start.bat 從乾淨狀態實測通過
 
+## 實戰 A 第三次（T-0008）：DONE
+- 2026-11-11 20:46 開跑（David 同意第三次重跑），$0.5708，human_touches 0；報告 vault/AI/reports/T-0008-report.md
+- 驗收紀錄：02_data/verify_20261111.md、readonly_check.txt、autonomy.csv
+
+## 事故 4：回灌鏈被自動領取（約 $1.68）
+- 我的 tick 迴圈條件是「沒有任何進展才停」，T-0008 結案時書記官回灌 2 個後續想法到 INBOX，迴圈繼續領取，
+  形成 T-0009～T-0014（深度上限 2 有生效）。5 張 DONE、T-0012 判 high 停在 WAIT_HUMAN。
+- 這些是 spec「真實呼叫只在兩個實戰任務」以外的花費，未經 David 同意。合計實戰花費約 $3.82，未超過 $5。
+- 這些任務都是 readonly、目標 D:\PipeAI_wmt，前後狀態未變。
+- 往後手動跑實戰時：只跑到指定任務結束，回灌檔先移到 vault/AI/inbox_hold/。
+
 ## 等待 David
-- 實戰 A 重跑許可（spec：需要重跑必須問）。目標 repo：D:\PipeAI_wmt（HEAD 4a6c383，David 2026-11-11 指定）
+- T-0012（high，WAIT_HUMAN）要 answer reject／cancel 或保留
+- vault 內 18 個舊檔在 20:49 被改成 CRLF（內容不變）、新增 vault/.obsidian/：疑似 Obsidian 開啟所致，未 commit、未還原
+- D:\PipeAI_wmt 在 21:03:25 出現未追蹤的 AGENTS.md（Codex 工作說明），非 legion 建立，未動
 
 ## 實戰 A 第一次（T-0006）：HALT
 - 2026-11-11 20:28 開跑，SPEC_REVIEW 連續退回 4 次 → retry_exceeded，花費 $0.3354，human_touches 0；目標 repo 未被修改
