@@ -24,8 +24,9 @@
 ## 事故 5：legion 的呼叫出現在 ChatGPT／Codex
 - David 截圖：ChatGPT 對話「你是指揮官，負責規劃。任務編號 T-0010…」時間 20:50，與 T-0010 planner 開始時間 20:50:38 相同。
 - 查證：該次呼叫由 Claude 回答（~/.claude/projects/D--PipeAI-wmt/4693a13b….jsonl，model claude-sonnet-5-5，6 則 assistant），
-  ANTHROPIC_BASE_URL 為 api.anthropic.com，已啟用 plugin 沒有轉送 hook。推論：ChatGPT／Codex 讀取了 Claude Code
-  寫在 ~/.claude/projects 的本機逐字紀錄並顯示成對話（未驗證是哪個功能、是否耗用 Codex 額度）。
+  ANTHROPIC_BASE_URL 為 api.anthropic.com，已啟用 plugin 沒有轉送 hook。
+- 已確認來源（David 截圖）：ChatGPT「設定 → 匯入 → 從 Claude Code 匯入」開著「保持匯入同步」，會把
+  ~/.claude/projects 的 Claude Code 紀錄同步成 ChatGPT 對話。David 已於 2026-11-11 關閉同步。是否耗用 Codex 額度未驗證。
 - 我先前回報「legion 只用 Claude、和 ChatGPT 無關」只查了 legion 程式與 DB，沒考慮本機紀錄被其他工具讀取，說法不完整。
 - 修正：每次 `claude -p` 加 `--no-session-persistence`，不再寫入 ~/.claude/projects（CLI 解析已確認接受此參數；未以真實呼叫實測）。
 - 已存在的今日紀錄檔（D--PipeAI-wmt 42 個、各 worktree／records 資料夾）未刪除，等 David 決定。
