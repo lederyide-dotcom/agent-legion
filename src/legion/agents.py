@@ -255,6 +255,7 @@ class MockAgent:
     def __init__(self, cost: float = 0.01) -> None:
         self.cost = cost
         self.calls: list[tuple[str, str, str]] = []  # (task_id, role, session_id)
+        self.prompts: list[tuple[str, str, str]] = []  # (task_id, role, prompt)：測試用來檢查提示內容
 
     @staticmethod
     def _pick(seq: list[Any], i: int, default: Any) -> Any:
@@ -272,6 +273,7 @@ class MockAgent:
             raise RuntimeError(f"mock：{call.role} 非預期例外")
         sid = f"mock-{uuid.uuid4()}"
         self.calls.append((call.task.id, call.role, sid))
+        self.prompts.append((call.task.id, call.role, call.prompt))
         cost = float(sc.get("cost", self.cost))
         task = call.task
         out: dict[str, Any]

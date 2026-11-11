@@ -323,11 +323,17 @@ class Runner:
                  if not any(ln[3:].strip('"').startswith(a) for a in allowed)]
         return {"head": head, "status": "\n".join(sorted(lines))}
 
+    def _report_path(self, task: Task) -> str:
+        return (self.s.ai_dir / "reports" / f"{task.id}-report.md").resolve().as_posix()
+
     # ------------------------------------------------------------ PLAN
     async def _plan(self, task: Task) -> Task:
         wd = self._workdir(task) if task.repo else self.s.ai_dir
         desc = f"{wd}（{task.kind}）"
-        out = await self._agent(task, "planner", prompts.planner_prompt(task, self.s.commander_preamble, desc), wd)
+        prev = (task.meta.get("reviews", {}).get("spec_review") or [{}])[-1]
+        prior = [str(f) for f in prev.get("findings", []) or []] if prev.get("verdict") == "revise" else []
+        out = await self._agent(task, "planner", prompts.planner_prompt(
+            task, self.s.commander_preamble, desc, self._report_path(task), prior), wd)
         # agent 輸出一律視為不可信：型別不符就以保守值處理
         accept = [str(c).replace("\\", "/") for c in (out.get("accept_cmds") or []) if isinstance(c, str)]
         proposed = out.get("risk_proposed")
@@ -337,7 +343,8 @@ class Runner:
         out = {**out, "risk_proposed": proposed,
                "actions": [a for a in actions_raw if isinstance(a, dict)] if isinstance(actions_raw, list) else []}
         if task.kind == "readonly":  # 唯讀任務的產出是報告：由 runner 以程式檢查報告存在且章節齊全
-            rp = (self.s.ai_dir / "reports" / f"{task.id}-report.md").resolve().as_posix()
+            rp = self._report_path(task)
+            accept = [c for c in accept if "legion.checks report" not in c]  # 規劃者自己抄的不算，只留 runner 版本
             accept.append(f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口')
         actions = list(out.get("actions", []))
         planned_installs = list(out.get("installs", []) or [])
@@ -390,7 +397,8 @@ class Runner:
     async def _spec_review(self, task: Task) -> Task:
         wd = self._workdir(task) if task.repo else self.s.ai_dir
         out = await self._agent(task, "spec_reviewer",
-                                prompts.spec_review_prompt(task, task.plan.get("spec_md", ""), task.accept_cmds), wd)
+                                prompts.spec_review_prompt(task, task.plan.get("spec_md", ""), task.accept_cmds,
+                                                           self._report_path(task)), wd)
         task = await self._save_review(task, "spec_review", out)
         if out.get("verdict") == "pass":
             return await self._go(task, State.GATE)

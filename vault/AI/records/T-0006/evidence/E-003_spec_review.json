@@ -1,0 +1,14 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "第三條驗收指令 `python -m legion.checks ...` 違反 runner 白名單（只允許 pytest 與 git status|diff|log|rev-parse|show），會被擋或升級風險。",
+    "報告交付方式自相矛盾：目標寫「只以回覆文字交付、不改任何檔案」，驗收卻檢查專案外的 D:/202611_agent-legion/vault/AI/reports/T-0006-report.md，且沒人被指定去寫該檔。請明確授權寫入該路徑並列為唯一例外，或改成純回覆文字、由 runner／人工驗收。",
+    "`git diff --quiet` 驗不出「沒有任何檔案被修改」：它只看 tracked 且未暫存的變更，看不到 untracked 新檔、被 .gitignore 排除的目錄（result/、runs/、*.pt）與已暫存變更。建議改用 `git status --porcelain`（要求輸出為空），再加 `git diff --quiet HEAD`。",
+    "`git rev-parse --verify HEAD` 沒有比對 4a6c383，只要 repo 存在就會成功。可改為 `git rev-parse --verify 4a6c383` 加 `git diff --quiet 4a6c383 HEAD`，或讓 runner 比對輸出字串。",
+    "「每個發現都附 檔案:行號」沒有任何指令能驗證；且 legion.checks 只檢查「架構」「測試缺口」兩區段，漏掉第三大項「其他風險」。請補 `--section 其他風險`，並加上行號格式檢查，例如 regex `\\S+\\.(py|sh|yaml):\\d+`。",
+    "「不安裝東西、不做網路寫入」沒有對應的驗收，應在規格中註明由 runner 以程式強制。",
+    "範圍矛盾：要比對 nc 與標註實際用到的 class id，卻限制 dataset/labels 只能抽樣，抽樣無法證明 15–32 以外沒有其他 id。解法：允許用 Get-ChildItem 或單次統計腳本全量掃描 275 個小標註檔，或讓報告只能寫「抽樣範圍內」的結論。",
+    "「已知現況」缺少可驗證的前提：99_bk/ 是否存在、inference_video.py 在根目錄還是 99_bk/ 都未確認。請加前置步驟用 Glob 確認，不存在時在報告中註明。",
+    "小問題：目前分支是 master，CLAUDE.md 的主分支是 main。建議在規格註明這是預期狀態，或把「分支不變」也列入驗收。"
+  ]
+}

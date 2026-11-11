@@ -1,0 +1,14 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "矛盾：目標寫「報告以文字產出（不寫檔）」，但驗收指令 `python -m legion.checks report \"D:/202611_agent-legion/vault/AI/reports/T-0006-report.md\" ...` 檢查的是一個檔案。若不寫檔，這條必然失敗；若要寫檔，就違反「不寫檔」且 readonly 類型。需決定：由 runner／其他角色把文字落地到該路徑並在規格中說明，或移除該指令，或改為允許寫入 vault 報告路徑（明確標示為工作樹外、不算修改）。",
+    "驗收指令 `python -m legion.checks ...` 不在規則允許清單（只允許 pytest、git status|diff|log|rev-parse|show）。依規則會被擋或升級風險，須改成允許的指令，或事先取得 runner 對該指令的白名單。",
+    "`git diff --exit-code` 只偵測已追蹤檔案的修改，看不到新增的未追蹤檔案；『工作樹沒有任何檔案被修改』應改用 `git status --porcelain`（或 `git status --short`）並要求輸出為空，才能涵蓋新增檔。另外 .gitignore 排除的檔案（如 runs/、*.pt）的變動也偵測不到，需承認這是已知限制。",
+    "`git rev-parse --is-inside-work-tree` 只是確認是 git repo，對驗證健檢內容沒有價值，可保留作前置檢查但不算驗收。",
+    "驗收標準『每項風險標明檔案與行號』沒有任何指令能驗證；唯一的內容檢查只涵蓋 --section 架構、測試缺口，漏掉『其他風險』一節，且只檢查章節標題存在，不檢查行號引用。建議補 --section 其他風險，並說明是否檢查 `檔名:行號` 格式，否則改由人工審查並寫明。",
+    "範圍衝突：報告要交叉對照 CLAUDE.md 的 data.yaml 問題，也要談 `99_bk/` 慣例與 nc 33 vs 18，但範圍只列 `*.py`、`*.sh`、`data.yaml`、`.gitignore`、`03_docs/`，未含 CLAUDE.md。應明列 CLAUDE.md 可讀。另 `99_bk/` 內容、`dataset/labels`（驗證 275 份標註／classes.txt）是否可讀也應說明；『nc 33 對 18』的 18 來自 classes 重編，需允許讀 classes.txt 或只引用 CLAUDE.md。",
+    "『現有測試（預期沒有，需確認）』缺少確認方式：應指定 Glob `test*.py`、`tests/`、`pytest.ini` 等，並限定在範圍內；也要注意 pytest 在此專案可能不存在，所以不能用 pytest 當驗收。",
+    "含糊：『報告涵蓋』『優先補測清單』沒有數量或格式要求（例如至少 N 項、每項含理由與建議測試層級），審查者難以判斷完成與否。另未指定報告語言（建議繁中）與行號對應的 commit（git HEAD 4a6c383）。",
+    "Git 狀態備註：gitStatus 顯示目前分支為 master，而主分支為 main；若驗收以 git diff 比對，需說明基準（HEAD）。可順帶在規格中固定基準 commit。"
+  ]
+}

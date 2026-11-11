@@ -1,0 +1,11 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "驗收指令違反 runner 規則：第 4 條 `python -m legion.checks report ...` 不在允許清單（僅 pytest、python -m pytest、git status|diff|log|rev-parse|show），會被擋，驗收無法通過。請改用清單內指令，或先讓 runner 將該檢查加入白名單。",
+    "輸出位置自相矛盾：規格說報告只在對話／回報輸出、不寫入工作目錄，驗收卻檢查檔案 D:/202611_agent-legion/vault/AI/reports/T-0006-report.md。規格沒說誰寫這個檔案，且任務類型是 readonly。請二選一：報告只在對話輸出（驗收不檢查檔案），或明確授權由 runner 寫入 vault 並在範圍中註明。",
+    "驗收無法驗證實質目標：「每個發現附 檔案:行號」沒有任何指令檢查；「涵蓋三大項」只檢查『架構』『測試缺口』兩個 section，漏了『其他風險』。建議把這些列為 reviewer 人工驗收項，並明列章節標題與引用格式。",
+    "git 驗收有冗餘與缺口：`git log --oneline -n 3` 不驗證任何東西，建議改用 `git rev-parse HEAD` 並在任務前記錄基準 commit 供比對；`git status --porcelain` 看不到被 .gitignore 排除的目錄（result/、runs/ 等）的變動，規格要註明此限制可接受。",
+    "範圍有小缺漏：沒說 03_docs/spec.md 或 test* 不存在時如何處理（建議在報告中明說不存在）；沒說明非遞迴列舉的具體方式，前次根目錄 Glob 逾時的風險沒有緩解辦法；目前分支是 master，CLAUDE.md 寫主分支為 main，基準 commit 要明確。",
+    "「預計包含」的補測清單預設了答案（正則、utf-8-sig、data.yaml 檢查等），容易變成對照打勾。請改為依實際讀到的程式碼判斷，並要求每項附程式碼證據。"
+  ]
+}

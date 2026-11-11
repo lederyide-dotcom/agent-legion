@@ -1,0 +1,12 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "驗收指令與交付方式矛盾：規格說報告以對話回覆交付（不寫檔），但第 4 條指令 `python -m legion.checks report \".../T-0006-report.md\"` 要檢查 vault 裡的報告檔，該檔按規格不會存在，必定失敗。需二選一：允許寫入該報告檔並在範圍註明例外（vault 在專案外，工作樹仍不變），或刪掉這條指令。",
+    "第 4 條指令違反 runner 白名單：只允許 `python -m pytest`、`pytest`、`git status|diff|log|rev-parse|show`，`python -m legion.checks` 不在其中，會被擋或升級風險。要保留須先納入白名單，或改用白名單內的指令。",
+    "驗收標準大多無法用指令驗證：「涵蓋三大項」「每個發現附 檔案:行號」「未觸碰大型資料夾」「未安裝任何東西」都沒有對應指令，需補人工檢核項，或改成 runner 能檢查的產物。",
+    "工作樹無修改的檢查不夠嚴：`git diff --quiet` 只看已追蹤檔案的未暫存變更，抓不到未追蹤的新檔；`git status --short` 只輸出內容、不判成敗。建議改用 `git status --porcelain` 並明訂輸出必須為空，另可加 `git diff --cached --quiet` 涵蓋已暫存變更。",
+    "`git rev-parse --is-inside-work-tree` 只是前置檢查，沒有驗證任何目標，不應算進覆蓋度。",
+    "範圍有小缺口：「初步 glob 未找到 test*.py」只是前提，未說明是否再確認 tests/ 目錄、pytest.ini、conftest.py；根目錄 *.py 未說明是否排除 99_bk/；.sh 與 data.yaml 的行號引用方式未寫明。",
+    "建議在規格註明「只回報、不改」，以與 CLAUDE.md 的 data.yaml 規定一致（改之前須先跟使用者確認）。本任務只讀不改，不衝突。"
+  ]
+}

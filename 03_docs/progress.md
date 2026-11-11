@@ -7,7 +7,15 @@
 - code-reviewer 審查：🔴 8 項已修（見下）；pytest 68 項全過；start.bat 從乾淨狀態實測通過
 
 ## 等待 David
-- 實戰 A 的目標 repo 路徑（spec 規定必須問）
+- 實戰 A 重跑許可（spec：需要重跑必須問）。目標 repo：D:\PipeAI_wmt（HEAD 4a6c383，David 2026-11-11 指定）
+
+## 實戰 A 第一次（T-0006）：HALT
+- 2026-11-11 20:28 開跑，SPEC_REVIEW 連續退回 4 次 → retry_exceeded，花費 $0.3354，human_touches 0；目標 repo 未被修改
+- 原因（系統 bug，非 agent）：
+  1. planner／spec_reviewer 提示沒說明唯讀報告由 runner 寫入 vault、`legion.checks report` 是 runner 附加的白名單指令，審查者每輪都判「自相矛盾、違反白名單」
+  2. 退回 PLAN 時 planner 沒拿到審查意見，等於盲改
+- 修正：提示加上唯讀交付說明與白名單例外；退回意見帶回 planner；去重 planner 自抄的報告檢查；新增回歸測試（共 69 項全過）
+- 另：`.venv\Scripts\legion.exe` 被 Windows 應用程式控制原則擋下，改用 `python -m legion`（沒有呼叫 Claude、零成本）
 
 ## 事故紀錄（誠實揭露）
 1. demo 想法檔留在共用 INBOX，被正式 tick 以真實 Claude 誤領取（T-0001～T-0004，約 $0.65）。

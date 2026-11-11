@@ -88,13 +88,37 @@ SCHEMAS: dict[str, dict[str, Any]] = {
 RULES_BLOCK = """\
 規則（由 runner 以程式強制，違反會被擋或升級風險）：
 - 驗收指令只能是：`python -m pytest ...`、`pytest ...`、`git status|diff|log|rev-parse|show ...`，不得含 & | ; > < 等 shell 符號。
+  例外：唯讀任務由 runner 自動附加的 `python -m legion.checks report ...` 也在白名單內。
 - 風險只能提議，程式會依規則判定並取較高者。
 - 不得讀取 .env、金鑰、憑證；不得安裝任何東西（需要時在 install_requests 提出，由 runner 判級）。
 - 不得 push、merge、刪除檔案、對外網路寫入或發訊。
 """
 
 
-def planner_prompt(task: Task, preamble: str, workdir_desc: str) -> str:
+def readonly_note(task: Task, report_path: str) -> str:
+    """唯讀任務的報告交付方式：寫進規格與審查提示，避免規劃者與審查者對交付方式各說各話。"""
+    if task.kind != "readonly":
+        return ""
+    return f"""
+## 唯讀任務的報告交付（runner 固定機制，不需也不得在規格中改變）
+- 執行者不寫任何檔案，只把完整報告放在結構化輸出的 report_md。
+- runner 會把 report_md 寫到 `{report_path}`。這個路徑在目標 repo 之外，不算修改目標 repo。
+- runner 會自動附加一條驗收指令：`python -m legion.checks report "{report_path}" --section 架構 --section 測試缺口`。
+  這條指令由 runner 提供、列在白名單內，用來檢查報告存在、章節齊全、長度足夠。規劃者不用自己寫這條。
+- runner 另會比對目標 repo 執行前後的 `git rev-parse HEAD` 與 `git status --porcelain`，確認沒有被修改。
+- 「每個發現附檔案:行號」等內容品質，由交付審查者人工審查，不必寫成指令。
+"""
+
+
+def _prior_findings(findings: list[str] | None) -> str:
+    if not findings:
+        return ""
+    items = "\n".join(f"- {f}" for f in findings[:20])
+    return f"\n## 上一版規格被規格審查者退回，請逐項修正\n{items}\n"
+
+
+def planner_prompt(task: Task, preamble: str, workdir_desc: str, report_path: str = "",
+                   prior_findings: list[str] | None = None) -> str:
     return f"""{preamble}
 你是指揮官，負責規劃。任務編號 {task.id}，類型 {task.kind}（readonly＝只能讀；write＝只能改工作目錄內）。
 工作目錄：{workdir_desc}
@@ -103,7 +127,7 @@ def planner_prompt(task: Task, preamble: str, workdir_desc: str) -> str:
 {task.title}
 
 {task.body}
-
+{readonly_note(task, report_path)}{_prior_findings(prior_findings)}
 請先閱讀工作目錄了解現況，產出：
 - spec_md：精簡規格（目標、範圍、驗收標準）。
 - accept_cmds：1～3 條可在工作目錄自動執行、exit 0 代表通過的驗收指令。
@@ -112,7 +136,7 @@ def planner_prompt(task: Task, preamble: str, workdir_desc: str) -> str:
 {RULES_BLOCK}"""
 
 
-def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str]) -> str:
+def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str], report_path: str = "") -> str:
     return f"""你是規格審查者（全新 session、唯讀）。審查下面的任務規格是否可執行、驗收指令是否足以驗證目標。
 只回 verdict（pass／revise）與 findings。
 
@@ -124,6 +148,7 @@ def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str]) -> str:
 
 ## 驗收指令
 {json.dumps(accept_cmds, ensure_ascii=False)}
+{readonly_note(task, report_path)}
 {RULES_BLOCK}"""
 
 

@@ -235,6 +235,23 @@ def test_readonly_task_reports_and_leaves_repo_untouched(env: Env) -> None:
     assert (env.settings.ai_dir / "reports" / f"{t.id}-report.md").exists()
 
 
+def test_spec_revise_feeds_findings_back_and_readonly_delivery_is_explained(env: Env) -> None:
+    """實戰 A 第一次 HALT 的回歸測試：退回意見要回到 planner；唯讀報告的交付方式要寫進規劃與審查提示。"""
+    env.idea("ro", "health check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
+                                            spec_review=["revise", "pass"],
+                                            exec=[{"claim": "done", "report_md": REPORT}]), kind="readonly")
+    t = run(env.run_until())[0]
+    assert t.state == State.DONE, t.halt_reason
+    prompts_ = [(role, p) for tid, role, p in env.agent.prompts if tid == t.id]
+    plans = [p for role, p in prompts_ if role == "planner"]
+    reviews = [p for role, p in prompts_ if role == "spec_reviewer"]
+    assert len(plans) == 2 and "mock：驗收指令不足" not in plans[0] and "mock：驗收指令不足" in plans[1]
+    rp = (env.settings.ai_dir / "reports" / f"{t.id}-report.md").resolve().as_posix()
+    for p in (plans[0], reviews[0]):
+        assert rp in p and "不算修改目標 repo" in p
+    assert sum("legion.checks report" in c for c in t.accept_cmds) == 1
+
+
 def test_readonly_task_without_proper_report_is_not_accepted(env: Env) -> None:
     env.idea("ro", "lazy check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
                                           exec=[{"claim": "done", "report_md": "# 很短"}]), kind="readonly")
