@@ -157,6 +157,9 @@ class ClaudeCliAgent:
             "--strict-mcp-config",
             "--settings", str(settings_path),
             "--max-budget-usd", f"{call.budget_usd:.2f}",
+            # 不把 session 寫進 ~/.claude/projects：該處的紀錄會被其他工具（ChatGPT／Codex）讀取成對話；
+            # runner 已在 DB 與證據檔保存每次呼叫的結構化輸出，本機逐字紀錄不需要
+            "--no-session-persistence",
         ]
         if self.model:
             cmd += ["--model", self.model]

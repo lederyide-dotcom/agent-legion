@@ -218,6 +218,7 @@ def test_reviewers_use_fresh_sessions(env: Env) -> None:
     call = AgentCall(role="reviewer", prompt="x", cwd=env.tmp, schema=SCHEMAS["reviewer"], task=Task(id="X", title="x"))
     argv = ClaudeCliAgent().build_cmd(call, env.tmp / "s.json")
     assert "--resume" not in argv and "--continue" not in argv and "-c" not in argv and "--bare" not in argv
+    assert "--no-session-persistence" in argv  # 不留本機逐字紀錄，避免被其他工具匯入
     assert argv[argv.index("--tools") + 1] == ",".join(tool_profile("reviewer").tools)
 
 
