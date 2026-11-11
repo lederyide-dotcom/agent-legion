@@ -20,7 +20,7 @@ scripts\start.bat
 | 動作 | 指令 |
 |---|---|
 | 丟想法 | 在 `vault/INBOX/` 新增一個 `.md`（可選 frontmatter：`title`、`kind: readonly\|write`、`repo`、`subdir`） |
-| 跑一輪 | `.venv\Scripts\python.exe -m legion tick --backend claude --model sonnet` |
+| 跑一輪 | `.venv\Scripts\python.exe -m legion tick --backend claude --model sonnet`（回灌想法預設暫存到 `vault\AI\inbox_hold\`，移回 INBOX 才會被領取；加 `--auto-followups` 改為自動領取） |
 | 看狀態 | `.venv\Scripts\python.exe -m legion status` |
 | 回答高風險問卷 | `.venv\Scripts\python.exe -m legion answer <id> approve\|reject` |
 | HALT 後續跑 | `.venv\Scripts\python.exe -m legion resume <id>` |

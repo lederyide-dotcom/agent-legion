@@ -38,6 +38,8 @@ class Settings(BaseModel):
     call_timeout_s: int = 900
     followup_cap: int = 2
     followup_max_depth: int = 2
+    # 回灌想法是否直接寫進 INBOX（下一輪自動領取）。真實 backend 由 CLI 預設關閉，改寫到 AI/inbox_hold/ 等 David 放行。
+    followup_auto_ingest: bool = True
     install_cap: int = 10
 
     # 角色與 backend

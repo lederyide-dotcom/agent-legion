@@ -173,8 +173,11 @@ def existing_ids(settings: Settings, prefix: str) -> set[str]:
     return ids
 
 
-def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str) -> Path:
-    path = settings.inbox_dir / f"fu-{parent.id}-{n}.md"
+def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str, hold: bool = False) -> Path:
+    """hold=True 時寫到 AI/inbox_hold/，不會被 tick 領取；David 把檔案移回 INBOX 才算放行。"""
+    folder = settings.ai_dir / "inbox_hold" if hold else settings.inbox_dir
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"fu-{parent.id}-{n}.md"
     fm = {
         "title": title, "parent_id": parent.id, "depth": parent.depth + 1, "kind": parent.kind,
         "repo": parent.repo, "subdir": parent.subdir,

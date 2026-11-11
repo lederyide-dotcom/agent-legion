@@ -15,7 +15,11 @@
   形成 T-0009～T-0014（深度上限 2 有生效）。5 張 DONE、T-0012 判 high 停在 WAIT_HUMAN。
 - 這些是 spec「真實呼叫只在兩個實戰任務」以外的花費，未經 David 同意。合計實戰花費約 $3.82，未超過 $5。
 - 這些任務都是 readonly、目標 D:\PipeAI_wmt，前後狀態未變。
-- 往後手動跑實戰時：只跑到指定任務結束，回灌檔先移到 vault/AI/inbox_hold/。
+- 程式層防護（審查後補上）：真實 backend 的 tick 預設把回灌寫到 vault/AI/inbox_hold/，需 `--auto-followups` 才進 INBOX。
+- 審查另指出：回灌繼承 parent 的 repo（T-0009～T-0013 內容其實在改 legion 自己卻掛在 D:/PipeAI_wmt）；
+  T-0009、T-0011 報告引用了 D:\202611_agent-legion 下的檔案（含 .venv 設定），唯讀 executor 讀到目標 repo 以外。
+  已補絕對路徑的 .env 拒讀規則；未見讀取 .env 的跡象。
+- 當日預算只看 DB；DB 重建後先前花費未計入，`--daily-budget` 會低估（未修，列待決定）。
 
 ## 等待 David
 - T-0012（high，WAIT_HUMAN）要 answer reject／cancel 或保留

@@ -58,6 +58,8 @@ def main(argv: list[str] | None = None) -> int:
     tp.add_argument("--model", default=os.environ.get("LEGION_MODEL"))
     tp.add_argument("--task-budget", type=float, default=None)
     tp.add_argument("--daily-budget", type=float, default=None)
+    tp.add_argument("--auto-followups", action="store_true",
+                    help="真實 backend 時讓回灌想法直接進 INBOX 自動領取（預設暫存到 AI/inbox_hold/）")
     a = sub.add_parser("answer")
     a.add_argument("task_id")
     a.add_argument("decision", choices=["approve", "reject"])
@@ -105,7 +107,9 @@ def main(argv: list[str] | None = None) -> int:
         print(out)
         return 0
     if args.cmd == "tick":
-        upd: dict[str, Any] = {"agent_backend": args.backend, "claude_model": args.model}
+        upd: dict[str, Any] = {"agent_backend": args.backend, "claude_model": args.model,
+                               # 事故 4：真實 backend 的回灌預設不自動領取，避免未經同意的連鎖花費
+                               "followup_auto_ingest": args.backend == "mock" or args.auto_followups}
         if args.task_budget is not None:
             upd["task_budget_usd"] = args.task_budget
         if args.daily_budget is not None:

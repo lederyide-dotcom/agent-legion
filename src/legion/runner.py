@@ -331,7 +331,8 @@ class Runner:
         wd = self._workdir(task) if task.repo else self.s.ai_dir
         desc = f"{wd}（{task.kind}）"
         prev = (task.meta.get("reviews", {}).get("spec_review") or [{}])[-1]
-        prior = [str(f) for f in prev.get("findings", []) or []] if prev.get("verdict") == "revise" else []
+        prior = ([str(f) for f in prev.get("findings", []) or []]
+                 if prev and prev.get("verdict") != "pass" else [])  # 與 _spec_review 一致：非 pass 即退回
         out = await self._agent(task, "planner", prompts.planner_prompt(
             task, self.s.commander_preamble, desc, self._report_path(task), prior), wd)
         # agent 輸出一律視為不可信：型別不符就以保守值處理
@@ -399,6 +400,11 @@ class Runner:
         out = await self._agent(task, "spec_reviewer",
                                 prompts.spec_review_prompt(task, task.plan.get("spec_md", ""), task.accept_cmds,
                                                            self._report_path(task)), wd)
+        findings = [str(f) for f in (out.get("findings") or []) if isinstance(f, (str, int, float))]
+        if out.get("verdict") == "pass" and any(f.lstrip().startswith("必修") for f in findings):
+            # 判定標準是「有必修就 revise」：審查者自相矛盾時以較嚴的一方為準
+            out = {**out, "verdict": "revise", "_overridden": "pass 但含必修 finding，runner 改判 revise"}
+            await self.store.add_event(task.id, "spec_review_overridden", {"message": out["_overridden"]})
         task = await self._save_review(task, "spec_review", out)
         if out.get("verdict") == "pass":
             return await self._go(task, State.GATE)
@@ -624,9 +630,15 @@ class Runner:
                                        kind="mermaid", ext="mmd")
         meta.update(runs_csv_ev=csv_ev.id, runs_chart_ev=chart.id, mermaid_ev=mm_ev.id)
         if self.s.render_mermaid:
-            png = await render_mermaid(self.s, mmd, self.s.worktrees_dir.parent / ".legion_tmp" / "mermaid" / task.id)
-            img = await self.ev.add_image(task, task.step, "flow_mermaid_png", png, "狀態流程圖（Mermaid 轉圖）")
-            meta["mermaid_img_ev"] = img.id
+            try:
+                png = await render_mermaid(self.s, mmd,
+                                           self.s.worktrees_dir.parent / ".legion_tmp" / "mermaid" / task.id)
+            except (RuntimeError, OSError, subprocess.TimeoutExpired) as exc:
+                # 只差一張圖時不讓已花錢的任務 HALT：保留 .mmd 證據、記事件，紀錄文件改引用原始碼
+                await self.store.add_event(task.id, "mermaid_failed", {"message": f"Mermaid 轉圖失敗：{exc!r}"[:400]})
+            else:
+                img = await self.ev.add_image(task, task.step, "flow_mermaid_png", png, "狀態流程圖（Mermaid 轉圖）")
+                meta["mermaid_img_ev"] = img.id
         return await self.store.update_task(task.id, meta=meta)
 
     async def _learn(self, task: Task) -> Task:
@@ -679,8 +691,12 @@ class Runner:
                     "message": f"單輪回灌超過上限 {self.s.followup_cap}：{it.get('title')}", "reason": "cap",
                     "title": it.get("title")})
                 continue
-            p = vault.write_followup(self.s, task, n, str(it.get("title", "")), str(it.get("body", "")))
+            hold = not self.s.followup_auto_ingest
+            p = vault.write_followup(self.s, task, n, str(it.get("title", "")), str(it.get("body", "")), hold=hold)
             written.append(p.name)
+            if hold:
+                await self.store.add_event(task.id, "followup_held", {
+                    "message": f"回灌想法暫存於 AI/inbox_hold/{p.name}，移回 INBOX 才會被領取", "title": it.get("title")})
         meta = dict(task.meta)
         meta["followups_written"] = written or ["(none)"]
         await self.store.update_task(task.id, meta=meta)

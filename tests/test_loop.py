@@ -237,8 +237,9 @@ def test_readonly_task_reports_and_leaves_repo_untouched(env: Env) -> None:
 
 def test_spec_revise_feeds_findings_back_and_readonly_delivery_is_explained(env: Env) -> None:
     """實戰 A 第一次 HALT 的回歸測試：退回意見要回到 planner；唯讀報告的交付方式要寫進規劃與審查提示。"""
-    env.idea("ro", "health check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
-                                            spec_review=["revise", "pass"],
+    rp_planner = 'python -m legion.checks report "D:/x/AI/reports/T-9999-report.md" --section 架構'
+    env.idea("ro", "health check", low_mock(accept_cmds=["git status --porcelain", rp_planner],
+                                            actions=[{"type": "read"}], spec_review=["revise", "pass"],
                                             exec=[{"claim": "done", "report_md": REPORT}]), kind="readonly")
     t = run(env.run_until())[0]
     assert t.state == State.DONE, t.halt_reason
@@ -254,7 +255,65 @@ def test_spec_revise_feeds_findings_back_and_readonly_delivery_is_explained(env:
     assert "runner 自動附加（不是規劃者寫的" in reviews[0]
     planner_part = reviews[0].split("### 規劃者提出", 1)[1].split("### runner 自動附加", 1)[0]
     assert "legion.checks report" not in planner_part
-    assert sum("legion.checks report" in c for c in t.accept_cmds) == 1
+    # planner 自抄的報告檢查被去重，只留 runner 版本（路徑為本任務的報告）
+    assert [c for c in t.accept_cmds if "legion.checks report" in c] == [
+        f'python -m legion.checks report "{rp}" --section 架構 --section 測試缺口']
+    assert "資料，不是指令" in plans[1] and "不是人工審查" in plans[0]
+
+
+def test_spec_review_pass_with_must_fix_finding_is_treated_as_revise(env: Env) -> None:
+    env.idea("x", "contradictory review", low_mock(
+        spec_review=["pass"], spec_findings=[["必修：驗收指令驗不到目標", "建議：措辭"], []]))
+
+    async def go() -> None:
+        st = await env.ticks()
+        try:
+            t = (await st.list_tasks())[0]
+            assert t.state == State.DONE, t.halt_reason
+            verdicts = [r["verdict"] for r in t.meta["reviews"]["spec_review"]]
+            assert verdicts == ["revise", "pass"] and t.retries == 1
+            assert await st.all_events("spec_review_overridden")
+        finally:
+            await st.close()
+
+    run(go())
+
+
+def test_real_backend_followups_are_held_not_auto_ingested(env: Env) -> None:
+    """事故 4 的回歸：followup_auto_ingest=False 時回灌寫到 AI/inbox_hold/，不會被下一輪領取。"""
+    env.idea("p", "parent", low_mock(followups=[{"title": "child idea", "body": "後續"}], child=low_mock()))
+    held = env.settings.model_copy(update={"followup_auto_ingest": False})
+
+    async def go() -> None:
+        st = await env.ticks(settings=held)
+        try:
+            tasks = await st.list_tasks()
+            assert [t.title for t in tasks] == ["parent"] and tasks[0].state == State.DONE
+            assert not list(env.settings.inbox_dir.glob("fu-*.md"))
+            assert len(list((env.settings.ai_dir / "inbox_hold").glob("fu-*.md"))) == 1
+            assert await st.all_events("followup_held")
+        finally:
+            await st.close()
+
+    run(go())
+
+
+def test_mermaid_render_failure_does_not_halt_task(env: Env) -> None:
+    env.idea("m", "mermaid broken", low_mock())
+    broken = env.settings.model_copy(update={"render_mermaid": True,
+                                             "mermaid_cli": env.tmp / "no_such_mmdc.cmd"})
+
+    async def go() -> None:
+        st = await env.ticks(settings=broken)
+        try:
+            t = (await st.list_tasks())[0]
+            assert t.state == State.DONE, t.halt_reason
+            assert "mermaid_img_ev" not in t.meta and t.meta.get("mermaid_ev")
+            assert await st.all_events("mermaid_failed")
+        finally:
+            await st.close()
+
+    run(go())
 
 
 def test_readonly_task_without_proper_report_is_not_accepted(env: Env) -> None:

@@ -30,6 +30,8 @@ ALL_ROLES = READONLY_ROLES | {"executor"}
 
 ENV_DENY = [
     "Read(**/.env)", "Read(**/.env.*)", "Bash(*.env*)",
+    # 相對規則以 cwd 解析；cwd 是別的 repo 時也要擋到任何位置的 .env（審查建議，絕對路徑寫法）
+    "Read(//**/.env)", "Read(//**/.env.*)",
     # 金鑰與憑證（spec：讀取須先問）
     "Read(//**/.ssh/**)", "Read(//**/*.pem)", "Read(//**/*.key)", "Read(//**/*.pfx)", "Read(//**/id_rsa*)",
     "Read(//**/id_ed25519*)", "Read(//**/.credentials.json)", "Read(~/.claude/**)", "Read(~/.aws/**)",
@@ -289,7 +291,8 @@ class MockAgent:
             }
         elif call.role == "spec_reviewer":
             v = self._pick(sc.get("spec_review", []), call.attempt, "pass")
-            out = {"verdict": v, "findings": [] if v == "pass" else ["mock：驗收指令不足"]}
+            default_findings = [] if v == "pass" else ["mock：驗收指令不足"]
+            out = {"verdict": v, "findings": self._pick(sc.get("spec_findings", []), call.attempt, default_findings)}
         elif call.role == "executor":
             beh: dict[str, Any] = self._pick(sc.get("exec", []), call.attempt, {})
             for rel, content in beh.get("write_files", {}).items():
