@@ -1,0 +1,13 @@
+{
+  "verdict": "revise",
+  "findings": [
+    "Grep 沒有被限制：規格只禁遞迴 Glob，但 Grep 預設遞迴，對根目錄 Grep 會掃進 result/（約150萬檔）、annotated_images/、dataset/、runs/，與「不得掃描」衝突。請明定 Grep 的 path 只能是範圍內單一檔案或 99_bk/，不得以根目錄為 path。",
+    "寫入規則自相矛盾：「不得寫入任何檔案，包括 scratchpad 以外的位置」可讀成 scratchpad 內可寫。請改成單一明確說法（例如完全不寫檔，scratchpad 也不寫）。",
+    "預算數字不一致：規格寫 $2.19，執行環境上限為 $2.14。另外「累計花費達 $1.50 就停止」執行者未必拿得到累計花費，請對齊數字，並改成可操作的條件（例如最多讀幾支檔案）。",
+    "`git rev-parse HEAD` 只印雜湊，不會判定是否等於 4a6c383。請寫清通過條件是輸出以 4a6c383 開頭，並由 runner 比對前後值。",
+    "`git status --porcelain` 沒列入 accept_cmds，只靠 runner 比對；`git diff --exit-code` 抓不到未追蹤的新檔案。若 runner 比對不是強制的，請把 git status --porcelain 加進 accept_cmds。",
+    "讀檔順序漏了 CLAUDE.md：範圍列了它，但順序沒提。請補上位置，或說明只作背景參考。",
+    "「缺一則退回」的檢查點與預算耗盡有衝突：對所有 .py 要求列出寫死路徑，但某支腳本可能沒有，或因預算沒讀完。請改成逐支列出（沒有就寫無），未讀完的檔案可豁免。",
+    "legion.checks 只檢查「架構」「測試缺口」兩節，「其他風險」與 15 筆發現下限只靠人工審查。規格已說明，可接受；若要機器可驗，可考慮加 --section 其他風險。"
+  ]
+}

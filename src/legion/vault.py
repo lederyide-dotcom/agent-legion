@@ -233,7 +233,8 @@ def write_question(settings: Settings, task: Task, reason: str, details: list[st
     path.write_text(
         f"---\ntask: {task.id}\nreason: {reason}\nasked: {datetime.now().astimezone().isoformat(timespec='seconds')}\n---\n"
         f"# 需要 David 決定：{task.id} {task.title}\n\n原因：{reason}\n\n## 細節\n{body}\n\n"
-        f"## 怎麼回答\n```\nlegion answer {task.id} approve\nlegion answer {task.id} reject\n```\n",
+        f"## 怎麼回答（在專案根目錄執行）\n```\n.venv\\Scripts\\python.exe -m legion answer {task.id} approve\n"
+        f".venv\\Scripts\\python.exe -m legion answer {task.id} reject\n```\n",
         encoding="utf-8",
     )
     return path

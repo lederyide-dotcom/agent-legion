@@ -114,7 +114,8 @@ def _prior_findings(findings: list[str] | None) -> str:
     if not findings:
         return ""
     items = "\n".join(f"- {f}" for f in findings[:20])
-    return f"\n## 上一版規格被規格審查者退回，請逐項修正\n{items}\n"
+    return (f"\n## 上一版規格被規格審查者退回\n{items}\n"
+            "請修正所有「必修」項；「建議」項視成本取捨即可。規格保持精簡，不要因為退回而越寫越長。\n")
 
 
 def planner_prompt(task: Task, preamble: str, workdir_desc: str, report_path: str = "",
@@ -136,7 +137,20 @@ def planner_prompt(task: Task, preamble: str, workdir_desc: str, report_path: st
 {RULES_BLOCK}"""
 
 
+SPEC_REVIEW_BAR = """\
+## 判定標準
+- findings 每條以「必修：」或「建議：」開頭。
+- 必修只限：規格無法執行、自相矛盾、驗收方式驗證不了主要目標、違反下方規則、範圍會讀到禁止的檔案。
+- 措辭、可再補強、更嚴格的寫法、數字細節屬於「建議」。
+- 有任何必修 → verdict=revise；只有建議 → verdict=pass（建議會保留在紀錄文件的審查章節）。
+"""
+
+
 def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str], report_path: str = "") -> str:
+    runner_cmds = [c for c in accept_cmds if "legion.checks report" in c] if task.kind == "readonly" else []
+    planner_cmds = [c for c in accept_cmds if c not in runner_cmds]
+    runner_part = (f"\n### runner 自動附加（不是規劃者寫的，不算重複或矛盾）\n{json.dumps(runner_cmds, ensure_ascii=False)}\n"
+                   if runner_cmds else "")
     return f"""你是規格審查者（全新 session、唯讀）。審查下面的任務規格是否可執行、驗收指令是否足以驗證目標。
 只回 verdict（pass／revise）與 findings。
 
@@ -147,7 +161,10 @@ def spec_review_prompt(task: Task, spec_md: str, accept_cmds: list[str], report_
 {spec_md}
 
 ## 驗收指令
-{json.dumps(accept_cmds, ensure_ascii=False)}
+### 規劃者提出
+{json.dumps(planner_cmds, ensure_ascii=False)}
+{runner_part}
+{SPEC_REVIEW_BAR}
 {readonly_note(task, report_path)}
 {RULES_BLOCK}"""
 

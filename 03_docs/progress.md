@@ -15,6 +15,16 @@
   1. planner／spec_reviewer 提示沒說明唯讀報告由 runner 寫入 vault、`legion.checks report` 是 runner 附加的白名單指令，審查者每輪都判「自相矛盾、違反白名單」
   2. 退回 PLAN 時 planner 沒拿到審查意見，等於盲改
 - 修正：提示加上唯讀交付說明與白名單例外；退回意見帶回 planner；去重 planner 自抄的報告檢查；新增回歸測試（共 69 項全過）
+
+## 實戰 A 第二次（T-0007）：HALT
+- 2026-11-11 20:37 開跑（David 同意重跑），SPEC_REVIEW 退回 4 次 → retry_exceeded，$0.4201，human_touches 0；目標 repo 未被修改
+- 退回意見已正確帶回 planner（規格逐輪修正），但：
+  1. 審查者沒有通過門檻，任何「建議補強」都判 revise；第 3、4 輪已無阻擋性問題
+  2. 審查提示中的驗收指令清單混入 runner 附加的報告檢查，審查者每輪判為「重複／矛盾」
+- 修正：審查判定標準（findings 標「必修／建議」，只有必修才 revise）；驗收指令分「規劃者提出／runner 自動附加」顯示；planner 只需修必修項、規格保持精簡；回歸測試補斷言（69 項全過）
+- 同一問題（規格審查無法收斂）已修 2 次；若第三次仍不收斂，依規則停下整理
+- 實戰真實花費累計約 $1.58（B 0.1669、誤領取約 0.65、smoke 0.002、T-0006 0.3354、T-0007 0.4201）
+
 - 另：`.venv\Scripts\legion.exe` 被 Windows 應用程式控制原則擋下，改用 `python -m legion`（沒有呼叫 Claude、零成本）
 
 ## 事故紀錄（誠實揭露）

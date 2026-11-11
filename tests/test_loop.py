@@ -249,6 +249,11 @@ def test_spec_revise_feeds_findings_back_and_readonly_delivery_is_explained(env:
     rp = (env.settings.ai_dir / "reports" / f"{t.id}-report.md").resolve().as_posix()
     for p in (plans[0], reviews[0]):
         assert rp in p and "不算修改目標 repo" in p
+    # 審查者要有通過門檻，且 runner 附加的指令要與規劃者的分開顯示（實戰 A 第二次 HALT 的回歸）
+    assert "只有建議 → verdict=pass" in reviews[0]
+    assert "runner 自動附加（不是規劃者寫的" in reviews[0]
+    planner_part = reviews[0].split("### 規劃者提出", 1)[1].split("### runner 自動附加", 1)[0]
+    assert "legion.checks report" not in planner_part
     assert sum("legion.checks report" in c for c in t.accept_cmds) == 1
 
 
