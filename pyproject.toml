@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=65"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legion"
+version = "0.4.0"
+description = "AI Agents 自主指揮軍團閉環 PoC：Runner＋指揮官＋Vault＋開發紀錄文件"
+requires-python = ">=3.10"
+# 版本鎖定見 requirements.lock
+dependencies = [
+  "psycopg[binary]==3.2.3",
+  "PyYAML==6.0.2",
+  "matplotlib==3.9.4",
+  "pillow==11.0.0",
+  "python-docx==1.1.2",
+  "pypdf==5.1.0",
+  "pydantic==2.10.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "ruff==0.8.4"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]  # 中文字串行長以視覺寬度計算不準，改由人工把關
+
+[project.scripts]
+legion = "legion.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+filterwarnings = ["ignore::DeprecationWarning:matplotlib.*"]

@@ -1,0 +1,13 @@
+time,task,tool,version,source,level,install_cmd,uninstall_cmd,license
+2026-11-11T01:09:33+08:00,DEV,psycopg[binary],3.2.3,PyPI,自動,".venv\Scripts\python.exe -m pip install psycopg[binary]==3.2.3",".venv\Scripts\python.exe -m pip uninstall -y psycopg psycopg-binary",LGPL-3.0
+2026-11-11T01:09:26+08:00,DEV,PyYAML,6.0.2,PyPI,自動,".venv\Scripts\python.exe -m pip install PyYAML==6.0.2",".venv\Scripts\python.exe -m pip uninstall -y PyYAML",MIT
+2026-11-11T01:09:34+08:00,DEV,pytest,8.3.4,PyPI,自動,".venv\Scripts\python.exe -m pip install pytest==8.3.4",".venv\Scripts\python.exe -m pip uninstall -y pytest",MIT
+2026-11-11T01:09:34+08:00,DEV,matplotlib,3.9.4,PyPI,自動,".venv\Scripts\python.exe -m pip install matplotlib==3.9.4",".venv\Scripts\python.exe -m pip uninstall -y matplotlib",PSF-based (Matplotlib License)
+2026-11-11T01:09:27+08:00,DEV,pillow,11.0.0,PyPI,自動,".venv\Scripts\python.exe -m pip install pillow==11.0.0",".venv\Scripts\python.exe -m pip uninstall -y pillow",MIT-CMU
+2026-11-11T01:09:33+08:00,DEV,python-docx,1.1.2,PyPI,自動,".venv\Scripts\python.exe -m pip install python-docx==1.1.2",".venv\Scripts\python.exe -m pip uninstall -y python-docx",MIT
+2026-11-11T01:09:33+08:00,DEV,pypdf,5.1.0,PyPI,自動,".venv\Scripts\python.exe -m pip install pypdf==5.1.0",".venv\Scripts\python.exe -m pip uninstall -y pypdf",BSD-3-Clause
+2026-11-11T01:11:53+08:00,DEV,pydantic,2.10.3,PyPI,自動,".venv\Scripts\python.exe -m pip install pydantic==2.10.3",".venv\Scripts\python.exe -m pip uninstall -y pydantic pydantic-core",MIT
+2026-11-11T01:11:53+08:00,DEV,ruff,0.8.4,PyPI,自動,".venv\Scripts\python.exe -m pip install ruff==0.8.4",".venv\Scripts\python.exe -m pip uninstall -y ruff",MIT
+2026-11-11T01:12:29+08:00,DEV,@mermaid-js/mermaid-cli,11.17.1,npm,自動,"npm install --prefix tools\mermaid --save-exact @mermaid-js/mermaid-cli@11.17.1 (PUPPETEER_SKIP_DOWNLOAD=1，借用已安裝的 Edge)","npm uninstall --prefix tools\mermaid @mermaid-js/mermaid-cli",MIT
+2026-11-11T01:16:08+08:00,DEV,postgres (Docker 官方 image),16.6,Docker Hub 官方,自動,"docker compose up -d db（image postgres:16.6）","docker compose down; docker image rm postgres:16.6",PostgreSQL
+2026-11-11T01:26:46+08:00,DEV,wheel,0.45.1,PyPI,自動,".venv\Scripts\python.exe -m pip install wheel==0.45.1",".venv\Scripts\python.exe -m pip uninstall -y wheel",MIT

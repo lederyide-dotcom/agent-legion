@@ -1,0 +1,32 @@
+實戰 A 唯讀檢查（T-0008，目標 repo <target-repo-a>）
+指令：git -C <target-repo-a> rev-parse HEAD；git -C <target-repo-a> status --porcelain；git worktree list；git branch --list
+
+[執行前]（由我在投入 INBOX 前擷取）
+time=2026-11-11T20:46:00.6232457+08:00
+head=4a6c383a141e220d7c0eaea01d9e44afab9c28dc
+status=[]
+worktrees:
+<target-repo-a>  4a6c383 [master]
+branches:
+* master
+
+[事後擷取 21:03:47]（僅供揭露，見下方說明）
+time=2026-11-11T21:03:47.6225149+08:00
+head=4a6c383a141e220d7c0eaea01d9e44afab9c28dc
+status=[?? AGENTS.md]
+worktrees:
+<target-repo-a>  4a6c383 [master]
+branches:
+* master
+
+判定（legion 執行期間 20:46～21:02:31）：PASS
+- 執行前（20:46:00）：HEAD 4a6c383、status 空
+- T-0008 VERIFY 時 runner 前後比對：result SAME（E-008）
+- 回灌任務 T-0013、T-0014 的 runner 前後比對（21:00:53／21:00:54）：result SAME（vault/AI/records/T-0013/evidence/E-006_verify1_outside.txt、vault/AI/records/T-0014/evidence/E-008_verify1_outside.txt）。之後 legion 只剩 REVIEW／LEARN（唯讀角色），最後寫入 21:02:31
+- 21:03:25 目標 repo 出現未追蹤檔 AGENTS.md（3438 bytes，標題「Codex 工作說明」）。
+  該時間 legion 已無任何行程（tick 迴圈已結束，無 legion／claude -p 子行程）；legion 的 agent 在唯讀任務只有 Read／Glob／Grep，runner 不寫入目標 repo。
+  判斷為外部建立（使用者 或 Codex），非 legion 所為；未刪除、未修改該檔。此判斷是依時間序推論，未驗證建立者。
+
+runner 自身的前後比對證據：vault/AI/records/T-0008/evidence/E-008_verify1_outside.txt（result: SAME）
+報告：vault/AI/reports/T-0008-report.md（21056 bytes；章節 架構／測試缺口／其他風險；legion.checks report exit 0，E-006）
+備註：T-0006、T-0007 停在 SPEC_REVIEW、從未進 EXEC，runner 沒有對它們做前後比對；只有我在 20:28、20:37、20:46 投入前擷取的 HEAD 4a6c383／status 空可佐證，沒有逐任務的事後證據檔。

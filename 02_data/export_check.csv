@@ -1,0 +1,7 @@
+time,task,format,file,chapters,expected_chapters,images,expected_images,has_toc,pages,ok
+2026-11-11T01:37:47+08:00,D-0001,docx,01_output\record_D-0001.docx,8,8,3,3,True,,True
+2026-11-11T01:37:50+08:00,D-0001,pdf,01_output\record_D-0001.pdf,8,8,3,3,True,7,True
+2026-11-11T07:53:04+08:00,D-0001,docx,01_output\record_D-0001.docx,8,8,3,3,True,,True
+2026-11-11T07:53:07+08:00,D-0001,pdf,01_output\record_D-0001.pdf,8,8,3,3,True,7,True
+2026-11-11T21:06:21+08:00,D-0001,docx,01_output\record_D-0001.docx,8,8,3,3,True,,True
+2026-11-11T21:06:24+08:00,D-0001,pdf,01_output\record_D-0001.pdf,8,8,3,3,True,7,True

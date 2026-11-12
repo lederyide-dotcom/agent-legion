@@ -1,0 +1,217 @@
+{
+  "nodes": [
+    {
+      "id": "n-inbox",
+      "type": "text",
+      "text": "INBOX\n使用者丟想法",
+      "x": 0,
+      "y": 0,
+      "width": 220,
+      "height": 90,
+      "color": "6"
+    },
+    {
+      "id": "n-plan",
+      "type": "text",
+      "text": "PLAN\n指揮官規劃",
+      "x": 260,
+      "y": 0,
+      "width": 220,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "n-spec_review",
+      "type": "text",
+      "text": "SPEC_REVIEW\n規格審查者（全新 session）",
+      "x": 520,
+      "y": 0,
+      "width": 220,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "n-gate",
+      "type": "text",
+      "text": "GATE\nRunner 依風險分級",
+      "x": 780,
+      "y": 0,
+      "width": 220,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "n-exec",
+      "type": "text",
+      "text": "EXEC\n指揮官在 worktree 執行",
+      "x": 780,
+      "y": 200,
+      "width": 220,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "n-verify",
+      "type": "text",
+      "text": "VERIFY\nRunner 親自執行驗收指令",
+      "x": 520,
+      "y": 200,
+      "width": 220,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "n-review",
+      "type": "text",
+      "text": "REVIEW\n交付審查者（全新 session）",
+      "x": 260,
+      "y": 200,
+      "width": 220,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "n-learn",
+      "type": "text",
+      "text": "LEARN\n書記官：教訓、交接、回灌",
+      "x": 0,
+      "y": 200,
+      "width": 220,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "n-done",
+      "type": "text",
+      "text": "DONE",
+      "x": 0,
+      "y": 400,
+      "width": 220,
+      "height": 90,
+      "color": "4"
+    },
+    {
+      "id": "n-wait_human",
+      "type": "text",
+      "text": "WAIT_HUMAN\n寫 questions/ 等使用者",
+      "x": 1040,
+      "y": 0,
+      "width": 220,
+      "height": 90,
+      "color": "1"
+    },
+    {
+      "id": "n-halt",
+      "type": "text",
+      "text": "HALT\n超預算／超重試／逾時／STOP",
+      "x": 1040,
+      "y": 200,
+      "width": 220,
+      "height": 90,
+      "color": "1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-00",
+      "fromNode": "n-inbox",
+      "toNode": "n-plan",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "e-01",
+      "fromNode": "n-plan",
+      "toNode": "n-spec_review",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "e-02",
+      "fromNode": "n-spec_review",
+      "toNode": "n-gate",
+      "toEnd": "arrow",
+      "label": "pass"
+    },
+    {
+      "id": "e-03",
+      "fromNode": "n-spec_review",
+      "toNode": "n-plan",
+      "toEnd": "arrow",
+      "label": "revise"
+    },
+    {
+      "id": "e-04",
+      "fromNode": "n-gate",
+      "toNode": "n-exec",
+      "toEnd": "arrow",
+      "label": "low／mid"
+    },
+    {
+      "id": "e-05",
+      "fromNode": "n-gate",
+      "toNode": "n-wait_human",
+      "toEnd": "arrow",
+      "label": "high"
+    },
+    {
+      "id": "e-06",
+      "fromNode": "n-wait_human",
+      "toNode": "n-exec",
+      "toEnd": "arrow",
+      "label": "使用者核准"
+    },
+    {
+      "id": "e-07",
+      "fromNode": "n-exec",
+      "toNode": "n-verify",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "e-08",
+      "fromNode": "n-verify",
+      "toNode": "n-review",
+      "toEnd": "arrow",
+      "label": "通過"
+    },
+    {
+      "id": "e-09",
+      "fromNode": "n-verify",
+      "toNode": "n-exec",
+      "toEnd": "arrow",
+      "label": "失敗（重試≤3）"
+    },
+    {
+      "id": "e-10",
+      "fromNode": "n-review",
+      "toNode": "n-learn",
+      "toEnd": "arrow",
+      "label": "pass"
+    },
+    {
+      "id": "e-11",
+      "fromNode": "n-review",
+      "toNode": "n-exec",
+      "toEnd": "arrow",
+      "label": "fail"
+    },
+    {
+      "id": "e-12",
+      "fromNode": "n-learn",
+      "toNode": "n-done",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "e-13",
+      "fromNode": "n-learn",
+      "toNode": "n-inbox",
+      "toEnd": "arrow",
+      "label": "回灌≤2、深度≤2"
+    },
+    {
+      "id": "e-14",
+      "fromNode": "n-exec",
+      "toNode": "n-halt",
+      "toEnd": "arrow",
+      "label": "熔斷"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+time,record,ok,chapters_ok,n_evidence,n_images,unknown_evidence,missing_files,hash_mismatch,uncaptioned_images,uncited_paragraphs
+2026-11-11T01:37:46+08:00,vault\AI\records\D-0001\record.md,True,True,14,3,,,,,
+2026-11-11T01:37:46+08:00,vault\AI\records\D-0003\record.md,True,True,10,3,,,,,
+2026-11-11T01:37:46+08:00,vault\AI\records\D-0004\record.md,True,True,10,3,,,,,
+2026-11-11T07:53:03+08:00,vault\AI\records\D-0001\record.md,True,True,14,3,,,,,
+2026-11-11T07:53:03+08:00,vault\AI\records\D-0003\record.md,True,True,10,3,,,,,
+2026-11-11T07:53:03+08:00,vault\AI\records\D-0004\record.md,True,True,10,3,,,,,
+2026-11-11T07:53:12+08:00,vault\AI\records\T-0005\record.md,True,True,12,4,,,,,
+2026-11-11T21:04:20+08:00,vault\AI\records\T-0008\record.md,True,True,14,5,,,,,
+2026-11-11T21:06:20+08:00,vault\AI\records\D-0001\record.md,True,True,14,3,,,,,
+2026-11-11T21:06:20+08:00,vault\AI\records\D-0003\record.md,True,True,10,3,,,,,
+2026-11-11T21:06:20+08:00,vault\AI\records\D-0004\record.md,True,True,10,3,,,,,
+2026-11-11T21:49:28+08:00,vault\AI\records\T-0015\record.md,True,True,17,4,,,,,
