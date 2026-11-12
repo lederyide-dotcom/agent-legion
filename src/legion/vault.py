@@ -120,7 +120,7 @@ _EDGES = [
 _STATE_ROLE = {"PLAN": "planner", "SPEC_REVIEW": "spec_reviewer", "EXEC": "executor", "REVIEW": "reviewer",
                "LEARN": "scribe"}
 _ROLE_LABEL = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
-               "reviewer": "交付審查者", "scribe": "書記官"}
+               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）"}
 # 模型顯示名稱、官方單價（USD／每百萬 token，輸入／輸出；2026-11-12 查詢官方定價頁）、畫布顏色
 _MODEL_INFO: dict[str, tuple[str, str, str]] = {
     "fable": ("Fable 5.2", "$8／$40", "1"), "claude-fable-5-2": ("Fable 5.2", "$8／$40", "1"),
@@ -172,7 +172,7 @@ def canvas_json(settings: Settings | None = None) -> dict[str, Any]:
 def models_canvas_json(settings: Settings) -> dict[str, Any]:
     """角色 → 模型 關係畫布：依 runner 實際設定（含環境變數覆寫）產生。紅線＝失敗後升級。"""
     lanes = [("PLAN", "planner"), ("SPEC_REVIEW", "spec_reviewer"), ("GATE", None), ("EXEC", "executor"),
-             ("VERIFY", None), ("REVIEW", "reviewer"), ("LEARN", "scribe")]
+             ("VERIFY", None), ("REVIEW", "reviewer"), ("LEARN", "scribe"), ("ADVISOR", "advisor")]
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
     model_nodes: dict[str, str] = {}
@@ -380,6 +380,38 @@ def write_question(settings: Settings, task: Task, reason: str, details: list[st
         f"# 需要使用者決定：{task.id} {task.title}\n\n原因：{reason}\n\n## 細節\n{body}\n\n"
         f"## 怎麼回答（在專案根目錄執行）\n```\n.venv\\Scripts\\python.exe -m legion answer {task.id} approve\n"
         f".venv\\Scripts\\python.exe -m legion answer {task.id} reject\n```\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+_KIND_LABEL = {"revise_spec": "回到規劃重寫規格", "retry_with_guidance": "依指引重新執行", "split_task": "拆成小任務",
+               "abandon": "放棄這個任務", "needs_human": "需要你處理"}
+
+
+def write_advisor_question(settings: Settings, task: Task, adv: dict[str, Any]) -> Path:
+    """軍師的錦囊寫成問題檔，讓使用者在 Obsidian 裡選；也說明閒置多久後會自動決議。"""
+    path = settings.ai_dir / "questions" / f"{task.id}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for o in adv["options"]:
+        star = "⭐ " if str(o.get("id")) == adv["recommended"] else ""
+        rows.append(f"### {star}{o.get('id')}. {o.get('title')}\n"
+                    f"- 種類：{_KIND_LABEL.get(str(o.get('kind')), o.get('kind'))}　風險：{o.get('risk')}　"
+                    f"預估花費：${float(o.get('est_cost_usd') or 0):.2f}\n"
+                    f"- 做法：{o.get('plan')}\n- 理由：{o.get('rationale')}\n")
+    minutes = settings.advisor_idle_minutes
+    path.write_text(
+        f"---\ntask: {task.id}\nreason: 軍師錦囊待決定\nasked: {adv['asked_at']}\n---\n"
+        f"# 軍師錦囊：{task.id} {task.title}\n\n卡住原因：{adv['reason']}\n\n"
+        f"任務風險：{task.risk or '未判定'}" + ("（high 風險任務不會自動決議，一定等你）" if task.risk == "high" else "") +
+        f"\n\n## 軍師診斷\n{adv['diagnosis']}\n\n"
+        f"## 錦囊（⭐ 為軍師推薦）\n" + "\n".join(rows) +
+        f"\n## 怎麼決定\n```\n.venv\\Scripts\\python.exe -m legion choose {task.id} <選項編號>\n"
+        f".venv\\Scripts\\python.exe -m legion answer {task.id} approve   # 採用推薦\n"
+        f".venv\\Scripts\\python.exe -m legion answer {task.id} reject    # 停止任務\n```\n\n"
+        f"> [!info] {minutes:g} 分鐘內沒有決定，指揮官＋軍師會自動決議：優先採用推薦，"
+        f"但只限「不需要你處理、風險不是 high、預估花費在剩餘預算內」的錦囊；都不符合就繼續等你。\n",
         encoding="utf-8",
     )
     return path

@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 from .models import AgentResult, Task
 
-READONLY_ROLES = frozenset({"planner", "spec_reviewer", "reviewer", "scribe"})
+READONLY_ROLES = frozenset({"planner", "spec_reviewer", "reviewer", "scribe", "advisor"})
 REVIEWER_ROLES = frozenset({"spec_reviewer", "reviewer"})
 ALL_ROLES = READONLY_ROLES | {"executor"}
 
@@ -322,6 +322,20 @@ class MockAgent:
         elif call.role == "reviewer":
             v = self._pick(sc.get("review", []), call.attempt, "pass")
             out = {"verdict": v, "findings": [] if v == "pass" else ["mock：交付不符規格"]}
+        elif call.role == "advisor":
+            default_advice = {
+                "diagnosis": "mock：執行者沒有真正修改程式",
+                "options": [
+                    {"id": "A", "kind": "retry_with_guidance", "title": "照指引重做", "plan": "實作 multiply 並讓測試通過",
+                     "est_cost_usd": 0.1, "risk": "low", "rationale": "失敗原因明確"},
+                    {"id": "B", "kind": "revise_spec", "title": "重寫規格", "plan": "把驗收拆得更細",
+                     "est_cost_usd": 0.2, "risk": "low", "rationale": "規格可能不清楚"},
+                    {"id": "C", "kind": "needs_human", "title": "請使用者提高預算", "plan": "提高單任務預算",
+                     "est_cost_usd": 0.0, "risk": "mid", "rationale": "預算可能不足"},
+                ],
+                "recommended": "A",
+            }
+            out = dict(self._pick(sc.get("advice", []), call.attempt, default_advice))
         elif call.role == "scribe":
             ev_ids: list[str] = call.task.meta.get("_evidence_ids", [])
             cite = "、".join(ev_ids[-2:]) if ev_ids else "E-001"

@@ -24,7 +24,7 @@ def _windows_loop() -> None:
 
 
 ROLE_LABELS = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
-               "reviewer": "交付審查者", "scribe": "書記官"}
+               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）"}
 
 
 def models_table(s: Settings) -> str:
@@ -83,6 +83,10 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("decision", choices=["approve", "reject"])
     a.add_argument("--by", default=os.environ.get("USERNAME", "user"))
     a.add_argument("--note", default="")
+    ch = sub.add_parser("choose", help="採用軍師的某個錦囊")
+    ch.add_argument("task_id")
+    ch.add_argument("option_id")
+    ch.add_argument("--by", default=os.environ.get("USERNAME", "user"))
     r = sub.add_parser("resume")
     r.add_argument("task_id")
     r.add_argument("--by", default=os.environ.get("USERNAME", "user"))
@@ -158,6 +162,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "resume":
             t = await runner.resume(args.task_id, args.by)
             return f"{t.id} → {t.state.value}"
+        if args.cmd == "choose":
+            t = await runner.choose(args.task_id, args.option_id, args.by)
+            return f"{t.id} 採用錦囊 {args.option_id} → {t.state.value}（human_touches={t.human_touches}）"
         if args.cmd == "cancel":
             t = await runner.cancel(args.task_id, args.by, args.reason)
             return f"{t.id} → {t.state.value}（{t.halt_reason}）"

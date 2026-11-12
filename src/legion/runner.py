@@ -15,7 +15,7 @@ import os
 import shlex
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +52,8 @@ from .risk import (
 )
 
 _GITQ = ["-c", "core.quotepath=false"]  # 中文檔名不加引號，路徑比對才準確
+ADVISOR_TRIGGERS = ("same_error_", "retry_exceeded")  # 這兩種停下會先請示軍師
+ADVISOR_WAIT = "軍師錦囊待決定"  # wait_reason 前綴：只有這種等待才能選錦囊或自動決議
 
 
 class Halt(Exception):
@@ -145,6 +147,10 @@ class Runner:
             summary["ingested"] = await self.ingest_inbox()
             if self.bad_inbox:
                 summary["bad_inbox"] = self.bad_inbox
+            try:
+                summary["auto_decided"] = await self._auto_decide()  # 人閒置超時的錦囊，由指揮官＋軍師決議
+            except (ValueError, KeyError, TypeError) as exc:
+                summary["auto_decide_error"] = repr(exc)[:300]
             active = [t for t in await self.store.list_tasks()
                       if t.state not in TERMINAL_STATES and t.state not in PAUSED_STATES]
             for task in active:
@@ -155,7 +161,7 @@ class Runner:
                 try:
                     task = await self.step(task)
                 except Halt as h:
-                    task = await self._halt(await self.store.get_task(task.id), h.reason)
+                    task = await self._halt_or_consult(task.id, h.reason)
                 except AgentTimeout as exc:
                     task = await self._halt(await self.store.get_task(task.id), f"timeout: {exc}")
                 except AgentError as exc:
@@ -177,11 +183,17 @@ class Runner:
                 out.append(t.id)
         return out
 
-    async def _halt(self, task: Task, reason: str) -> Task:
+    async def _halt(self, task: Task, reason: str, return_state: State | None = None,
+                    meta: dict[str, Any] | None = None) -> Task:
         if task.state == State.HALT:
             return task
+        new_meta = dict(meta if meta is not None else task.meta)
+        adv = new_meta.get("advisor")
+        if adv and not adv.get("decided") and not adv.get("void"):
+            # 任何停止都讓待決的錦囊作廢：之後別的等待不會被舊錦囊搶走、續跑也不會被自動決議
+            new_meta["advisor"] = {**adv, "void": True}
         t = await self.store.transition(task, State.HALT, {"reason": reason}, halt_reason=reason,
-                                        return_state=task.state)
+                                        return_state=return_state or task.state, meta=new_meta)
         await self._after_change(t)
         return t
 
@@ -283,7 +295,7 @@ class Runner:
                                producer="runner", kind="text", ext="txt")
 
     async def _agent(self, task: Task, role: str, prompt: str, cwd: Path, add_dirs: list[Path] | None = None,
-                     save_prompt: bool = True) -> dict[str, Any]:
+                     save_prompt: bool = True, max_budget: float | None = None) -> dict[str, Any]:
         existing = await self.store.find_run(task.id, task.state.value, task.step, role)
         if existing is not None:  # 續跑：上次已完成並已扣款，直接重用
             return existing.output
@@ -304,7 +316,8 @@ class Runner:
             await self.store.add_event(task.id, "model_escalated", {
                 "message": f"執行者第 {attempt + 1} 次嘗試改用 {model}（effort {effort or '預設'}）"})
         call = AgentCall(role=role, prompt=prompt, cwd=cwd, schema=prompts.SCHEMAS[role], task=task,
-                         attempt=attempt, timeout_s=self.s.call_timeout_s, budget_usd=max(remaining, 0.01),
+                         attempt=attempt, timeout_s=self.s.call_timeout_s,
+                         budget_usd=max(min(remaining, max_budget) if max_budget is not None else remaining, 0.01),
                          add_dirs=add_dirs or [], model=model, effort=effort)
         started = utcnow()
         try:
@@ -418,6 +431,11 @@ class Runner:
         if floor in RISK_ORDER and max_risk(risk, floor) != risk:
             risk = max_risk(risk, floor)
             reasons = [*reasons, f"回灌想法涉及 legion 本身，風險下限 {floor}"]
+        required = [str(c).replace("\\", "/") for c in task.meta.get("advisor_required_cmds", [])]
+        dropped = [c for c in required if c not in accept]
+        if dropped:  # 依軍師錦囊重新規劃時拿掉原本的驗收指令＝放寬驗收，要人核准
+            risk = "high"
+            reasons = [*reasons, f"high: 重新規劃拿掉了原本的驗收指令：{'；'.join(dropped[:5])}"]
         spec_md = str(out.get("spec_md", ""))
         spec_path = self.s.ai_dir / "specs" / f"{task.id}.md"
         spec_path.parent.mkdir(parents=True, exist_ok=True)
@@ -848,6 +866,9 @@ class Runner:
         task = await self.store.get_task(task_id)
         if task.state != State.WAIT_HUMAN:
             raise ValueError(f"{task_id} 不在 WAIT_HUMAN（目前 {task.state.value}）")
+        adv = self._advisor_pending(task)
+        if adv is not None and approve:  # 因軍師而等待時 approve＝採用推薦；其他等待（diff、安裝）照原本核准流程
+            return await self.choose(task_id, str(adv.get("recommended")), by)
         task = await self.store.human_touch(task_id, "answer", {"approve": approve, "by": by, "note": note})
         if not approve:
             return await self._halt(task, f"human_rejected: {note}")
@@ -858,6 +879,196 @@ class Runner:
             meta["approved_diff_sig"] = meta.pop("pending_diff_sig")
         task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state or State.EXEC, {"approved_by": by}, wait_reason=None)
+
+    # ------------------------------------------------------------ 軍師
+    async def _halt_or_consult(self, task_id: str, reason: str) -> Task:
+        """任務因同一錯誤或重試上限要停下時，先請示軍師提出錦囊，改為等人決定；請示不了就照原本停下。"""
+        task = await self.store.get_task(task_id)
+        consults = int(task.meta.get("advisor_consults", 0))
+        if not (self.s.advisor_enabled and reason.startswith(ADVISOR_TRIGGERS)
+                and consults < self.s.advisor_max_consults):
+            return await self._halt(task, reason)
+        meta = dict(task.meta)
+        meta["advisor_consults"] = consults + 1  # 先記次數：請示中途崩潰也不會無限請示
+        task = await self.store.update_task(task.id, meta=meta)
+        try:
+            return await self._consult_advisor(task, reason)
+        except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+            raise
+        except Exception as exc:  # noqa: BLE001 — 請示失敗（含預算不足、逾時、輸出不合格）一律照原本停下，不得卡住系統
+            await self.store.add_event(task.id, "advisor_failed", {"message": f"{exc!r}"[:400]})
+            return await self._halt(await self.store.get_task(task.id), f"{reason}（軍師請示失敗：{exc!r}"[:300] + "）")
+
+    def _advisor_context(self, task: Task) -> str:
+        reviews = task.meta.get("reviews", {})
+        parts = [f"### 任務風險\n{task.risk or '未判定'}（{'；'.join(task.risk_reasons[:5]) or '無'}）",
+                 f"### 規格\n{str(task.plan.get('spec_md', ''))[:4000]}",
+                 f"### 驗收指令\n{json.dumps(task.accept_cmds, ensure_ascii=False)}",
+                 f"### 最近一次失敗（runner 親自執行的輸出）\n```\n{str(task.meta.get('last_failure') or '（無）')[-3000:]}\n```"]
+        for stage in ("spec_review", "review"):
+            if reviews.get(stage):
+                last = reviews[stage][-1]
+                items = "\n".join(f"> - {' '.join(str(f).split())[:300]}" for f in (last.get("findings") or [])[:10])
+                parts.append(f"### 最近一次 {stage}（{last.get('verdict')}）\n{items or '> （無）'}")
+        sigs = task.meta.get("failure_sigs", [])
+        parts.append(f"### 統計\n重試 {task.retries} 次；驗收失敗 {len(sigs)} 次、相異錯誤 {len({r.get('sig') for r in sigs})} 種；"
+                     f"已花費 ${task.cost_usd:.4f}")
+        return "\n\n".join(parts)
+
+    def _remaining_budget(self, task: Task) -> float:
+        return max(self.s.task_budget_usd - task.cost_usd, 0.0)
+
+    @staticmethod
+    def _clean_option(o: dict[str, Any]) -> dict[str, Any] | None:
+        """軍師輸出一律視為不可信：kind 白名單、花費必須是非負數字、風險必須明確，否則視為「需要人處理」。"""
+        if not isinstance(o, dict) or not o.get("id"):
+            return None
+        kind = o.get("kind") if o.get("kind") in prompts.ADVISOR_ALL_KINDS else "needs_human"
+        try:
+            cost = float(o.get("est_cost_usd"))
+        except (TypeError, ValueError):
+            cost = -1.0
+        risk = o.get("risk") if o.get("risk") in {"low", "mid", "high"} else "high"
+        if cost < 0:
+            kind, cost = "needs_human", 0.0  # 花費不明：不可自動採用
+        subs = [s for s in (o.get("subtasks") or []) if isinstance(s, dict) and s.get("title")]
+        return {"id": str(o["id"])[:8], "kind": kind, "title": str(o.get("title", ""))[:200],
+                "plan": str(o.get("plan", ""))[:2000], "est_cost_usd": cost, "risk": risk,
+                "rationale": str(o.get("rationale", ""))[:600],
+                "subtasks": [{"title": str(s["title"])[:200], "body": str(s.get("body", ""))[:2000]} for s in subs]}
+
+    async def _consult_advisor(self, task: Task, reason: str) -> Task:
+        wd = self._workdir(task) if task.repo else self.s.ai_dir
+        out = await self._agent(task, "advisor",
+                                prompts.advisor_prompt(task, reason, self._advisor_context(task),
+                                                       self._remaining_budget(task), self.s.advisor_idle_minutes),
+                                wd, max_budget=self.s.advisor_budget_usd)
+        options = [c for c in (self._clean_option(o) for o in (out.get("options") or [])) if c]
+        ids = [o["id"] for o in options]
+        if len(options) < 3 or len(set(ids)) != len(ids):
+            raise ValueError(f"軍師的錦囊不足 3 個或編號重複：{ids}")
+        rec = str(out.get("recommended") or ids[0])
+        if rec not in ids:
+            rec = ids[0]
+        ev = await self.ev.add_text(task, task.step, f"advisor{task.meta.get('advisor_consults', 1)}",
+                                    json.dumps({k: v for k, v in out.items() if not k.startswith("_")},
+                                               ensure_ascii=False, indent=2),
+                                    "軍師的診斷與錦囊", producer="runner（記錄 advisor 輸出）", kind="json", ext="json")
+        adv = {"reason": reason, "diagnosis": str(out.get("diagnosis", ""))[:2000], "options": options,
+               "recommended": rec, "asked_at": utcnow().isoformat(), "return_state": task.state.value, "ev": ev.id,
+               "decided": False, "task_risk": task.risk}
+        vault.write_advisor_question(self.s, task, adv)  # 先寫問題檔；失敗就不會留下「待決」的錦囊
+        meta = dict(task.meta)
+        meta["advisor"] = adv
+        # 錦囊與 WAIT_HUMAN 綁在同一次轉移：不會出現「錦囊已記、但等待原因不是軍師」的狀態
+        return await self._go(task, State.WAIT_HUMAN, {"reason": "advisor", "trigger": reason},
+                              wait_reason=ADVISOR_WAIT + f"（{reason[:60]}）", return_state=task.state, meta=meta)
+
+    @staticmethod
+    def _advisor_pending(task: Task) -> dict[str, Any] | None:
+        """只有「因軍師而等待」且錦囊未決、未作廢時，才可選擇或自動決議（不搶別的等待，例如 diff 或安裝核准）。"""
+        adv = task.meta.get("advisor")
+        if (task.state == State.WAIT_HUMAN and (task.wait_reason or "").startswith(ADVISOR_WAIT) and adv
+                and not adv.get("decided") and not adv.get("void")):
+            return dict(adv)
+        return None
+
+    def _auto_pick(self, task: Task, adv: dict[str, Any]) -> dict[str, Any] | None:
+        """人閒置時的共同決議：軍師推薦優先；只限安全種類、風險 low／mid、0 ≤ 花費 ≤ 剩餘預算；high 風險任務一律等人。"""
+        if task.risk == "high" or adv.get("task_risk") == "high":
+            return None
+        remaining = self._remaining_budget(task)
+
+        def ok(o: dict[str, Any]) -> bool:
+            cost = o.get("est_cost_usd")
+            return (o.get("kind") in prompts.ADVISOR_SAFE_KINDS and o.get("risk") in {"low", "mid"}
+                    and isinstance(cost, (int, float)) and 0 <= cost <= remaining)
+
+        opts = list(adv.get("options", []))
+        rec = next((o for o in opts if o.get("id") == adv.get("recommended")), None)
+        if rec is not None and ok(rec):
+            return rec
+        return next((o for o in opts if ok(o)), None)
+
+    async def _auto_decide(self) -> list[str]:
+        decided: list[str] = []
+        if not self.s.advisor_enabled:
+            return decided
+        now = utcnow()
+        for t in await self.store.list_tasks([State.WAIT_HUMAN]):
+            adv = self._advisor_pending(t)
+            if adv is None:
+                continue
+            try:  # 每張任務各自處理：一張出錯不影響其他任務
+                asked = datetime.fromisoformat(str(adv.get("asked_at")))
+                if asked.tzinfo is None:
+                    asked = asked.replace(tzinfo=now.tzinfo)
+                if (now - asked).total_seconds() < self.s.advisor_idle_minutes * 60:
+                    continue
+                pick = self._auto_pick(t, adv)
+                if pick is None:
+                    if not adv.get("auto_skipped"):  # 沒有可自動執行的錦囊：繼續等人，只記一次
+                        meta = dict(t.meta)
+                        meta["advisor"] = {**adv, "auto_skipped": True}
+                        await self.store.update_task(t.id, meta=meta)
+                        await self.store.add_event(t.id, "advisor_auto_skipped",
+                                                   {"message": "沒有符合自動決議條件的錦囊，繼續等使用者"})
+                    continue
+                await self.choose(t.id, str(pick["id"]), "指揮官＋軍師（使用者閒置，自動決議）", auto=True)
+                decided.append(t.id)
+            except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+                raise
+            except Exception as exc:  # noqa: BLE001
+                await self.store.add_event(t.id, "advisor_auto_error", {"message": f"{exc!r}"[:400]})
+        return decided
+
+    async def choose(self, task_id: str, option_id: str, by: str, auto: bool = False) -> Task:
+        """採用一個錦囊。人選擇計入 human_touches；自動決議不計，但記事件並標示。"""
+        task = await self.store.get_task(task_id)
+        adv = self._advisor_pending(task)
+        if adv is None:
+            raise ValueError(f"{task_id} 沒有待決定的錦囊")
+        opt = next((o for o in adv.get("options", []) if o.get("id") == option_id), None)
+        if opt is None:
+            raise ValueError(f"{task_id} 沒有錦囊 {option_id}")
+        if auto and (opt.get("kind") not in prompts.ADVISOR_SAFE_KINDS or self._auto_pick(task, adv) is None):
+            raise ValueError("自動決議只能採用安全種類、低風險、預算內的錦囊")
+        if not auto:
+            task = await self.store.human_touch(task_id, "advisor_choice", {"by": by, "option": option_id})
+        kind = opt.get("kind")
+        # 從規劃或規格審查卡住時，「依指引重做」不能直接跳到執行：改走規劃，仍須經規格審查與風險閘
+        if kind == "retry_with_guidance" and adv.get("return_state") in {State.PLAN.value, State.SPEC_REVIEW.value}:
+            kind = "revise_spec"
+        meta = dict(task.meta)
+        meta["advisor"] = {**adv, "decided": True, "decision": option_id, "decided_by": by, "auto": auto,
+                           "applied_kind": kind}
+        meta["advisor_history"] = [*meta.get("advisor_history", []), meta["advisor"]]
+        await self.store.add_event(task.id, "advisor_decision", {
+            "message": f"{'自動決議' if auto else '使用者選擇'}錦囊 {option_id}（{kind}）：{opt.get('title')}",
+            "by": by, "auto": auto})
+        plan = str(opt.get("plan", ""))
+        back = State(adv.get("return_state", State.EXEC.value))
+        if kind in {"revise_spec", "retry_with_guidance"}:
+            meta["advisor_guidance"] = plan
+            if meta.get("failure_sigs"):  # 換了做法＝重新計數（與人工續跑相同；次數受 advisor_max_consults 限制）
+                meta["failure_sigs_archived"] = [*meta.get("failure_sigs_archived", []), *meta["failure_sigs"]]
+                meta["failure_sigs"] = []
+            if kind == "revise_spec" and task.accept_cmds:
+                meta["advisor_required_cmds"] = list(task.accept_cmds)  # 重新規劃不得拿掉原本的驗收指令
+            to = State.PLAN if kind == "revise_spec" else State.EXEC
+            return await self._go(task, to, {"advisor": option_id, "auto": auto}, wait_reason=None, retries=0,
+                                  meta=meta)
+        if kind == "split_task":
+            subs = list(opt.get("subtasks") or [])[: self.s.followup_cap]
+            if task.depth + 1 > self.s.followup_max_depth:
+                subs = []
+            for n, s in enumerate(subs, start=1):
+                vault.write_followup(self.s, task, 90 + n, str(s["title"]), str(s.get("body", "")), hold=True)
+            return await self._halt(task, f"advisor_split: 拆成 {len(subs)} 個子任務（暫存 inbox_hold，待放行）",
+                                    return_state=back, meta=meta)
+        if kind == "abandon":
+            return await self._halt(task, f"advisor_abandon: {opt.get('title')}", return_state=back, meta=meta)
+        return await self._halt(task, f"advisor_needs_human: {opt.get('title')}", return_state=back, meta=meta)
 
     async def resume(self, task_id: str, by: str) -> Task:
         task = await self.store.get_task(task_id)

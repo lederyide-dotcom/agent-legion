@@ -39,6 +39,8 @@ class Env:
         self.settings = Settings(
             schema_name=self.schema, vault=tmp / "vault", data_dir=tmp / "data", output_dir=tmp / "out",
             worktrees_dir=tmp / "wt", render_mermaid=False, task_budget_usd=2.0, daily_budget_usd=1000.0,
+            # 熔斷相關測試要驗的是熔斷本身；軍師另在 test_advisor.py 開啟測試
+            advisor_enabled=False,
         )
         init_vault(self.settings)
         self.repo = make_demo_repo(tmp / "repo")

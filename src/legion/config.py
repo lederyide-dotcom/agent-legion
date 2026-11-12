@@ -34,6 +34,8 @@ DEFAULT_ROLE_MODELS: dict[str, tuple[str, str | None]] = {
     "executor": ("sonnet", None),
     "reviewer": ("sonnet", "high"),
     "scribe": ("claude-haiku-5-5", None),
+    # 軍師：只在任務卡住時請示，提出至少 3 個錦囊（Pro 方案的 Fable 需另購 credits，故預設 Opus／high）
+    "advisor": ("opus", "high"),
 }
 # 執行者驗收或審查失敗後重做時改用；交付審查也隨之升到同一個模型（審查者不低於執行者）
 DEFAULT_ESCALATION: tuple[str, str | None] = ("opus", "high")
@@ -104,6 +106,12 @@ class Settings(BaseModel):
     daily_budget_usd: float = 2.0  # spec v0.5：單日超過 $2 必須先問使用者
     max_retries: int = 3
     same_error_limit: int = 3  # 同一個驗收失敗特徵出現幾次就 HALT（不等重試上限）
+    # 軍師：任務因同一錯誤或重試上限要停下時，先請示軍師提出錦囊，交給人決定
+    advisor_enabled: bool = Field(default_factory=lambda: os.environ.get("LEGION_ADVISOR", "1") != "0")
+    advisor_idle_minutes: float = Field(
+        default_factory=lambda: float(os.environ.get("LEGION_ADVISOR_IDLE_MINUTES", "15")))  # 人閒置多久就自動決議
+    advisor_budget_usd: float = Field(default=0.5, gt=0)  # 每次請示的上限（仍計入單任務與每日預算）
+    advisor_max_consults: int = 2  # 每個任務最多請示幾次，避免「失敗→請示→自動重試」無限循環
     call_timeout_s: int = 900
     followup_cap: int = 2
     followup_max_depth: int = 2

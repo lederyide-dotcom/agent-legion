@@ -58,3 +58,11 @@ legion 能在 target-repo-b 上自主完成小型、可驗證的改動與健檢�
 - 單日花費超過 $2 或累計超過 $10
 - 讀取 .env／.env.bak、金鑰、Telegram token
 - 放寬風險規則、提高回灌上限、移除熔斷
+
+## 軍師角色（使用者 2026-11-12 決定）
+- 觸發：任務因 same_error 或 retry_exceeded 要停下時，先請示軍師，不直接 HALT
+- 模型：Opus／high（Pro 方案使用 Fable 需另購 credits，故不採用）；每次請示上限 $0.5（計入單任務與每日預算）；每任務最多請示 2 次
+- 產出：至少 3 個錦囊，標推薦；寫入 vault/AI/questions/ 等使用者決定（choose 或 answer approve）
+- 使用者閒置 15 分鐘：指揮官＋軍師自動決議，只限 revise_spec／retry_with_guidance／split_task／abandon 四種、風險非 high、預估花費在剩餘預算內；不符合就繼續等
+- 自動決議不得涉及「必須停下來問我」的任何事項；採用錦囊會重設重試計數，但總次數受「每任務最多請示 2 次」與預算限制
+- 備援：軍師呼叫失敗、預算不足、錦囊不足 3 個 → 照原本規則 HALT（不改用研究技能：legion 的 agent 呼叫不開放技能與網路工具）
