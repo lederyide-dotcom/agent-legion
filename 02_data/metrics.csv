@@ -284,3 +284,8 @@ date,commit,metric,value,command
 2026-11-12T20:41:20+08:00,4ad6854,phase2_2.T-0017.retries,0,vault task note
 2026-11-12T20:41:20+08:00,4ad6854,phase2_2.T-0017.tests_after_fix,14 passed,python -m pytest -q tests
 2026-11-12T20:41:20+08:00,4ad6854,phase2_2.T-0017.tests_on_old_code,4 failed / 10 passed,python -m pytest -q tests (base telegram_bot.py)
+2026-11-12T20:46:40+08:00,96c35e5,phase2_3.T-0018.state,DONE,python -m legion tick --backend claude --model sonnet --task-budget 1 --daily-budget 2
+2026-11-12T20:46:40+08:00,96c35e5,phase2_3.T-0018.cost_usd,0.1714,02_data/cost_ledger.csv
+2026-11-12T20:46:40+08:00,96c35e5,phase2_3.T-0018.retries,0,vault task note
+2026-11-12T20:46:40+08:00,96c35e5,phase2_3.repo_b_master_tests,21 passed,python -m pytest -q tests
+2026-11-12T20:46:40+08:00,96c35e5,ledger_today_total_usd,1.0803,legion.ledger.total_on
