@@ -275,3 +275,7 @@ date,commit,metric,value,command
 2026-11-12T19:01:21+08:00,fd26a20,demo_mock.D-0004.cost_usd,0.0500,python -m legion demo --mock
 2026-11-12T19:01:21+08:00,fd26a20,demo_mock.D-0004.duration_s,4.59,python -m legion demo --mock
 2026-11-12T19:01:21+08:00,fd26a20,demo_mock.D-0004.parent_id,D-0003,python -m legion demo --mock
+2026-11-12T20:02:05+08:00,f63f9ad,phase2_1.T-0016.state,DONE,python -m legion tick --backend claude --model sonnet --task-budget 1 --daily-budget 2
+2026-11-12T20:02:05+08:00,f63f9ad,phase2_1.T-0016.cost_usd,0.6618,02_data/cost_ledger.csv
+2026-11-12T20:02:05+08:00,f63f9ad,phase2_1.T-0016.human_touches,0,python -m legion status
+2026-11-12T20:02:05+08:00,f63f9ad,phase2_1.T-0016.verify_refs,164 refs / 0 problems,python -m legion.checks report ... --verify-refs --min-refs 3

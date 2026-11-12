@@ -57,3 +57,8 @@ time,schema,task,role,backend,model,session_id,status,cost_usd,note
 2026-11-11T21:48:45+08:00,legion,T-0015,executor,claude,sonnet,9a36a83f-ec33-48c4-a1a4-c1013b960215,completed,0.068965,
 2026-11-11T21:48:54+08:00,legion,T-0015,reviewer,claude,sonnet,d9cb2857-fdce-467c-b74f-99c2968500a1,completed,0.029358,
 2026-11-11T21:49:09+08:00,legion,T-0015,scribe,claude,sonnet,24c23329-862d-481a-a628-5a68b777bbe9,completed,0.039672,
+2026-11-12T19:58:25+08:00,legion,T-0016,planner,claude,sonnet,e67f8bd5-1c8a-4f09-a142-30ba6b26e211,completed,0.145774,
+2026-11-12T19:58:37+08:00,legion,T-0016,spec_reviewer,claude,sonnet,3ff3999e-cb28-4847-b6fa-bff4caa7212e,completed,0.046384,
+2026-11-12T20:00:35+08:00,legion,T-0016,executor,claude,sonnet,ecb38c7f-2958-41f5-9bd7-d6f3f6d7b23b,completed,0.343351,
+2026-11-12T20:00:52+08:00,legion,T-0016,reviewer,claude,sonnet,738856fb-986d-4ba6-9511-3670c02eb7d5,completed,0.054598,
+2026-11-12T20:01:17+08:00,legion,T-0016,scribe,claude,sonnet,86b047e2-3d8d-4fd3-98a2-4aeab8df5cf6,completed,0.071724,
