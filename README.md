@@ -47,30 +47,24 @@ flowchart TD
 
 ### 實際跑出來的路徑
 
-每個任務的紀錄文件都會依實際發生的狀態轉移自動畫出流程圖。下面是兩個真實任務的對照：一個一次收斂，一個在規格審查來回退回後被熔斷。
+每個任務的紀錄文件都會依實際發生的狀態轉移自動畫出流程圖。兩個真實任務的對照：
+
+- **一次收斂**（T-0017，$0.25，0 次重試）：`INBOX → PLAN → SPEC_REVIEW → GATE → EXEC → VERIFY → REVIEW → LEARN → DONE`，每一關都一次通過。
+- **不收斂而熔斷**（T-0007，$0.42）：規格審查一直退回，重試超過上限後由 runner 停下，不會無限燒錢：
 
 ```mermaid
 flowchart LR
-    subgraph OK["T-0017：一次收斂（$0.25、0 次重試）"]
-        direction LR
-        a1([INBOX]) --> a2[PLAN] --> a3[SPEC_REVIEW] --> a4{{GATE}} --> a5[EXEC] --> a6{{VERIFY}} --> a7[REVIEW] --> a8[LEARN] --> a9([DONE])
-    end
-    subgraph NG["T-0007：規格審查不收斂，熔斷（$0.42）"]
-        direction LR
-        b1([INBOX]) --> b2[PLAN]
-        b2 -- 4 次 --> b3[SPEC_REVIEW]
-        b3 -- 退回 3 次 --> b2
-        b3 -- 重試超過上限 --> b4([HALT])
-    end
+    b1([INBOX]) --> b2[PLAN]
+    b2 -- 送審 4 次 --> b3[SPEC_REVIEW]
+    b3 -- 退回 3 次 --> b2
+    b3 -- 重試超過上限 --> b4([HALT])
 
     classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
-    classDef runner fill:#fff4e5,stroke:#e8a317,color:#111
     classDef human fill:#fdecea,stroke:#d93025,color:#111
     classDef plain fill:#f1f3f4,stroke:#9aa0a6,color:#111
-    class a2,a3,a5,a7,a8,b2,b3 claude
-    class a4,a6 runner
+    class b2,b3 claude
     class b4 human
-    class a1,a9,b1 plain
+    class b1 plain
 ```
 
 迭代發生在任務之間：健檢找出問題，下一個任務用測試鎖定並修正，書記官再指出剩下的缺口。以下是對一個 Telegram bot 專案實跑的例子，每一步都由測試驗證，最後由使用者決定 merge：
