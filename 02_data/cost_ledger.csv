@@ -73,3 +73,13 @@ time,schema,task,role,backend,model,session_id,status,cost_usd,note
 2026-11-12T20:45:29+08:00,legion,T-0018,reviewer,claude,sonnet,496221d4-2f20-4fbe-8194-656f0406626b,completed,0.020247,
 2026-11-12T20:45:55+08:00,legion,T-0018,scribe,claude,sonnet,373fcb42-d0e5-4988-9f42-f7658ad66cae,completed,0.047080,
 2026-11-12T21:54:25+08:00,legion,(manual),model_check,claude,claude-haiku-5-5,(no-persistence),completed,0.001417,手動驗證書記官模型名稱可用
+2026-11-13T04:06:38+08:00,legion,T-0019,planner,claude,claude-opus-5-5,63f43563-920c-490d-848c-446915e5fd87,completed,0.135780,
+2026-11-13T04:07:02+08:00,legion,T-0019,spec_reviewer,claude,claude-opus-5-5,86b1bbc7-8309-43b5-9fe6-e189bdecf271,completed,0.125170,
+2026-11-13T04:07:32+08:00,legion,T-0019,executor,claude,claude-sonnet-5-5,3f615cde-1be6-4da5-bb1f-ff0285fc6eff,completed,0.101045,
+2026-11-13T04:07:48+08:00,legion,T-0019,reviewer,claude,claude-sonnet-5-5,e9c81b88-f091-47e2-8c7b-6ad8caa37da6,completed,0.043510,
+2026-11-13T04:08:16+08:00,legion,T-0019,scribe,claude,claude-haiku-5-5,2cb597bc-a1e5-43db-a3d0-bdd596964167,completed,0.005377,
+2026-11-13T04:08:37+08:00,legion,T-0019,strategist,claude,claude-opus-5-5,48475016-6bdd-4dd3-b35d-9e9d9df04188,completed,0.118111,
+2026-11-13T04:09:11+08:00,legion,T-0020,planner,claude,claude-opus-5-5,ce46d086-5429-481a-98ed-c80acd3a5354,completed,0.138669,
+2026-11-13T04:09:28+08:00,legion,T-0020,spec_reviewer,claude,claude-opus-5-5,d7c14f8c-d923-4bbb-9a1e-955ce23871c7,completed,0.064200,
+2026-11-13T04:09:53+08:00,legion,T-0020,planner,claude,claude-opus-5-5,410178b5-3afc-49a5-964e-1e1d05ccbeaa,completed,0.089278,
+2026-11-13T04:10:14+08:00,legion,T-0020,spec_reviewer,claude,claude-opus-5-5,39eb4637-75dd-4d0e-a871-beb8ce4dc0af,completed,0.071550,

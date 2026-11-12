@@ -92,3 +92,16 @@
 - 使用者方案含 Fable（有獨立每週額度）；軍師可用 LEGION_MODEL_ADVISOR=fable 切換，尚未切換
 - 未驗證：軍師、戰役、依角色分配模型都還沒有真實任務跑過
 - 下一步建議：在 target-repo-b 用真實 backend 試跑一場小戰役（max_tasks 3、budget 1.5），對照 metrics 的每任務花費
+## 真實戰役試跑（2026-11-13，詳見 02_data/verify_20261113.md）
+- 戰役 repo-b-tests（目標 target-repo-b，max_tasks 3、budget $1.5）：T-0019 DONE（分支 legion/T-0019，42 passed，只改 telegram_bot.py 一行 CRLF 正則＋新增 tests/test_strip_code_fence.py）；參謀判定未完成，開 T-0020 補「結尾缺換行」「多重圍欄」案例，判斷合理
+- T-0020 停在 WAIT_HUMAN（high 風險）：驗收指令 `git diff --exit-code -- telegram_bot.py` 被判不在白名單。原因是 risk.accept_cmd_allowed 把 `--` 當旗標先拒絕，屬 legion 誤判；未代為核准
+- 花費：戰役 $0.8927（T-0019 $0.529、T-0020 $0.364），未超任何上限；比 T-0017 $0.25、T-0018 $0.17 貴 2～3 倍，主因規劃／規格審查改用 Opus
+- 角色模型實測與角色表一致：規劃／規格審查／參謀 opus、執行／交付審查 sonnet、書記官 haiku；effort 未記錄（未驗證）；軍師未觸發（未驗證）
+- target-repo-b 主分支與工作目錄未動；未新增 session jsonl
+- 目前未達成戰役目標；多重圍欄目前會把兩個區塊合併、殘留中間圍欄，行為可議
+
+### 下一步建議
+1. 修 risk.accept_cmd_allowed：允許 git 的 `--` 分隔符（加測試），再讓使用者決定 T-0020 要 approve 或 reject 後改丟新戰役檔（base_branch: legion/T-0019）
+2. 在 cost_ledger 記錄 effort，才能驗證角色 effort
+3. 評估規劃／規格審查用 Opus 的性價比：小任務可考慮 sonnet，或讓規格審查 revise 前先比對白名單
+4. 使用者檢查 legion/T-0019 後自行 merge；多重圍欄行為是否要改，由使用者決定

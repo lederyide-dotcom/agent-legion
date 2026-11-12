@@ -483,3 +483,12 @@ date,commit,metric,value,command
 2026-11-12T23:33:37+08:00,c1c4a50,demo_mock.D-0004.cost_usd,0.0500,python -m legion demo --mock
 2026-11-12T23:33:37+08:00,c1c4a50,demo_mock.D-0004.duration_s,4.66,python -m legion demo --mock
 2026-11-12T23:33:37+08:00,c1c4a50,demo_mock.D-0004.parent_id,D-0003,python -m legion demo --mock
+2026-11-13T04:30:00+08:00,b553228,mission_trial.repo-b-tests.cost_usd,0.8927,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.repo-b-tests.tasks,2,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.repo-b-tests.goal_reached,0,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0019.cost_usd,0.5290,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0019.strategist_cost_usd,0.1181,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0019.pytest_passed,42,python -m pytest -q tests -p no:cacheprovider
+2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0020.cost_usd,0.3637,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
+2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0020.state,WAIT_HUMAN,python -m legion status
+2026-11-13T04:30:00+08:00,b553228,mission_trial.new_session_jsonl,0,find .claude/projects -name *.jsonl (before/after diff)
