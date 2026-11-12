@@ -4,12 +4,39 @@
 
 設計原則：**判斷交給 LLM（怎麼拆、怎麼做），邊界交給程式（能不能做、花多少、何時停）。** agent 的自述一律不採信，驗收指令由 runner 親自執行，證據以 SHA-256 鎖定。
 
+## 閉環流程
+
+```mermaid
+flowchart TD
+    INBOX([INBOX<br/>使用者丟想法]) --> PLAN[PLAN<br/>指揮官規劃]
+    PLAN --> SR[SPEC_REVIEW<br/>規格審查者]
+    SR -- revise 退回 --> PLAN
+    SR -- pass --> GATE{{GATE<br/>依規則判定風險}}
+    GATE -- high --> WH([WAIT_HUMAN<br/>等使用者決定])
+    WH -- 核准 --> EXEC
+    WH -- 拒絕 --> HALT
+    GATE -- low / mid --> EXEC[EXEC<br/>指揮官在 worktree 執行]
+    EXEC --> VERIFY{{VERIFY<br/>runner 親自跑驗收指令}}
+    VERIFY -- 失敗，重試 ≤ 3 --> EXEC
+    VERIFY -- 通過 --> REVIEW[REVIEW<br/>交付審查者]
+    REVIEW -- fail 退回 --> EXEC
+    REVIEW -- pass --> LEARN[LEARN<br/>書記官紀錄]
+    LEARN --> DONE([DONE])
+    LEARN -. 後續想法 .-> HOLD[(inbox_hold)]
+    HOLD -. 使用者放行 .-> INBOX
+    ANY[任一狀態] -. 超預算 / 超重試 / 逾時 / STOP .-> HALT([HALT])
+
+    classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
+    classDef runner fill:#fff4e5,stroke:#e8a317,color:#111
+    classDef human fill:#fdecea,stroke:#d93025,color:#111
+    classDef plain fill:#f1f3f4,stroke:#9aa0a6,color:#111
+    class PLAN,SR,EXEC,REVIEW,LEARN claude
+    class GATE,VERIFY runner
+    class WH,HALT human
+    class INBOX,DONE,HOLD,ANY plain
 ```
-INBOX → PLAN → SPEC_REVIEW → GATE → EXEC → VERIFY → REVIEW → LEARN → DONE
-                 │退回 PLAN      │        └─失敗→EXEC（重試≤3）       └─後續想法→inbox_hold（人放行）
-                 │               └─ high：WAIT_HUMAN（不阻塞其他任務）
-任一狀態：超過預算／重試／逾時，或 vault/STOP 存在 → HALT
-```
+
+圖例：藍色是 Claude 擔任的角色，橘色是 runner 以程式判斷（不經 LLM），紅色是停下來等人或熔斷。
 
 | 角色 | 由誰擔任 | 權限 |
 |---|---|---|
@@ -17,6 +44,49 @@ INBOX → PLAN → SPEC_REVIEW → GATE → EXEC → VERIFY → REVIEW → LEARN
 | 規格審查者、交付審查者 | Claude 全新 session | 唯讀 |
 | 書記官 | Claude 全新 session | 只寫敘述，不能改證據 |
 | 風險閘、驗證、熔斷、帳本 | runner（Python 程式） | 程式規則，不經 LLM |
+
+### 實際跑出來的路徑
+
+每個任務的紀錄文件都會依實際發生的狀態轉移自動畫出流程圖。下面是兩個真實任務的對照：一個一次收斂，一個在規格審查來回退回後被熔斷。
+
+```mermaid
+flowchart LR
+    subgraph OK["T-0017：一次收斂（$0.25、0 次重試）"]
+        direction LR
+        a1([INBOX]) --> a2[PLAN] --> a3[SPEC_REVIEW] --> a4{{GATE}} --> a5[EXEC] --> a6{{VERIFY}} --> a7[REVIEW] --> a8[LEARN] --> a9([DONE])
+    end
+    subgraph NG["T-0007：規格審查不收斂，熔斷（$0.42）"]
+        direction LR
+        b1([INBOX]) --> b2[PLAN]
+        b2 -- 4 次 --> b3[SPEC_REVIEW]
+        b3 -- 退回 3 次 --> b2
+        b3 -- 重試超過上限 --> b4([HALT])
+    end
+
+    classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
+    classDef runner fill:#fff4e5,stroke:#e8a317,color:#111
+    classDef human fill:#fdecea,stroke:#d93025,color:#111
+    classDef plain fill:#f1f3f4,stroke:#9aa0a6,color:#111
+    class a2,a3,a5,a7,a8,b2,b3 claude
+    class a4,a6 runner
+    class b4 human
+    class a1,a9,b1 plain
+```
+
+迭代發生在任務之間：健檢找出問題，下一個任務用測試鎖定並修正，書記官再指出剩下的缺口。以下是對一個 Telegram bot 專案實跑的例子，每一步都由測試驗證，最後由使用者決定 merge：
+
+```mermaid
+flowchart LR
+    H["T-0016 唯讀健檢<br/>推測檔名驗證可被繞過"] --> T["T-0017 補測試＋修正<br/>14 項測試鎖定漏洞"]
+    T --> S["書記官指出剩餘邊界<br/>保留名後接空白"]
+    S --> F["T-0018 再修正<br/>21 項測試"]
+    F --> M(["使用者 merge"])
+
+    classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
+    classDef human fill:#fdecea,stroke:#d93025,color:#111
+    class H,T,S,F claude
+    class M human
+```
 
 ## 環境需求
 

@@ -80,38 +80,52 @@ views:
       - halt_reason
 """
 
+# 節點間距留給連線標籤（原本 40px 間距會讓標籤壓在節點上）；顏色：5＝Claude 角色、3＝runner 程式、1＝停下等人或熔斷
+_COL, _ROW = 380, 300
 _FLOW = [
     ("INBOX", "INBOX\n使用者丟想法", 0, 0, "6"),
-    ("PLAN", "PLAN\n指揮官規劃", 260, 0, "5"),
-    ("SPEC_REVIEW", "SPEC_REVIEW\n規格審查者（全新 session）", 520, 0, "5"),
-    ("GATE", "GATE\nRunner 依風險分級", 780, 0, "3"),
-    ("EXEC", "EXEC\n指揮官在 worktree 執行", 780, 200, "5"),
-    ("VERIFY", "VERIFY\nRunner 親自執行驗收指令", 520, 200, "3"),
-    ("REVIEW", "REVIEW\n交付審查者（全新 session）", 260, 200, "5"),
-    ("LEARN", "LEARN\n書記官：教訓、交接、回灌", 0, 200, "5"),
-    ("DONE", "DONE", 0, 400, "4"),
-    ("WAIT_HUMAN", "WAIT_HUMAN\n寫 questions/ 等使用者", 1040, 0, "1"),
-    ("HALT", "HALT\n超預算／超重試／逾時／STOP", 1040, 200, "1"),
+    ("PLAN", "PLAN\n指揮官規劃", _COL, 0, "5"),
+    ("SPEC_REVIEW", "SPEC_REVIEW\n規格審查者（全新 session）", _COL * 2, 0, "5"),
+    ("GATE", "GATE\nRunner 依風險分級", _COL * 3, 0, "3"),
+    ("WAIT_HUMAN", "WAIT_HUMAN\n寫 questions/ 等使用者", _COL * 4 + 160, 0, "1"),
+    ("LEARN", "LEARN\n書記官：教訓、交接、後續想法", 0, _ROW, "5"),
+    ("REVIEW", "REVIEW\n交付審查者（全新 session）", _COL, _ROW, "5"),
+    ("VERIFY", "VERIFY\nRunner 親自執行驗收指令", _COL * 2, _ROW, "3"),
+    ("EXEC", "EXEC\n指揮官在 worktree 執行", _COL * 3, _ROW, "5"),
+    ("HALT", "HALT\n超預算／超重試／逾時／STOP\n（任一狀態皆可能進入）", _COL * 4 + 160, _ROW, "1"),
+    ("DONE", "DONE", 0, _ROW * 2, "4"),
 ]
+# (起點, 終點, 標籤, 起點邊, 終點邊)：雙向連線走不同邊，避免重疊
 _EDGES = [
-    ("INBOX", "PLAN", ""), ("PLAN", "SPEC_REVIEW", ""), ("SPEC_REVIEW", "GATE", "pass"),
-    ("SPEC_REVIEW", "PLAN", "revise"), ("GATE", "EXEC", "low／mid"), ("GATE", "WAIT_HUMAN", "high"),
-    ("WAIT_HUMAN", "EXEC", "使用者核准"), ("EXEC", "VERIFY", ""), ("VERIFY", "REVIEW", "通過"),
-    ("VERIFY", "EXEC", "失敗（重試≤3）"), ("REVIEW", "LEARN", "pass"), ("REVIEW", "EXEC", "fail"),
-    ("LEARN", "DONE", ""), ("LEARN", "INBOX", "回灌≤2、深度≤2"), ("EXEC", "HALT", "熔斷"),
+    ("INBOX", "PLAN", "", "right", "left"),
+    ("PLAN", "SPEC_REVIEW", "", "right", "left"),
+    ("SPEC_REVIEW", "PLAN", "revise 退回", "top", "top"),
+    ("SPEC_REVIEW", "GATE", "pass", "right", "left"),
+    ("GATE", "WAIT_HUMAN", "high", "right", "left"),
+    ("GATE", "EXEC", "low／mid", "bottom", "top"),
+    ("WAIT_HUMAN", "EXEC", "使用者核准", "left", "top"),
+    ("WAIT_HUMAN", "HALT", "使用者拒絕", "bottom", "top"),
+    ("EXEC", "VERIFY", "", "left", "right"),
+    ("VERIFY", "EXEC", "失敗，重試≤3", "bottom", "bottom"),
+    ("VERIFY", "REVIEW", "通過", "left", "right"),
+    ("REVIEW", "EXEC", "fail 退回", "top", "top"),
+    ("REVIEW", "LEARN", "pass", "left", "right"),
+    ("LEARN", "DONE", "", "bottom", "top"),
+    ("LEARN", "INBOX", "後續想法 → inbox_hold\n使用者放行才領取", "top", "bottom"),
+    ("EXEC", "HALT", "熔斷", "right", "left"),
 ]
 
 
 def canvas_json() -> dict[str, Any]:
     nodes = [
-        {"id": f"n-{sid.lower()}", "type": "text", "text": text, "x": x, "y": y, "width": 220, "height": 90,
+        {"id": f"n-{sid.lower()}", "type": "text", "text": text, "x": x, "y": y, "width": 240, "height": 110,
          "color": color}
         for sid, text, x, y, color in _FLOW
     ]
     edges = []
-    for i, (a, b, label) in enumerate(_EDGES):
+    for i, (a, b, label, from_side, to_side) in enumerate(_EDGES):
         e: dict[str, Any] = {"id": f"e-{i:02d}", "fromNode": f"n-{a.lower()}", "toNode": f"n-{b.lower()}",
-                             "toEnd": "arrow"}
+                             "fromSide": from_side, "toSide": to_side, "toEnd": "arrow"}
         if label:
             e["label"] = label
         edges.append(e)
