@@ -44,7 +44,12 @@
 - 未讀取 .env；未執行 bot、n8n、Ollama
 - 階段 2 可開始，但今日帳本 $4.02 已超過每日 $2，真實任務要等明天
 
-## 等待 使用者
+## 研究報告第 1 步：硬防線完成（2026-11-12）
+- 既有測試只能新增、改變測試收集方式要人核准、核准綁定 diff 內容、改動範圍允許清單、同一錯誤 3 次即停、每次呼叫 agent 前檢查 STOP
+- 驗收：02_data/verify_20261112.md 末段；98 passed；code-reviewer 🔴 4 項已修
+- 下一步（研究報告第 2 步）：實測 deny 規則與 hook 真的會擋（需要真實呼叫，會花額度）
+
+## 等待使用者
 - T-0012（high，WAIT_HUMAN）要 answer reject／cancel 或保留
 - vault 內 18 個舊檔在 20:49 被改成 CRLF（內容不變）、新增 vault/.obsidian/：疑似 Obsidian 開啟所致，未 commit、未還原
 - <target-repo-a> 在 21:03:25 出現未追蹤的 AGENTS.md（Codex 工作說明），非 legion 建立，未動

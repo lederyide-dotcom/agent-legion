@@ -1,6 +1,8 @@
 """風險分級（程式判定）。agent 只能提議，最終風險 = max(規則判定, agent 提議)，不能降級。"""
 from __future__ import annotations
 
+import fnmatch
+import hashlib
 import re
 import shlex
 from pathlib import Path, PureWindowsPath
@@ -204,6 +206,149 @@ def assess_diff(name_status: str) -> tuple[Risk, list[str]]:
                 rule = max_risk(rule, "mid")
                 reasons.append(f"mid: 實際變更修改 skill：{p}")
     return rule, reasons
+
+
+# ---------------------------------------------------------------- 硬防線（不經 LLM）
+_TEST_PATH = re.compile(r"(^|/)tests?/|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$|(^|/)pytest\.ini$",
+                        re.IGNORECASE)
+
+
+def is_test_path(path: str) -> bool:
+    return bool(_TEST_PATH.search(path.replace("\\", "/")))
+
+
+_TEST_DEF = re.compile(r"^\s*(?:async\s+)?def\s+(test_\w+)", re.MULTILINE)
+_SKIP_MARK = re.compile(r"pytest\.mark\.(skip|skipif|xfail)|pytest\.(skip|xfail)\s*\(|importorskip|"
+                        r"^\s*pytestmark\s*=|collect_ignore", re.MULTILINE)
+_TEST_CONFIG = re.compile(r"(^|/)(pytest\.ini|pyproject\.toml|setup\.cfg|tox\.ini|\.gitignore|\.gitattributes)$",
+                          re.IGNORECASE)
+
+
+def _ns_entries(name_status: str) -> list[tuple[str, str]]:
+    out: list[tuple[str, str]] = []
+    for line in name_status.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2:
+            out.append((parts[0], parts[-1].replace("\\", "/").strip('"')))
+    return out
+
+
+def protected_test_violations(name_status: str, numstat: str, added: dict[str, str] | None = None,
+                              base_src: dict[str, str] | None = None) -> list[str]:
+    """既有測試只能新增、不能削弱。違規＝驗收失敗（agent 要自己改回來）。
+
+    - 刪除既有測試檔、型別變更（例如換成 symlink）
+    - 修改既有測試時刪改任何一行；無法計算行數（二進位、`-diff` 屬性）也算
+    - 在既有測試檔新增跳過標記（skip／xfail／importorskip／pytestmark／collect_ignore）
+    - 在既有測試檔重新定義已存在的同名測試（用空殼覆蓋原測試）
+
+    輸入應以 `--no-renames` 與 `core.quotepath=false` 取得：改名會呈現為「刪除＋新增」，中文檔名不被加引號。
+    新增的測試檔不受限（全新測試）。純新增的測試案例允許。
+    """
+    added = added or {}
+    base_src = base_src or {}
+    deleted_lines: dict[str, str] = {}
+    for line in numstat.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            deleted_lines[parts[2].replace("\\", "/").strip('"')] = parts[1]
+    out: list[str] = []
+    for code, path in _ns_entries(name_status):
+        if not is_test_path(path):
+            continue
+        if code.startswith("D"):
+            out.append(f"刪除了既有測試檔：{path}")
+        elif code.startswith("T"):
+            out.append(f"變更了既有測試檔的型別（例如換成連結）：{path}")
+        elif code.startswith("M"):
+            d = deleted_lines.get(path, "0")
+            if not d.isdigit():
+                out.append(f"既有測試檔的變更無法逐行比對（二進位或 -diff 屬性）：{path}")
+            elif int(d) > 0:
+                out.append(f"修改既有測試時刪改了 {d} 行（只允許新增）：{path}")
+            new_text = added.get(path, "")
+            if _SKIP_MARK.search(new_text):
+                out.append(f"在既有測試檔新增了跳過標記：{path}")
+            redefined = set(_TEST_DEF.findall(new_text)) & set(_TEST_DEF.findall(base_src.get(path, "")))
+            if redefined:
+                out.append(f"在既有測試檔重新定義了已存在的測試 {sorted(redefined)}：{path}")
+    return out
+
+
+def collection_risks(name_status: str, base_files: list[str], index_flags: list[str]) -> list[str]:
+    """會改變「哪些測試被收集、怎麼執行」的環境變更。可能是正當需要，所以判 high、交給人核准，而不是直接失敗。"""
+    out: list[str] = []
+    base_tests = [f.replace("\\", "/") for f in base_files if is_test_path(f)]
+    for code, path in _ns_entries(name_status):
+        if code.startswith("D"):
+            continue  # 刪除已由 assess_diff 判為 high
+        name = path.rsplit("/", 1)[-1].lower()
+        if _TEST_CONFIG.search(path):
+            out.append(f"修改了會影響測試執行的設定檔：{path}")
+        elif name == "conftest.py":
+            folder = path.rsplit("/", 1)[0] if "/" in path else ""
+            if any(folder == "" or t.startswith(folder + "/") for t in base_tests):
+                out.append(f"conftest.py 會作用到既有測試：{path}")
+    for line in index_flags:
+        if line and (line[0] == "S" or line[0].islower()):
+            out.append(f"git 索引旗標會讓檔案變更不出現在 diff（skip-worktree／assume-unchanged）：{line[2:]}")
+    return out
+
+
+def added_lines_by_file(unified_diff: str) -> dict[str, str]:
+    """從 `git diff -U0` 取出每個檔案新增的行（不含 +++ 標頭）。"""
+    out: dict[str, list[str]] = {}
+    current = ""
+    for line in unified_diff.splitlines():
+        if line.startswith("+++ "):
+            p = line[4:].strip().strip('"')
+            current = p[2:] if p.startswith("b/") else p
+            out.setdefault(current, [])
+        elif line.startswith("+") and current:
+            out[current].append(line[1:])
+    return {k: "\n".join(v) for k, v in out.items()}
+
+
+def _path_allowed(path: str, pattern: str) -> bool:
+    pat = pattern.replace("\\", "/").strip("/")
+    if pat.endswith("/**"):
+        prefix = pat[:-3]
+        return path == prefix or path.startswith(prefix + "/")
+    return fnmatch.fnmatchcase(path, pat)
+
+
+def out_of_scope(name_status: str, allowed: list[str]) -> list[str]:
+    """實際變更中，不在允許清單（glob；`dir/**` 代表整個子目錄）內的路徑。allowed 為空表示不限制。"""
+    if not allowed:
+        return []
+    out: list[str] = []
+    for line in name_status.splitlines():
+        parts = line.split("\t")
+        for p in parts[1:]:
+            path = p.replace("\\", "/").strip('"')
+            if path and not any(_path_allowed(path, a) for a in allowed) and path not in out:
+                out.append(path)
+    return out
+
+
+def failure_signature(failures: list[str]) -> str:
+    """把一次驗收失敗正規化成特徵：保留失敗的測試名稱與 exit code，去掉其餘數字（耗時、行號、位址）。
+
+    同一特徵反覆出現代表 agent 在原地打轉，不必等到重試上限。
+    """
+    keys: list[str] = []
+    for f in failures:
+        lines = f.splitlines()
+        first = lines[0] if lines else ""
+        code = re.search(r"\(exit (-?\d+)\)", first)
+        head = re.sub(r"\d+(\.\d+)?", "#", first) + (f"|exit={code.group(1)}" if code else "")
+        named = sorted({m.group(0) for m in re.finditer(r"^(FAILED|ERROR) \S+", f, re.MULTILINE)})
+        if named:
+            keys.append(head + "|" + "|".join(named))
+        else:
+            tail = [ln for ln in lines[1:] if ln.strip()][-5:]
+            keys.append(head + "|" + "|".join(re.sub(r"\d+(\.\d+)?", "#", ln.strip()) for ln in tail))
+    return hashlib.sha256("\n".join(sorted(keys)).encode("utf-8")).hexdigest()[:16]
 
 
 def install_levels(reqs: list[InstallRequest]) -> list[str]:

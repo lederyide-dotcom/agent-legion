@@ -40,7 +40,18 @@ from .models import (
     max_risk,
 )
 from .record import mermaid_flow, render_record
-from .risk import assess, assess_diff
+from .risk import (
+    added_lines_by_file,
+    assess,
+    assess_diff,
+    collection_risks,
+    failure_signature,
+    is_test_path,
+    out_of_scope,
+    protected_test_violations,
+)
+
+_GITQ = ["-c", "core.quotepath=false"]  # 中文檔名不加引號，路徑比對才準確
 
 
 class Halt(Exception):
@@ -206,7 +217,11 @@ class Runner:
                     parent_id=fm.get("parent_id"), depth=int(fm.get("depth", 0)), repo=fm.get("repo"),
                     subdir=fm.get("subdir"), source_path=str(path), source_sha=sha,
                     meta={**({"mock": fm["mock"]} if "mock" in fm else {}),
-                          **({"risk_floor": fm["risk_floor"]} if fm.get("risk_floor") in RISK_ORDER else {})},
+                          **({"risk_floor": fm["risk_floor"]} if fm.get("risk_floor") in RISK_ORDER else {}),
+                          # 以下兩個欄位只能由人寫在想法檔：agent 無法替自己放寬
+                          **({"allow_test_changes": True} if fm.get("allow_test_changes") is True else {}),
+                          **({"allowed_paths": [str(p) for p in fm["allowed_paths"]]}
+                             if isinstance(fm.get("allowed_paths"), list) else {})},
                 )
             except (ValueError, TypeError, ValidationError) as exc:
                 self.bad_inbox.append(f"{path.name}: {exc}")
@@ -272,6 +287,8 @@ class Runner:
         existing = await self.store.find_run(task.id, task.state.value, task.step, role)
         if existing is not None:  # 續跑：上次已完成並已扣款，直接重用
             return existing.output
+        if self.s.stop_file.exists():  # 每次呼叫 agent 前都檢查，不只在 tick 開頭
+            raise Halt("stop_file")
         remaining = await self._check_budget(task)
         if save_prompt:
             await self._save_prompt(task, role, prompt)
@@ -540,15 +557,29 @@ class Runner:
         if task.kind != "write" or not task.worktree:
             return None
         wt = Path(task.worktree)
+        base = task.base_commit or "HEAD"
         await git(["add", "-A"], wt)
-        ns = await git(["diff", "--cached", "--name-status", task.base_commit or "HEAD"], wt)
+        ns = await git([*_GITQ, "diff", "--cached", "--name-status", base], wt)
         risk, reasons = assess_diff(ns)
+        oos = out_of_scope(ns, self._allowed_paths(task))
+        if oos:  # 允許範圍只能由人在想法檔設定（allowed_paths 或 subdir）；超出即需核准
+            risk = "high"
+            reasons = [*reasons, f"high: 變更超出允許範圍：{'、'.join(oos[:10])}"]
+        guard = await self._test_guard_inputs(task)
+        if not task.meta.get("allow_test_changes"):
+            env_risks = collection_risks(guard["ns"], guard["base_files"], guard["flags"])
+            if env_risks:  # 改變「哪些測試被收集、怎麼跑」：可能正當，交給人看
+                risk = "high"
+                reasons = [*reasons, *[f"high: {r}" for r in env_risks]]
         if risk == "low":
             return None
-        sig = hashlib.sha256(ns.encode("utf-8")).hexdigest()
+        sig = await self._diff_sig(wt, base)
         meta = dict(task.meta)
         if meta.get("approved_diff_sig") == sig:
-            return None  #使用者已核准這份 diff
+            return None  # 使用者已核准這份 diff（內容層級；之後內容再變就要重新核准）
+        if risk == "high" and not task.meta.get("allow_test_changes"):
+            weakening = protected_test_violations(guard["ns"], guard["numstat"], guard["added"], guard["base_src"])
+            reasons = [*reasons, *[f"注意（核准即一併放行）：{w}" for w in weakening]]
         new_risk = max_risk(task.risk, risk)
         reasons_all = [*task.risk_reasons, *[r for r in reasons if r not in task.risk_reasons]]
         if risk == "mid":
@@ -562,6 +593,54 @@ class Runner:
         task = await self.store.update_task(task.id, risk=new_risk, risk_reasons=reasons_all, meta=meta)
         return await self._go(task, State.WAIT_HUMAN, {"reason": "diff_high"}, wait_reason="實際變更為 high 風險",
                               return_state=State.VERIFY)
+
+    def _allowed_paths(self, task: Task) -> list[str]:
+        explicit = task.meta.get("allowed_paths")
+        if isinstance(explicit, list) and explicit:
+            return [str(p) for p in explicit]
+        return [f"{task.subdir.strip('/')}/**"] if task.subdir else []
+
+    async def _diff_sig(self, wt: Path, base: str) -> str:
+        """核准簽章：完整 diff 內容＋索引旗標的雜湊。核准後只要內容再變（例如再削弱測試），就要重新核准。"""
+        full = await git([*_GITQ, "diff", "--cached", "--binary", base], wt)
+        flags = [ln for ln in (await git([*_GITQ, "ls-files", "-v"], wt)).splitlines()
+                 if ln and (ln[0] == "S" or ln[0].islower())]
+        return hashlib.sha256((full + "\n--index-flags--\n" + "\n".join(flags)).encode("utf-8")).hexdigest()
+
+    async def _test_guard_inputs(self, task: Task) -> dict[str, Any]:
+        wt = Path(task.worktree or "")
+        base = task.base_commit or "HEAD"
+        ns = await git([*_GITQ, "diff", "--cached", "--no-renames", "--name-status", base], wt)
+        numstat = await git([*_GITQ, "diff", "--cached", "--no-renames", "--numstat", base], wt)
+        modified_tests = [ln.split("\t")[-1] for ln in ns.splitlines()
+                          if ln.startswith("M\t") and is_test_path(ln.split("\t")[-1])]
+        added: dict[str, str] = {}
+        base_src: dict[str, str] = {}
+        if modified_tests:
+            added = added_lines_by_file(
+                await git([*_GITQ, "diff", "--cached", "--no-renames", "-U0", base, "--", *modified_tests], wt))
+            for p in modified_tests:
+                base_src[p] = await git(["show", f"{base}:{p}"], wt, check=False)
+        base_files = (await git([*_GITQ, "ls-tree", "-r", "--name-only", base], wt)).splitlines()
+        flags = (await git([*_GITQ, "ls-files", "-v"], wt)).splitlines()
+        return {"ns": ns, "numstat": numstat, "added": added, "base_src": base_src, "base_files": base_files,
+                "flags": flags}
+
+    async def _test_protection(self, task: Task, n: int) -> tuple[dict[str, Any], list[str]] | None:
+        """既有測試只能新增、不能削弱（硬檢查，不經 LLM）。人可在想法檔設 allow_test_changes，或核准這份 diff。"""
+        if task.kind != "write" or not task.worktree:
+            return None
+        wt = Path(task.worktree)
+        base = task.base_commit or "HEAD"
+        if task.meta.get("allow_test_changes") or task.meta.get("approved_diff_sig") == await self._diff_sig(wt, base):
+            return None
+        g = await self._test_guard_inputs(task)
+        bad = protected_test_violations(g["ns"], g["numstat"], g["added"], g["base_src"])
+        name = "既有測試未被刪除或削弱（只允許新增）"
+        body = f"{name}\n\n" + ("\n".join(f"- {b}" for b in bad) if bad else "（無違規）") + \
+            f"\n\nresult: {'VIOLATION' if bad else 'OK'}\n"
+        ev = await self.ev.add_text(task, task.step, f"verify{n}_tests_guard", body, name)
+        return {"name": name, "ok": not bad, "txt": ev.id}, bad
 
     async def _verify(self, task: Task) -> Task:
         gated = await self._diff_gate(task)
@@ -598,6 +677,13 @@ class Runner:
             checks.append({"name": name, "ok": same, "txt": ev.id})
             if not same:
                 failures.append(f"{name}：未通過\n{now['status']}")
+        guard = await self._test_protection(task, n)
+        if guard is not None:
+            check, bad = guard
+            checks.append(check)
+            if bad:
+                failures.append("既有測試被刪除或削弱（runner 判定，不可由 agent 放寬；只能新增測試）：\n"
+                                + "\n".join(bad))
         if task.kind == "write" and task.worktree:
             wt = Path(task.worktree)
             await git(["add", "-A"], wt)
@@ -612,9 +698,19 @@ class Runner:
         ok = not failures
         meta["verify_runs"] = [*meta.get("verify_runs", []), {"cmds": cmds_res, "checks": checks, "ok": ok}]
         meta["last_failure"] = "\n\n".join(failures)[-6000:] if failures else None
+        sig = failure_signature(failures) if failures else ""
+        # 以第 n 次驗收為鍵：崩潰後重跑同一次 VERIFY 不會重複累加
+        recs = [r for r in meta.get("failure_sigs", []) if isinstance(r, dict) and r.get("n") != n]
+        if failures:
+            recs.append({"n": n, "sig": sig})
+        meta["failure_sigs"] = recs
+        same_count = sum(1 for r in recs if r.get("sig") == sig) if failures else 0
         task = await self.store.update_task(task.id, meta=meta)
         if ok:
             return await self._go(task, State.REVIEW, {"verify": "pass"})
+        if same_count >= self.s.same_error_limit:
+            # 同一個錯誤反覆出現：agent 在原地打轉，不等重試上限，停下交給人
+            raise Halt(f"same_error_x{same_count}: 相同的驗收失敗累計出現 {same_count} 次（特徵 {sig}）")
         task = await self._bump_retry(task, "VERIFY 失敗")
         return await self._go(task, State.EXEC, {"verify": "fail"})
 
@@ -760,6 +856,12 @@ class Runner:
         if task.state != State.HALT or task.return_state is None:
             raise ValueError(f"{task_id} 不是可續跑的 HALT")
         task = await self.store.human_touch(task_id, "manual_state_change", {"by": by, "action": "resume"})
+        # 人工續跑＝重新給機會：重試次數與同一錯誤的計數都歸零（舊紀錄封存，供事後追查）
+        meta = dict(task.meta)
+        if meta.get("failure_sigs"):
+            meta["failure_sigs_archived"] = [*meta.get("failure_sigs_archived", []), *meta["failure_sigs"]]
+            meta["failure_sigs"] = []
+            task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state, {"resumed_by": by}, halt_reason=None, retries=0)
 
     async def cancel(self, task_id: str, by: str, reason: str) -> Task:

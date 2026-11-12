@@ -141,7 +141,11 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 title: 為 downloader 加上重試
 kind: write            # write＝可改檔（只在 worktree 內）；readonly＝只產報告
 repo: ../my-project    # 目標 repo 的本機路徑（相對或絕對）
-subdir: src            # 選填：限縮在子目錄
+subdir: src            # 選填：限縮在子目錄（同時成為預設的改動範圍）
+allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄），超出就停下等你核准
+  - src/downloader.py
+  - tests/**
+# allow_test_changes: true   # 選填：允許改寫或刪除既有測試（預設只能新增）
 ---
 下載失敗最多重試 3 次、間隔 2 秒，補 pytest 並全部通過。
 ```
@@ -192,6 +196,11 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 - **風險只升不降**：agent 只能提議風險，最終取「規則判定」與「提議」的較高者；執行後再依實際 diff 重新判定。
 - **角色工具最小化**：唯讀角色只拿得到 `Read`、`Glob`、`Grep`；執行者的 Bash 有允許與拒絕清單（安裝、push、merge、`.env`、金鑰一律拒絕）。
 - **runner 才是硬邊界**：Bash 規則不是安全邊界，所以驗收指令由 runner 以白名單親自執行、比對 worktree 以外的 git 狀態、證據設為唯讀並比對雜湊。
+- **既有測試只能新增**：runner 以 diff 檢查，以下都算削弱、驗收直接失敗：刪除或改名既有測試檔、改寫既有測試的任何一行、在既有測試檔加 skip／xfail 標記、重新定義同名測試、無法逐行比對的變更。新增測試檔、在既有測試補新案例都允許。
+- **改變測試收集方式要人核准**：修改 pytest／pyproject／setup.cfg／tox 設定、`.gitignore`／`.gitattributes`、會作用到既有測試的 `conftest.py`，或用 git 索引旗標隱藏變更，判為 high、停下等核准。核准是綁定整份 diff 的內容，之後內容再變就要重新核准。真的要改既有測試，由人在想法檔寫 `allow_test_changes: true`。
+- **改動範圍允許清單**：想法檔可寫 `allowed_paths`（glob，`dir/**` 代表整個子目錄）；有 `subdir` 時預設只能改該子目錄。超出範圍判為 high、停下等核准。兩者都只能由人設定，agent 無法替自己放寬。
+- **同一錯誤 3 次即停**：驗收失敗會正規化成特徵（失敗的測試名稱與 exit code，忽略耗時等數字），同一特徵出現 3 次就 HALT，不等重試上限。
+- **每次呼叫 agent 前檢查 STOP**：不只在 tick 開頭，長流程中途建立 `vault/STOP` 也會在下一次呼叫前停下。
 - **原生 Windows 沒有 sandbox**：Claude Code 內建 sandbox 不支援原生 Windows，worktree 只隔離檔案。要給更高自主權的任務，請放在 WSL2 或容器裡執行。
 - **安裝分級**：只在執行階段，由 runner 分成自動／自動＋通知／必須問，全部寫入 `02_data/install_ledger.csv`。
 - **花費帳本**：每次 agent 呼叫都寫入 `02_data/cost_ledger.csv`（不隨 DB 重建消失），每日預算以帳本與 DB 較大者判定。

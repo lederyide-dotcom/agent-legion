@@ -65,6 +65,7 @@ class Settings(BaseModel):
     task_budget_usd: float = 2.0
     daily_budget_usd: float = 2.0  # spec v0.5：單日超過 $2 必須先問使用者
     max_retries: int = 3
+    same_error_limit: int = 3  # 同一個驗收失敗特徵出現幾次就 HALT（不等重試上限）
     call_timeout_s: int = 900
     followup_cap: int = 2
     followup_max_depth: int = 2

@@ -154,8 +154,19 @@ def _halted(env: Env, n: int = 40) -> Task:
     return run(go())
 
 
+_WRONG_MUL = 'def add(a, b):\n    return a + b\n\n\ndef multiply(a, b):\n    return 0\n'
+_WRONG_ADD = 'def add(a, b):\n    return 0\n\n\ndef multiply(a, b):\n    return a * b\n'
+_WRONG_BOTH = 'def add(a, b):\n    return 0\n\n\ndef multiply(a, b):\n    return 0\n'
+
+
 def test_halt_on_retry_exceeded(env: Env) -> None:
-    env.idea("r", "never fixes", low_mock(exec=[{"claim": "passed", "write_files": {}}]))
+    # 每次以「不同方式」失敗：同一錯誤防線不會觸發，才能驗到重試上限這道熔斷
+    env.idea("r", "never fixes", low_mock(exec=[
+        {"claim": "passed", "write_files": {}},
+        {"claim": "passed", "write_files": {"calc.py": _WRONG_MUL}},
+        {"claim": "passed", "write_files": {"calc.py": _WRONG_ADD}},
+        {"claim": "passed", "write_files": {"calc.py": _WRONG_BOTH}},
+    ]))
     t = _halted(env)
     assert t.state == State.HALT and t.halt_reason and t.halt_reason.startswith("retry_exceeded")
     assert t.retries == env.settings.max_retries + 1
@@ -322,7 +333,8 @@ def test_readonly_task_without_proper_report_is_not_accepted(env: Env) -> None:
     env.idea("ro", "lazy check", low_mock(accept_cmds=["git status --porcelain"], actions=[{"type": "read"}],
                                           exec=[{"claim": "done", "report_md": "# 很短"}]), kind="readonly")
     t = run(env.run_until())[0]
-    assert t.state == State.HALT and (t.halt_reason or "").startswith("retry_exceeded")
+    # 每次交同一份不合格報告＝同一錯誤反覆出現：由同一錯誤防線在第 3 次停下（早於重試上限）
+    assert t.state == State.HALT and (t.halt_reason or "").startswith("same_error_x3"), t.halt_reason
 
 
 # ---- 審查後補強的測試 ----

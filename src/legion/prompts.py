@@ -180,7 +180,14 @@ def executor_prompt(task: Task, preamble: str, spec_md: str, last_failure: str |
                 "必須有標題含「架構」與「測試缺口」的章節；每個判斷附上 `相對路徑:行號` 作為依據。"
                 "runner 會以程式逐一核對這些行號，寫錯或引用目標 repo 以外的檔案會讓驗收失敗。")
     else:
-        mode = "只能修改目前工作目錄內的檔案；完成後可用 git add／git commit 在此 worktree 內提交。"
+        scope = task.meta.get("allowed_paths") or ([f"{task.subdir}/**"] if task.subdir else [])
+        mode = ("只能修改目前工作目錄內的檔案；完成後可用 git add／git commit 在此 worktree 內提交。"
+                "既有測試只能新增案例，不得刪除或改寫既有的測試行、不得刪除或改名測試檔"
+                "（runner 會以 diff 檢查，違反即驗收失敗）；若真的需要改既有測試，請在 summary 說明理由，由使用者決定。"
+                "不得加入 skip／xfail 標記、不得重新定義既有測試、不得修改 pytest 設定檔或 .gitignore 來改變測試收集"
+                "（後者會被判為 high 風險、停下等核准）。"
+                + (f"只能改動這些路徑（相對 repo 根目錄）：{', '.join(scope)}（超出會被判為 high 風險、停下等核准）。"
+                   if scope else ""))
     return f"""{preamble}
 你是指揮官，負責執行任務 {task.id}。{mode}
 完成後 runner 會親自執行驗收指令，你的自述不會被採信。
