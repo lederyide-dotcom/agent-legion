@@ -60,6 +60,8 @@ def accept_cmd_allowed(cmd: str) -> bool:
         if len(argv) < 2 or argv[1] not in _GIT_SUBS:
             return False
         for i, tok in enumerate(argv[2:], start=2):
+            if tok == "--":  # 選項與路徑的分隔符號本身是安全的；後面的路徑照常檢查
+                continue
             if tok.startswith("-"):
                 if tok not in _GIT_FLAGS and not re.fullmatch(r"-\d{1,3}", tok):
                     return False

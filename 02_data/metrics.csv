@@ -492,3 +492,27 @@ date,commit,metric,value,command
 2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0020.cost_usd,0.3637,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 80
 2026-11-13T04:30:00+08:00,b553228,mission_trial.T-0020.state,WAIT_HUMAN,python -m legion status
 2026-11-13T04:30:00+08:00,b553228,mission_trial.new_session_jsonl,0,find .claude/projects -name *.jsonl (before/after diff)
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.state,DONE,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.risk,low,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.human_touches,0,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.cost_usd,0.0600,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.duration_s,7.34,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0001.parent_id,,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.state,WAIT_HUMAN,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.risk,high,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.human_touches,0,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.cost_usd,0.0200,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.duration_s,0.25,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0002.parent_id,,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.state,DONE,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.risk,low,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.human_touches,0,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.cost_usd,0.0500,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.duration_s,5.66,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0003.parent_id,,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.state,DONE,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.risk,low,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.human_touches,0,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.cost_usd,0.0500,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.duration_s,4.52,python -m legion demo --mock
+2026-11-13T07:55:48+08:00,7dfe580,demo_mock.D-0004.parent_id,D-0003,python -m legion demo --mock

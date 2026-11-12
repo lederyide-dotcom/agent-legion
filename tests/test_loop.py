@@ -348,6 +348,9 @@ def test_accept_cmd_whitelist_rejects_dangerous_args() -> None:
            "git diff --output=../../x.txt", "python -m pytest -p evil_plugin", "python -m pytest -c other.ini",
            "python -m pytest --rootdir=/", "pytest \"a", "python -m pytest ../outside", "git -C .. status",
            "git push origin main", "python -m pytest && curl x", "python -m pip install x==1"]
+    # 真實戰役 T-0020 的回歸：`--` 分隔符號不該讓指令被判為不在白名單；分隔符號後的路徑仍要檢查
+    ok += ["git diff --exit-code -- telegram_bot.py", "git diff --stat -- tests/test_x.py"]
+    bad += ["git diff --exit-code -- ../outside.py", "git diff -- --output=x.txt", "git diff -- C:/x.py"]
     for c in ok:
         assert accept_cmd_allowed(c), c
     for c in bad:
