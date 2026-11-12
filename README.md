@@ -161,6 +161,37 @@ runner（總指揮）替每次 agent 呼叫依角色選模型與 effort，每個
 
 軍師呼叫失敗、預算不足或錦囊不足 3 個時，任務照原本規則停下。關閉軍師：`LEGION_ADVISOR=0`。
 
+### 戰役：給目標，讓它自己一個接一個做
+
+一般任務做完就停，後續想法要你放行。**戰役**則是你給一個目標和上限，軍團自己接續推進：
+
+```markdown
+---
+title: 把 bot 的檔名驗證補到可靠
+kind: write
+repo: ../my-bot
+allowed_paths: [telegram_bot.py, tests/**]
+mission:
+  goal: safe_workspace_path 與 strip_code_fence 都有完整測試，已知漏洞全部修掉
+  max_tasks: 5        # 最多幾個任務（硬上限 10）
+  budget_usd: 2       # 整場戰役的花費上限
+---
+先為 safe_workspace_path 補測試並修正已知漏洞。
+```
+
+- 每個任務結案時，**參謀**（Opus，唯讀）對照目標決定「完成」或「下一個任務」，下一個任務自動開始。
+- 下一個任務**從上一個任務的分支接著做**（`legion/<任務編號>`），成果一路疊加；你最後只要檢查並 merge 最後一個分支，legion 不會動主分支。
+- 每個任務照樣走完整閉環與所有防線；任務卡住或需要你核准時，戰役就停在那裡等你。達到任務數或花費上限、或下一步涉及 legion 本身，也會停。
+- 戰役總預算在每次呼叫 agent 前都會檢查，執行中的任務也不能超支。
+- 進度看 `vault/AI/missions/<戰役名稱>.md`。
+- 戰役停下後想繼續：處理完卡住的任務後，丟一個新的戰役想法檔，加上 `base_branch: legion/<最後完成的任務編號>` 就會從那個分支接著做。
+
+持續推進到沒事可做為止：
+
+```bat
+.venv\Scripts\python.exe -m legion run
+```
+
 ## 使用方式
 
 指令一律在專案根目錄執行。下表的 `legion` 代表 `.venv\Scripts\python.exe -m legion`；部分 Windows 環境的應用程式控制原則會擋 `.venv\Scripts\legion.exe`，用 `python -m` 形式即可。

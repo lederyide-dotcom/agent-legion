@@ -13,6 +13,7 @@ from .agents import AgentBackend, ClaudeCliAgent, MockAgent, reviewer_backend
 from .config import Settings
 from .db import Store
 from .installs import RecordingInstaller, ShellInstaller
+from .models import State
 from .runner import Runner
 from .vault import init_vault, weekly_report
 
@@ -24,7 +25,8 @@ def _windows_loop() -> None:
 
 
 ROLE_LABELS = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
-               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）"}
+               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）",
+               "strategist": "參謀（戰役中決定下一步）"}
 
 
 def models_table(s: Settings) -> str:
@@ -38,6 +40,36 @@ def models_table(s: Settings) -> str:
     if s.claude_model:
         rows.append(f"（已用 --model／LEGION_MODEL 指定 {s.claude_model}：全部角色統一，不升級）")
     return "\n".join(rows)
+
+
+async def run_until_idle(runner: Runner, st: Store, max_ticks: int, wait_minutes: float = 0.0,
+                         poll_s: float = 30.0) -> dict[str, Any]:
+    """重複 tick 直到沒有進展。有軍師錦囊在等使用者時，可選擇再等一段時間（讓閒置自動決議有機會發生）。"""
+    import time
+
+    ticks, waited, log = 0, 0.0, []
+    stop = "max_ticks"
+    while ticks < max_ticks:
+        summary = await runner.tick()
+        ticks += 1
+        if summary.get("advanced") or summary.get("ingested") or summary.get("auto_decided"):
+            log.append({k: summary[k] for k in ("ingested", "advanced", "auto_decided", "halted") if summary.get(k)})
+            continue
+        if not summary.get("locked"):
+            stop = "另一個 tick 正在執行"
+            break
+        pending = [t for t in await st.list_tasks([State.WAIT_HUMAN]) if runner._advisor_pending(t)]
+        if pending and waited < wait_minutes * 60:
+            await asyncio.to_thread(time.sleep, poll_s)
+            waited += poll_s
+            continue
+        stop = "idle"
+        break
+    tasks = await st.list_tasks()
+    return {"ticks": ticks, "stopped": stop, "steps": log[-30:],
+            "waiting_human": [t.id for t in tasks if t.state == State.WAIT_HUMAN],
+            "halted": [t.id for t in tasks if t.state == State.HALT and not (t.halt_reason or "").startswith("operator")],
+            "done": len([t for t in tasks if t.state == State.DONE])}
 
 
 def _backends(s: Settings, name: str) -> tuple[AgentBackend, AgentBackend, str | None]:
@@ -78,6 +110,15 @@ def main(argv: list[str] | None = None) -> int:
     tp.add_argument("--daily-budget", type=float, default=None)
     tp.add_argument("--auto-followups", action="store_true",
                     help="真實 backend 時讓回灌想法直接進 INBOX 自動領取（預設暫存到 AI/inbox_hold/）")
+    rn = sub.add_parser("run", help="持續推進：重複 tick 直到沒有事可做（或達到上限）")
+    rn.add_argument("--backend", choices=["mock", "claude"], default=os.environ.get("LEGION_BACKEND", "claude"))
+    rn.add_argument("--model", default=os.environ.get("LEGION_MODEL"))
+    rn.add_argument("--task-budget", type=float, default=None)
+    rn.add_argument("--daily-budget", type=float, default=None)
+    rn.add_argument("--auto-followups", action="store_true")
+    rn.add_argument("--max-ticks", type=int, default=200)
+    rn.add_argument("--wait-minutes", type=float, default=0.0,
+                    help="沒事可做時，若有軍師錦囊在等閒置時限，最多再等這麼久（每 30 秒檢查一次）")
     a = sub.add_parser("answer")
     a.add_argument("task_id")
     a.add_argument("decision", choices=["approve", "reject"])
@@ -132,6 +173,26 @@ def main(argv: list[str] | None = None) -> int:
 
         out = asyncio.run(export(s, args.task_id, args.format))
         print(out)
+        return 0
+    if args.cmd == "run":
+        upd_r: dict[str, Any] = {"agent_backend": args.backend, "claude_model": args.model,
+                                 "followup_auto_ingest": args.backend == "mock" or args.auto_followups}
+        if args.task_budget is not None:
+            upd_r["task_budget_usd"] = args.task_budget
+        if args.daily_budget is not None:
+            upd_r["daily_budget_usd"] = args.daily_budget
+        s = s.model_copy(update=upd_r)
+        init_vault(s)
+        main_b, rev_b, note = _backends(s, args.backend)
+        if note:
+            print(note)
+
+        async def loop(st: Store) -> dict[str, Any]:
+            installer = ShellInstaller() if args.backend == "claude" else RecordingInstaller()
+            runner = Runner(s, st, main_b, rev_b, installer=installer)
+            return await run_until_idle(runner, st, args.max_ticks, args.wait_minutes)
+
+        print(json.dumps(asyncio.run(_with_store(s, loop)), ensure_ascii=False, indent=2))
         return 0
     if args.cmd == "tick":
         upd: dict[str, Any] = {"agent_backend": args.backend, "claude_model": args.model,

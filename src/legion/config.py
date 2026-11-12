@@ -36,6 +36,8 @@ DEFAULT_ROLE_MODELS: dict[str, tuple[str, str | None]] = {
     "scribe": ("claude-haiku-5-5", None),
     # 軍師：只在任務卡住時請示，提出至少 3 個錦囊（Pro 方案的 Fable 需另購 credits，故預設 Opus／high）
     "advisor": ("opus", "high"),
+    # 參謀：戰役中每個任務結案時，對照目標決定下一步或宣告完成
+    "strategist": ("opus", "medium"),
 }
 # 執行者驗收或審查失敗後重做時改用；交付審查也隨之升到同一個模型（審查者不低於執行者）
 DEFAULT_ESCALATION: tuple[str, str | None] = ("opus", "high")

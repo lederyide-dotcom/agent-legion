@@ -66,3 +66,10 @@ legion 能在 target-repo-b 上自主完成小型、可驗證的改動與健檢�
 - 使用者閒置 15 分鐘：指揮官＋軍師自動決議，只限 revise_spec／retry_with_guidance／split_task／abandon 四種、風險非 high、預估花費在剩餘預算內；不符合就繼續等
 - 自動決議不得涉及「必須停下來問我」的任何事項；採用錦囊會重設重試計數，但總次數受「每任務最多請示 2 次」與預算限制
 - 備援：軍師呼叫失敗、預算不足、錦囊不足 3 個 → 照原本規則 HALT（不改用研究技能：legion 的 agent 呼叫不開放技能與網路工具）
+## 戰役（mission）與持續推進（使用者 2026-11-12：「讓 legion 有組織可自主持續開發推理迭代」）
+- 授權：使用者在想法檔寫 `mission: {goal, max_tasks, budget_usd}`；max_tasks 硬上限 10；戰役預算每次呼叫前檢查
+- 每個戰役任務結案時：runner 把成果提交到該任務分支 legion/<id>，參謀（Opus／medium，唯讀）對照目標決定完成或下一個任務；下一個任務自動進 INBOX、從上一個任務的分支接續、類型沿用上層
+- 停止條件：參謀判定完成、達到上限、任務 HALT 或等人、下一步涉及 legion 本身、提交或參謀呼叫失敗
+- 不變：每個任務走完整閉環與所有防線；high 風險等人；不 merge、不 push、不動主分支；每日預算照常
+- `legion run`：重複 tick 到 idle
+- 驗收：tests/test_mission.py 全過；真實 backend 的戰役試跑需使用者同意（會花額度）

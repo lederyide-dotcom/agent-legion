@@ -12,6 +12,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -52,6 +53,31 @@ from .risk import (
 )
 
 _GITQ = ["-c", "core.quotepath=false"]  # 中文檔名不加引號，路徑比對才準確
+MISSION_MAX_TASKS_CEILING = 10  # 戰役任務數的硬上限（想法檔寫更大也只到這裡）
+_BRANCH_RE = re.compile(r"^[\w./-]{1,120}$")
+
+
+def _mission_meta(fm: dict[str, Any], stem: str, title: str, body: str) -> dict[str, Any]:
+    """從想法檔讀戰役設定（人寫的授權）：目標、最多幾個任務、總預算。格式不對就當作不是戰役。"""
+    out: dict[str, Any] = {}
+    m = fm.get("mission")
+    if m is True:
+        m = {}
+    if isinstance(m, dict):
+        try:
+            max_tasks = min(max(int(m.get("max_tasks", 5)), 1), MISSION_MAX_TASKS_CEILING)
+            budget = float(m.get("budget_usd", 2.0))
+        except (TypeError, ValueError):
+            return out
+        if budget > 0:
+            out["mission"] = {"name": str(m.get("name") or stem)[:60], "goal": str(m.get("goal") or f"{title}\n{body}")[:3000],
+                              "max_tasks": max_tasks, "budget_usd": budget}
+    bb = fm.get("base_branch")
+    if isinstance(bb, str) and _BRANCH_RE.match(bb) and ".." not in bb and not bb.startswith("-"):
+        out["base_branch"] = bb
+    return out
+
+
 ADVISOR_TRIGGERS = ("same_error_", "retry_exceeded")  # 這兩種停下會先請示軍師
 ADVISOR_WAIT = "軍師錦囊待決定"  # wait_reason 前綴：只有這種等待才能選錦囊或自動決議
 
@@ -206,6 +232,9 @@ class Runner:
     async def _after_change(self, task: Task) -> None:
         vault.export_task(self.s, task)
         await render_record(self.s, self.store, task)
+        m = task.meta.get("mission")
+        if m:
+            vault.write_mission_note(self.s, m, await self._mission_tasks(m["name"]))
 
     # ------------------------------------------------------------ INBOX
     async def ingest_inbox(self) -> list[str]:
@@ -233,7 +262,8 @@ class Runner:
                           # 以下兩個欄位只能由人寫在想法檔：agent 無法替自己放寬
                           **({"allow_test_changes": True} if fm.get("allow_test_changes") is True else {}),
                           **({"allowed_paths": [str(p) for p in fm["allowed_paths"]]}
-                             if isinstance(fm.get("allowed_paths"), list) else {})},
+                             if isinstance(fm.get("allowed_paths"), list) else {}),
+                          **_mission_meta(fm, path.stem, title, body)},
                 )
             except (ValueError, TypeError, ValidationError) as exc:
                 self.bad_inbox.append(f"{path.name}: {exc}")
@@ -272,7 +302,14 @@ class Runner:
                                     real_account=getattr(self.agent, "name", "") != "mock"))
         if today >= self.s.daily_budget_usd:
             raise Halt(f"budget_daily: {today:.4f} ≥ {self.s.daily_budget_usd}")
-        return min(self.s.task_budget_usd - task.cost_usd, self.s.daily_budget_usd - today)
+        remaining = min(self.s.task_budget_usd - task.cost_usd, self.s.daily_budget_usd - today)
+        m = task.meta.get("mission")
+        if m:  # 戰役總預算在每次呼叫前都檢查，執行中的任務也不能超支
+            spent = sum(t.cost_usd for t in await self._mission_tasks(m["name"]))
+            if spent >= float(m["budget_usd"]):
+                raise Halt(f"budget_mission: 戰役花費 {spent:.4f} ≥ {float(m['budget_usd'])}")
+            remaining = min(remaining, float(m["budget_usd"]) - spent)
+        return remaining
 
     def _ledger(self, task: Task, role: str, backend: str, model: str | None, session_id: str, status: str,
                 cost: float) -> None:
@@ -366,7 +403,15 @@ class Runner:
             self.s.worktrees_dir.mkdir(parents=True, exist_ok=True)
             branch = f"legion/{task.id}"
             exists = (await git(["branch", "--list", branch], repo)).strip()
-            args = ["worktree", "add", str(wt), branch] if exists else ["worktree", "add", "-b", branch, str(wt), "HEAD"]
+            # 戰役接續：從上一個任務的分支開始（成果疊加，不必等人 merge）；分支不存在就退回 HEAD
+            start = "HEAD"
+            bb = task.meta.get("base_branch")
+            if bb and task.meta.get("mission"):  # 只有戰役任務才接續分支
+                ok = await git(["rev-parse", "--verify", "--quiet", f"refs/heads/{bb}"], repo, check=False)
+                if not ok.strip():
+                    raise Halt(f"mission_base_missing: 找不到要接續的分支 {bb}")
+                start = str(bb)
+            args = ["worktree", "add", str(wt), branch] if exists else ["worktree", "add", "-b", branch, str(wt), start]
             await git(args, repo)
         base = (await git(["rev-parse", "HEAD"], wt)).strip()
         return await self.store.update_task(task.id, worktree=str(wt), base_commit=base)
@@ -827,6 +872,7 @@ class Runner:
         meta["scribe"] = {k: v for k, v in out.items() if not k.startswith("_")}
         task = await self.store.update_task(task.id, meta=meta)
         await self._followups(task, list(out.get("followups") or []))
+        task = await self._mission_step(task, list(out.get("followups") or []))
         task = await self._go(task, State.DONE)
         rec = self.s.record_dir(task.id) / "record.md"
         bad = narrative_violations(rec.read_text(encoding="utf-8"))
@@ -834,6 +880,81 @@ class Runner:
             await self.store.add_event(task.id, "narrative_uncited", {"message": f"{len(bad)} 段敘述未引用證據",
                                                                       "items": bad})
         return task
+
+    # ------------------------------------------------------------ 戰役（目標導向的自主接續）
+    async def _mission_tasks(self, name: str) -> list[Task]:
+        return [t for t in await self.store.list_tasks() if (t.meta.get("mission") or {}).get("name") == name]
+
+    async def _commit_worktree(self, task: Task) -> bool:
+        """把這個任務的成果提交到它自己的分支（legion/<id>），下一個任務才能接著做。不動目標 repo 的主分支。"""
+        if task.kind != "write" or not task.worktree:
+            return True
+        wt = Path(task.worktree)
+        head = (await git(["rev-parse", "--abbrev-ref", "HEAD"], wt)).strip()
+        if head != f"legion/{task.id}":  # 只提交到這個任務自己的分支
+            await self.store.add_event(task.id, "mission_commit_failed", {"message": f"worktree 不在預期分支：{head}"})
+            return False
+        await git(["add", "-A"], wt)
+        if not (await git(["status", "--porcelain"], wt)).strip():
+            return True
+        try:
+            await git(["-c", "user.name=agent-legion", "-c", "user.email=legion@localhost",
+                       "-c", "commit.gpgsign=false", "commit", "-q", "-m",
+                       f"legion {task.id}: {task.title[:80]}"], wt)
+        except RuntimeError as exc:
+            await self.store.add_event(task.id, "mission_commit_failed", {"message": str(exc)[:400]})
+            return False
+        return True
+
+    async def _mission_step(self, task: Task, candidates: list[dict[str, Any]]) -> Task:
+        """任務結案時，若屬於戰役：由參謀對照目標決定下一步並自動接續，直到目標達成或碰到人設定的上限。
+
+        戰役的目標與上限（任務數、總預算）只能由人寫在想法檔；每個接續的任務仍走完整閉環與所有防線。
+        任何失敗都只會讓戰役停下（任務本身照常結案），不會讓任務 HALT。
+        """
+        m = task.meta.get("mission")
+        if not m or task.meta.get("mission_outcome"):
+            return task
+
+        async def finish(outcome: str, message: str) -> Task:
+            meta = dict((await self.store.get_task(task.id)).meta)
+            meta["mission_outcome"] = outcome
+            await self.store.add_event(task.id, "mission", {"message": message, "outcome": outcome})
+            return await self.store.update_task(task.id, meta=meta)
+
+        try:
+            # 先提交成果：不論戰役接下來是否繼續，這個任務的變更都要在它的分支上（筆記會請使用者 merge 這個分支）
+            if not await self._commit_worktree(task):
+                return await finish("paused", "成果提交失敗，戰役暫停（任務照常結案）")
+            mates = await self._mission_tasks(m["name"])
+            spent = sum(t.cost_usd for t in mates)
+            if len(mates) >= int(m["max_tasks"]):
+                return await finish("caps", f"戰役達到任務數上限 {m['max_tasks']}，停止接續")
+            if spent >= float(m["budget_usd"]):
+                return await finish("caps", f"戰役花費 ${spent:.2f} 達到上限 ${float(m['budget_usd']):.2f}，停止接續")
+            history = "\n".join(f"- {t.id}｜{t.state.value}｜${t.cost_usd:.2f}｜{t.title}" for t in mates)
+            cands = "\n".join(f"- {str(c.get('title', ''))[:120]}：{' '.join(str(c.get('body', '')).split())[:300]}"
+                              for c in candidates[:5] if isinstance(c, dict)) or "（無）"
+            lessons = str((task.meta.get("scribe") or {}).get("handoff_md", ""))[:2000]
+            wd = self._workdir(task) if task.repo else self.s.ai_dir
+            out = await self._agent(task, "strategist", prompts.strategist_prompt(
+                task, m, history, lessons, cands, len(mates), spent), wd, max_budget=self.s.advisor_budget_usd)
+            if out.get("done") or not isinstance(out.get("next"), dict) or not out["next"].get("title"):
+                return await finish("complete", f"參謀判定戰役目標已達成：{str(out.get('rationale', ''))[:300]}")
+            nxt = out["next"]
+            title, body = str(nxt["title"])[:200], str(nxt.get("body", ""))[:4000]
+            # 分支名稱 legion/T-xxxx 是正常引用，不算「涉及 legion 本身」
+            if vault.is_self_referential(re.sub(r"legion/[A-Z]-\d+", "", f"{title}\n{body}")):
+                vault.write_followup(self.s, task, 80, title, body, hold=True)
+                return await finish("paused", f"下一步涉及 legion 本身，暫存等使用者決定：{title}")
+            base = f"legion/{task.id}" if task.kind == "write" and task.worktree else task.meta.get("base_branch")
+            # 類型沿用上層任務：參謀不能把唯讀戰役升級成可寫；可寫戰役的每一步都在分支上接續
+            p = vault.write_followup(self.s, task, 80, title, body, hold=False, mission=m, base_branch=base)
+            return await finish("continue", f"戰役接續 → {p.name}：{title}")
+        except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+            raise
+        except Exception as exc:  # noqa: BLE001 — 戰役接續失敗（預算、逾時、STOP…）只暫停戰役，不影響任務結案
+            return await finish("paused", f"戰役暫停：{exc!r}"[:300])
 
     async def _followups(self, task: Task, items: list[dict[str, Any]]) -> None:
         if task.meta.get("followups_written"):

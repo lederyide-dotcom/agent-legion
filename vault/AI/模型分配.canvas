@@ -81,11 +81,21 @@
       "color": "6"
     },
     {
+      "id": "r-mission",
+      "type": "text",
+      "text": "MISSION\n參謀（戰役中決定下一步）",
+      "x": 0,
+      "y": 1360,
+      "width": 300,
+      "height": 120,
+      "color": "6"
+    },
+    {
       "id": "m-0",
       "type": "text",
       "text": "## Opus 5.5\n官方單價 $4／$20\n（每百萬 token 輸入／輸出）",
       "x": 1000,
-      "y": 433,
+      "y": 660,
       "width": 300,
       "height": 160,
       "color": "6"
@@ -177,10 +187,19 @@
     },
     {
       "id": "e-06",
-      "fromNode": "m-1",
-      "fromSide": "top",
+      "fromNode": "r-mission",
+      "fromSide": "right",
       "toNode": "m-0",
-      "toSide": "bottom",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜medium"
+    },
+    {
+      "id": "e-07",
+      "fromNode": "m-1",
+      "fromSide": "bottom",
+      "toNode": "m-0",
+      "toSide": "top",
       "toEnd": "arrow",
       "color": "1",
       "label": "失敗後升級\n指揮官（執行）重做時｜high\n審查者隨之升級｜high"

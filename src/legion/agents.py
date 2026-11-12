@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 from .models import AgentResult, Task
 
-READONLY_ROLES = frozenset({"planner", "spec_reviewer", "reviewer", "scribe", "advisor"})
+READONLY_ROLES = frozenset({"planner", "spec_reviewer", "reviewer", "scribe", "advisor", "strategist"})
 REVIEWER_ROLES = frozenset({"spec_reviewer", "reviewer"})
 ALL_ROLES = READONLY_ROLES | {"executor"}
 
@@ -322,6 +322,8 @@ class MockAgent:
         elif call.role == "reviewer":
             v = self._pick(sc.get("review", []), call.attempt, "pass")
             out = {"verdict": v, "findings": [] if v == "pass" else ["mock：交付不符規格"]}
+        elif call.role == "strategist":
+            out = dict(sc.get("strategy") or {"done": True, "rationale": "mock：目標已達成"})
         elif call.role == "advisor":
             default_advice = {
                 "diagnosis": "mock：執行者沒有真正修改程式",

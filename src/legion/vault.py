@@ -120,7 +120,8 @@ _EDGES = [
 _STATE_ROLE = {"PLAN": "planner", "SPEC_REVIEW": "spec_reviewer", "EXEC": "executor", "REVIEW": "reviewer",
                "LEARN": "scribe"}
 _ROLE_LABEL = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
-               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）"}
+               "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）",
+               "strategist": "參謀（戰役中決定下一步）"}
 # 模型顯示名稱、官方單價（USD／每百萬 token，輸入／輸出；2026-11-12 查詢官方定價頁）、畫布顏色
 _MODEL_INFO: dict[str, tuple[str, str, str]] = {
     "fable": ("Fable 5.2", "$8／$40", "1"), "claude-fable-5-2": ("Fable 5.2", "$8／$40", "1"),
@@ -172,7 +173,7 @@ def canvas_json(settings: Settings | None = None) -> dict[str, Any]:
 def models_canvas_json(settings: Settings) -> dict[str, Any]:
     """角色 → 模型 關係畫布：依 runner 實際設定（含環境變數覆寫）產生。紅線＝失敗後升級。"""
     lanes = [("PLAN", "planner"), ("SPEC_REVIEW", "spec_reviewer"), ("GATE", None), ("EXEC", "executor"),
-             ("VERIFY", None), ("REVIEW", "reviewer"), ("LEARN", "scribe"), ("ADVISOR", "advisor")]
+             ("VERIFY", None), ("REVIEW", "reviewer"), ("LEARN", "scribe"), ("ADVISOR", "advisor"), ("MISSION", "strategist")]
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
     model_nodes: dict[str, str] = {}
@@ -259,12 +260,12 @@ def init_vault(settings: Settings) -> None:
 
 # ---------------------------------------------------------------- INBOX
 def parse_md(text: str) -> tuple[dict[str, Any], str]:
-    if text.startswith("---"):
-        parts = text.split("---", 2)
-        if len(parts) == 3:
-            fm = yaml.safe_load(parts[1]) or {}
-            if isinstance(fm, dict):
-                return fm, parts[2].lstrip("\n")
+    # 只認「獨立一行的 ---」當分隔：內文或欄位值裡的 --- 不會把 frontmatter 切壞
+    m = re.match(r"\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)(.*)\Z", text, re.DOTALL)
+    if m:
+        fm = yaml.safe_load(m.group(1)) or {}
+        if isinstance(fm, dict):
+            return fm, m.group(2).lstrip("\n")
     return {}, text
 
 
@@ -308,21 +309,33 @@ def is_self_referential(text: str) -> bool:
     return bool(_SELF_REF.search(text))
 
 
-def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str, hold: bool = False) -> Path:
+def write_followup(settings: Settings, parent: Task, n: int, title: str, body: str, hold: bool = False,
+                   mission: dict[str, Any] | None = None, base_branch: str | None = None,
+                   kind: str | None = None) -> Path:
     """hold=True 時寫到 AI/inbox_hold/，不會被 tick 領取；使用者把檔案移回 INBOX 才算放行。
 
     涉及 legion 本身的想法（事故 4：T-0009～T-0013 內容在改 legion 卻掛在目標 repo 上）：
     repo 改指 legion 專案、kind 改 readonly（只提案不改）、風險下限 mid。
+    mission／base_branch 只由 runner 在戰役接續時傳入：子任務帶著戰役設定，並從上一個任務的分支接著做。
     """
     folder = settings.ai_dir / "inbox_hold" if hold else settings.inbox_dir
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"fu-{parent.id}-{n}.md"
     fm: dict[str, Any] = {
-        "title": title, "parent_id": parent.id, "depth": parent.depth + 1, "kind": parent.kind,
+        "title": title, "parent_id": parent.id, "depth": parent.depth + 1,
+        "kind": kind if kind in {"readonly", "write"} else parent.kind,
         "repo": parent.repo, "subdir": parent.subdir,
     }
+    if parent.meta.get("allowed_paths"):
+        fm["allowed_paths"] = list(parent.meta["allowed_paths"])  # 改動範圍沿用上層任務，不因回灌而放寬
+    if mission:
+        fm["mission"] = mission
+    if base_branch:
+        fm["base_branch"] = base_branch
     if is_self_referential(f"{title}\n{body}"):
         fm.update(kind="readonly", repo=str(PROJECT_ROOT), subdir=None, risk_floor="mid", self_ref=True)
+        for k in ("allowed_paths", "mission", "base_branch"):
+            fm.pop(k, None)
         body = f"（runner：此後續想法涉及 legion 本身，改為對 legion 的唯讀提案；實作須使用者另行決定）\n\n{body}"
     child = parent.meta.get("mock", {}).get("child")
     if child is not None:
@@ -382,6 +395,38 @@ def write_question(settings: Settings, task: Task, reason: str, details: list[st
         f".venv\\Scripts\\python.exe -m legion answer {task.id} reject\n```\n",
         encoding="utf-8",
     )
+    return path
+
+
+_OUTCOME_LABEL = {"continue": "進行中（已排入下一個任務）", "complete": "✅ 目標達成", "caps": "⏹ 達到上限，停止接續",
+                  "paused": "⏸ 暫停，等使用者"}
+
+
+def write_mission_note(settings: Settings, mission: dict[str, Any], tasks: list[Task]) -> Path:
+    """戰役進度筆記（AI/missions/<名稱>.md）：目標、上限、每個任務的狀態與花費、成果所在分支。"""
+    safe_name = re.sub(r"[^\w.-]+", "_", str(mission["name"]))
+    path = settings.ai_dir / "missions" / f"{safe_name}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tasks = sorted(tasks, key=lambda t: t.id)
+    spent = sum(t.cost_usd for t in tasks)
+    last = tasks[-1] if tasks else None
+    outcome = (last.meta.get("mission_outcome") if last else None) or ""
+    if last and last.state.value in {"HALT", "WAIT_HUMAN"}:
+        status = f"⏸ {last.id} 停在 {last.state.value}，等使用者處理"
+    elif outcome and last and last.state.value == "DONE":
+        status = _OUTCOME_LABEL.get(outcome, outcome)
+    else:
+        status = "進行中"
+    writes = [t for t in tasks if t.kind == "write" and t.state.value == "DONE"]
+    rows = [f"| [[tasks/{t.id}]] | {t.title} | {t.kind} | {t.state.value} | ${t.cost_usd:.4f} |" for t in tasks]
+    branch = (f"\n成果在目標 repo 的分支 `legion/{writes[-1].id}`（包含前面所有任務的變更）。確認後自行 merge，"
+              "legion 不會動主分支。\n") if writes else ""
+    path.write_text(
+        f"---\nmission: {mission['name']}\nstatus: {status}\ntasks: {len(tasks)}\ncost_usd: {round(spent, 4)}\n---\n"
+        f"# 戰役：{mission['name']}\n\n- 狀態：**{status}**\n"
+        f"- 任務：{len(tasks)}／{mission['max_tasks']}　花費：${spent:.4f}／${float(mission['budget_usd']):.2f}\n"
+        f"{branch}\n## 目標\n{mission['goal']}\n\n## 任務\n| 編號 | 標題 | 類型 | 狀態 | 花費 |\n|---|---|---|---|---|\n"
+        + "\n".join(rows) + "\n", encoding="utf-8")
     return path
 
 

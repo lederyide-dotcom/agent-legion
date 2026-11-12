@@ -85,3 +85,10 @@
 - 重試次數為 SPEC_REVIEW 退回、VERIFY 失敗、REVIEW 退回的合計
 - 「官方發行頁」安裝本輪一律轉人工（比 spec 嚴格）
 - 實戰 B 回灌的後續想法 fu-T-0005-1.md 暫放 vault/AI/inbox_hold/，等 使用者決定是否放回 INBOX
+
+## 目前狀態（2026-11-12 深夜，換 session 從這裡接）
+- 已完成：硬防線、依角色分配模型、軍師、戰役與 legion run；126 項測試全過
+- 模型：規劃／規格審查 Opus medium，執行 Sonnet（失敗升 Opus high），交付審查 Sonnet high，書記官 Haiku，軍師 Opus high，參謀 Opus medium
+- 使用者方案含 Fable（有獨立每週額度）；軍師可用 LEGION_MODEL_ADVISOR=fable 切換，尚未切換
+- 未驗證：軍師、戰役、依角色分配模型都還沒有真實任務跑過
+- 下一步建議：在 target-repo-b 用真實 backend 試跑一場小戰役（max_tasks 3、budget 1.5），對照 metrics 的每任務花費
