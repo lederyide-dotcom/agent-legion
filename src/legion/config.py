@@ -26,6 +26,44 @@ def _env_path(name: str, default: Path) -> Path:
     return Path(v) if v else default
 
 
+# 角色 → (模型, effort)。依研究報告的角色配置：規劃與規格審查用強模型；執行先用 Sonnet、失敗才升級；
+# 書記官用最便宜的 Haiku。effort 為 None 表示不指定（Haiku 是否支援 effort 未確認，因此不傳）。
+DEFAULT_ROLE_MODELS: dict[str, tuple[str, str | None]] = {
+    "planner": ("opus", "medium"),
+    "spec_reviewer": ("opus", "medium"),
+    "executor": ("sonnet", None),
+    "reviewer": ("sonnet", "high"),
+    "scribe": ("claude-haiku-5-5", None),
+}
+# 執行者驗收或審查失敗後重做時改用；交付審查也隨之升到同一個模型（審查者不低於執行者）
+DEFAULT_ESCALATION: tuple[str, str | None] = ("opus", "high")
+EFFORTS = {"low", "medium", "high", "xhigh", "max"}
+
+
+def _env_effort(name: str, default: str | None) -> str | None:
+    v = os.environ.get(name)
+    if v is None:
+        return default
+    v = v.strip().lower()
+    return None if v in {"", "none", "default"} else (v if v in EFFORTS else default)
+
+
+def _role_models() -> dict[str, tuple[str, str | None]]:
+    """預設表，可用環境變數逐角色覆寫：LEGION_MODEL_PLANNER=sonnet、LEGION_EFFORT_PLANNER=high（none＝不指定）。"""
+    out: dict[str, tuple[str, str | None]] = {}
+    for role, (model, effort) in DEFAULT_ROLE_MODELS.items():
+        key = role.upper()
+        out[role] = (os.environ.get(f"LEGION_MODEL_{key}") or model, _env_effort(f"LEGION_EFFORT_{key}", effort))
+    return out
+
+
+def _escalation() -> tuple[str, str | None] | None:
+    model = os.environ.get("LEGION_ESCALATE_MODEL", DEFAULT_ESCALATION[0])
+    if model.strip().lower() in {"", "none", "off"}:
+        return None  # 關閉升級
+    return model, _env_effort("LEGION_ESCALATE_EFFORT", DEFAULT_ESCALATION[1])
+
+
 def _first_existing(env: str, which: str, candidates: list[str]) -> Path:
     """環境變數 → PATH 上的執行檔 → 常見安裝位置；都找不到時回傳第一個候選（呼叫端會給出清楚的錯誤）。"""
     if os.environ.get(env):
@@ -78,7 +116,9 @@ class Settings(BaseModel):
     # 角色與 backend
     agent_backend: str = "mock"  # mock | claude
     reviewer_backend: str = "claude"  # claude | codex（未安裝時退回 claude 全新 session）
-    claude_model: str | None = None
+    claude_model: str | None = None  # 有值時「所有角色」統一用這個模型（tick --model 的總開關），否則依角色表
+    role_models: dict[str, tuple[str, str | None]] = Field(default_factory=_role_models)
+    escalation: tuple[str, str | None] | None = Field(default_factory=_escalation)
     commander_preamble: str = ""  # 指揮官前置指令（例如 /poteto-mode），本輪預設空白
 
     # 紀錄文件
@@ -111,6 +151,21 @@ class Settings(BaseModel):
     @property
     def cost_ledger(self) -> Path:
         return self.data_dir / "cost_ledger.csv"
+
+    def model_for(self, role: str, attempt: int, escalated: bool) -> tuple[str | None, str | None]:
+        """指揮官（runner）替這次呼叫選模型與 effort。
+
+        - tick --model 指定時：全部角色統一用它（不升級），維持舊行為
+        - 執行者第 2 次起（驗收或審查失敗後重做）改用升級模型
+        - 執行者升級過的任務，交付審查也用升級模型（審查者不低於執行者）
+        """
+        if self.claude_model:
+            return self.claude_model, None
+        model, effort = self.role_models.get(role, (None, None))
+        if self.escalation and ((role == "executor" and attempt >= 1) or (role == "reviewer" and escalated)):
+            esc_model, esc_effort = self.escalation
+            return esc_model, (esc_effort if role == "executor" else effort)
+        return model, effort
 
     def record_dir(self, task_id: str) -> Path:
         return self.ai_dir / "records" / task_id

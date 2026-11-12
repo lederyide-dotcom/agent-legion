@@ -94,6 +94,8 @@ class AgentCall(BaseModel):
     timeout_s: int = 900
     budget_usd: float = 1.0
     add_dirs: list[Path] = Field(default_factory=list)
+    model: str | None = None  # 這次呼叫用的模型（runner 依角色分配）；None＝用 backend 預設
+    effort: str | None = None  # low／medium／high／xhigh／max；None＝不指定
 
     model_config = {"populate_by_name": True}
 
@@ -161,8 +163,11 @@ class ClaudeCliAgent:
             # runner 已在 DB 與證據檔保存每次呼叫的結構化輸出，本機逐字紀錄不需要
             "--no-session-persistence",
         ]
-        if self.model:
-            cmd += ["--model", self.model]
+        model = call.model or self.model
+        if model:
+            cmd += ["--model", model]
+        if call.effort:
+            cmd += ["--effort", call.effort]
         for d in call.add_dirs:
             cmd += ["--add-dir", str(d)]
         return cmd
@@ -227,7 +232,8 @@ class ClaudeCliAgent:
             session_id=str(data["session_id"]),
             cost_usd=float(data.get("total_cost_usd") or 0.0),
             duration_s=dur,
-            model=self.model or next(iter(data.get("modelUsage") or {}), None),
+            # 以 CLI 回報實際用到的模型為準（別名會被解析成完整名稱），沒有才退回要求的模型
+            model=next(iter(data.get("modelUsage") or {}), None) or call.model or self.model,
             backend=self.name,
         )
 
@@ -261,6 +267,7 @@ class MockAgent:
         self.cost = cost
         self.calls: list[tuple[str, str, str]] = []  # (task_id, role, session_id)
         self.prompts: list[tuple[str, str, str]] = []  # (task_id, role, prompt)：測試用來檢查提示內容
+        self.models: list[tuple[str, str, str | None, str | None]] = []  # (task_id, role, model, effort)
 
     @staticmethod
     def _pick(seq: list[Any], i: int, default: Any) -> Any:
@@ -279,6 +286,7 @@ class MockAgent:
         sid = f"mock-{uuid.uuid4()}"
         self.calls.append((call.task.id, call.role, sid))
         self.prompts.append((call.task.id, call.role, call.prompt))
+        self.models.append((call.task.id, call.role, call.model, call.effort))
         cost = float(sc.get("cost", self.cost))
         task = call.task
         out: dict[str, Any]

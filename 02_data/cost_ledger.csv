@@ -72,3 +72,4 @@ time,schema,task,role,backend,model,session_id,status,cost_usd,note
 2026-11-12T20:45:20+08:00,legion,T-0018,executor,claude,sonnet,8429ae5e-0edc-4019-889a-c7b48bb7b128,completed,0.041698,
 2026-11-12T20:45:29+08:00,legion,T-0018,reviewer,claude,sonnet,496221d4-2f20-4fbe-8194-656f0406626b,completed,0.020247,
 2026-11-12T20:45:55+08:00,legion,T-0018,scribe,claude,sonnet,373fcb42-d0e5-4988-9f42-f7658ad66cae,completed,0.047080,
+2026-11-12T21:54:25+08:00,legion,(manual),model_check,claude,claude-haiku-5-5,(no-persistence),completed,0.001417,手動驗證書記官模型名稱可用

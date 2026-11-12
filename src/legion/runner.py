@@ -295,9 +295,17 @@ class Runner:
         _crash_point(task.state.value, "before_agent")
         backend = self.reviewer if role in REVIEWER_ROLES else self.agent
         attempt = len([r for r in await self.store.runs(task.id) if r.role == role])
+        model, effort = self.s.model_for(role, attempt, bool(task.meta.get("executor_escalated")))
+        if role == "executor" and attempt >= 1 and self.s.escalation and not self.s.claude_model \
+                and not task.meta.get("executor_escalated"):
+            meta = dict(task.meta)
+            meta["executor_escalated"] = True  # 之後的交付審查也用升級模型
+            task = await self.store.update_task(task.id, meta=meta)
+            await self.store.add_event(task.id, "model_escalated", {
+                "message": f"執行者第 {attempt + 1} 次嘗試改用 {model}（effort {effort or '預設'}）"})
         call = AgentCall(role=role, prompt=prompt, cwd=cwd, schema=prompts.SCHEMAS[role], task=task,
                          attempt=attempt, timeout_s=self.s.call_timeout_s, budget_usd=max(remaining, 0.01),
-                         add_dirs=add_dirs or [])
+                         add_dirs=add_dirs or [], model=model, effort=effort)
         started = utcnow()
         try:
             res = await backend.run(call)

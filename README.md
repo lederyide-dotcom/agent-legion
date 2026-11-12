@@ -123,10 +123,31 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `LEGION_DB_USER`／`PASSWORD`／`NAME`／`PORT` | `legion`／`legion_local_only`／`legion`／`55432` | 本機開發用 DB，docker-compose 也讀同一組 |
 | `LEGION_SCHEMA` | `legion` | 正式資料的 schema；demo 用 `demo`，測試用隨機 schema |
 | `LEGION_VAULT`、`LEGION_DATA_DIR`、`LEGION_OUTPUT_DIR`、`LEGION_WORKTREES` | `./vault`、`./02_data`、`./01_output`、`./.worktrees` | 目錄位置 |
-| `LEGION_BACKEND`、`LEGION_MODEL` | `claude`、CLI 預設 | agent backend 與模型 |
+| `LEGION_BACKEND` | `claude` | agent backend（`mock` 為零成本模擬） |
+| `LEGION_MODEL` | 不設定 | 設定後**所有角色**統一用這個模型、不升級（等同 `tick --model`）；平常不設定，改用下方的角色表 |
+| `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`；effort 設 `none` 表示不指定 |
+| `LEGION_ESCALATE_MODEL`、`LEGION_ESCALATE_EFFORT` | `opus`、`high` | 執行者重做時的升級模型；`LEGION_ESCALATE_MODEL=off` 關閉升級 |
 | `LEGION_SOFFICE`、`LEGION_BROWSER` | 自動偵測 | 外部工具位置 |
 
 熔斷數值（單任務 $2、每日 $2、重試 3、逾時 900 秒、回灌每輪 2／深度 2）在 [src/legion/config.py](src/legion/config.py)，`tick` 也可用 `--task-budget`、`--daily-budget` 暫時覆寫。
+
+### 模型分配
+
+runner（總指揮）替每次 agent 呼叫依角色選模型與 effort，每個角色都是全新的 `claude -p` session：
+
+| 角色 | 第 1 次 | 重做時（驗收或審查失敗後） | 理由 |
+|---|---|---|---|
+| 指揮官（規劃） | Opus / medium | 同左 | 拆解與規格品質決定後面所有步驟 |
+| 規格審查者 | Opus / medium | 同左 | 不能比規劃者弱，才抓得到規格的問題 |
+| 指揮官（執行） | Sonnet / 預設 | **Opus / high** | 先用便宜的跑，失敗才加碼 |
+| 交付審查者 | Sonnet / high | 執行升級過則 **Opus / high** | 審查者不低於執行者 |
+| 書記官 | Haiku | 同左 | 只寫紀錄 |
+
+```bat
+.venv\Scripts\python.exe -m legion models
+```
+
+可列出目前實際生效的分配（含環境變數覆寫）。依據是研究報告中 Anthropic 自測的成本與通過率（廠商數字，未經獨立驗證），建議用 `02_data/metrics.csv` 對照自己的任務再調整。各角色內部不再派生 Claude Code 子代理（工具清單不含 Agent），所以表上就是全部會用到的模型。
 
 ## 使用方式
 
@@ -156,7 +177,8 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 
 | 動作 | 指令 |
 |---|---|
-| 推進一輪（每輪每個任務走一步） | `legion tick --backend claude --model sonnet` |
+| 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見下方「模型分配」） |
+| 看各角色用哪個模型 | `legion models` |
 | 看狀態 | `legion status` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
 

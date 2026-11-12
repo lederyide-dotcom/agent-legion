@@ -23,6 +23,23 @@ def _windows_loop() -> None:
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]
 
 
+ROLE_LABELS = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
+               "reviewer": "交付審查者", "scribe": "書記官"}
+
+
+def models_table(s: Settings) -> str:
+    rows = ["角色\t第 1 次\t重做時（第 2 次起）"]
+    for role, label in ROLE_LABELS.items():
+        m, e = s.model_for(role, 0, False)
+        m2, e2 = s.model_for(role, 1, True)
+        first = f"{m or '(CLI 預設)'} / effort {e or '預設'}"
+        later = f"{m2 or '(CLI 預設)'} / effort {e2 or '預設'}"
+        rows.append(f"{label}\t{first}\t{later if later != first else '同左'}")
+    if s.claude_model:
+        rows.append(f"（已用 --model／LEGION_MODEL 指定 {s.claude_model}：全部角色統一，不升級）")
+    return "\n".join(rows)
+
+
 def _backends(s: Settings, name: str) -> tuple[AgentBackend, AgentBackend, str | None]:
     if name == "mock":
         m = MockAgent()
@@ -55,7 +72,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("init-vault")
     tp = sub.add_parser("tick")
     tp.add_argument("--backend", choices=["mock", "claude"], default=os.environ.get("LEGION_BACKEND", "claude"))
-    tp.add_argument("--model", default=os.environ.get("LEGION_MODEL"))
+    tp.add_argument("--model", default=os.environ.get("LEGION_MODEL"),
+                    help="所有角色統一用這個模型（覆蓋依角色分配）；不指定時依 `legion models` 的角色表")
     tp.add_argument("--task-budget", type=float, default=None)
     tp.add_argument("--daily-budget", type=float, default=None)
     tp.add_argument("--auto-followups", action="store_true",
@@ -82,9 +100,14 @@ def main(argv: list[str] | None = None) -> int:
     dm = sub.add_parser("demo")
     dm.add_argument("--mock", action="store_true", required=True)
     sub.add_parser("status")
+    sub.add_parser("models", help="顯示各角色目前分配的模型與 effort（含環境變數覆寫）")
     args = ap.parse_args(argv)
 
     s = Settings(schema_name=args.schema)
+
+    if args.cmd == "models":
+        print(models_table(s))
+        return 0
 
     if args.cmd == "init-vault":
         init_vault(s)
