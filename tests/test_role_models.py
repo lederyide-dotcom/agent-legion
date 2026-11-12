@@ -63,6 +63,28 @@ def test_runner_assigns_models_per_role_and_escalates_after_failure(env: Env) ->
     assert t.meta.get("executor_escalated") is True
 
 
+def test_model_canvases_follow_settings() -> None:
+    from legion.vault import canvas_json, models_canvas_json
+
+    s = Settings()
+    d = models_canvas_json(s)
+    ids = {n["id"] for n in d["nodes"]}
+    assert all(e["fromNode"] in ids and e["toNode"] in ids for e in d["edges"])  # 合法的 canvas
+    texts = " ".join(n["text"] for n in d["nodes"])
+    assert "Opus 5.5" in texts and "Sonnet 5.5" in texts and "Haiku 5.5" in texts and "$4／$20" in texts
+    red = [e for e in d["edges"] if e.get("color") == "1"]
+    assert len(red) == 1 and "指揮官（執行）重做時｜high" in red[0]["label"] and "審查者隨之升級" in red[0]["label"]
+    # 關閉升級 → 沒有紅線；改書記官模型 → 圖跟著變
+    off = models_canvas_json(s.model_copy(update={
+        "escalation": None, "role_models": {**s.role_models, "scribe": ("sonnet", None)}}))
+    assert not [e for e in off["edges"] if e.get("color") == "1"]
+    assert "Haiku" not in " ".join(n["text"] for n in off["nodes"])
+    # 流程畫布的角色節點標註模型；runner 負責的節點標註不用模型
+    flow = {n["id"]: n["text"] for n in canvas_json(s)["nodes"]}
+    assert "模型：Opus 5.5 / medium" in flow["n-plan"] and "重做時：Opus 5.5 / high" in flow["n-exec"]
+    assert "不用模型" in flow["n-verify"] and "模型" not in flow["n-inbox"]
+
+
 def test_one_pass_task_never_escalates(env: Env) -> None:
     env.idea("o", "one pass", low_mock())
     t = run(env.run_until())[0]

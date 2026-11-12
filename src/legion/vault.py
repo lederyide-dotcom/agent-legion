@@ -87,12 +87,12 @@ _FLOW = [
     ("PLAN", "PLAN\n指揮官規劃", _COL, 0, "5"),
     ("SPEC_REVIEW", "SPEC_REVIEW\n規格審查者（全新 session）", _COL * 2, 0, "5"),
     ("GATE", "GATE\nRunner 依風險分級", _COL * 3, 0, "3"),
-    ("WAIT_HUMAN", "WAIT_HUMAN\n寫 questions/ 等使用者", _COL * 4 + 160, 0, "1"),
+    ("WAIT_HUMAN", "WAIT_HUMAN\n寫 questions/ 等使用者", _COL * 4 + 320, 0, "1"),
     ("LEARN", "LEARN\n書記官：教訓、交接、後續想法", 0, _ROW, "5"),
     ("REVIEW", "REVIEW\n交付審查者（全新 session）", _COL, _ROW, "5"),
     ("VERIFY", "VERIFY\nRunner 親自執行驗收指令", _COL * 2, _ROW, "3"),
     ("EXEC", "EXEC\n指揮官在 worktree 執行", _COL * 3, _ROW, "5"),
-    ("HALT", "HALT\n超預算／超重試／逾時／STOP\n（任一狀態皆可能進入）", _COL * 4 + 160, _ROW, "1"),
+    ("HALT", "HALT\n超預算／超重試／逾時／STOP\n（任一狀態皆可能進入）", _COL * 4 + 320, _ROW, "1"),
     ("DONE", "DONE", 0, _ROW * 2, "4"),
 ]
 # (起點, 終點, 標籤, 起點邊, 終點邊)：雙向連線走不同邊，避免重疊
@@ -116,12 +116,49 @@ _EDGES = [
 ]
 
 
-def canvas_json() -> dict[str, Any]:
-    nodes = [
-        {"id": f"n-{sid.lower()}", "type": "text", "text": text, "x": x, "y": y, "width": 240, "height": 110,
-         "color": color}
-        for sid, text, x, y, color in _FLOW
-    ]
+# 狀態 → 負責的 Claude 角色（GATE、VERIFY 由 runner 程式負責，不用模型）
+_STATE_ROLE = {"PLAN": "planner", "SPEC_REVIEW": "spec_reviewer", "EXEC": "executor", "REVIEW": "reviewer",
+               "LEARN": "scribe"}
+_ROLE_LABEL = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
+               "reviewer": "交付審查者", "scribe": "書記官"}
+# 模型顯示名稱、官方單價（USD／每百萬 token，輸入／輸出；2026-11-12 查詢官方定價頁）、畫布顏色
+_MODEL_INFO: dict[str, tuple[str, str, str]] = {
+    "fable": ("Fable 5.2", "$8／$40", "1"), "claude-fable-5-2": ("Fable 5.2", "$8／$40", "1"),
+    "opus": ("Opus 5.5", "$4／$20", "6"), "claude-opus-5-5": ("Opus 5.5", "$4／$20", "6"),
+    "sonnet": ("Sonnet 5.5", "$2／$10", "5"), "claude-sonnet-5-5": ("Sonnet 5.5", "$2／$10", "5"),
+    "haiku": ("Haiku 5.5", "$0.10／$0.50", "4"), "claude-haiku-5-5": ("Haiku 5.5", "$0.10／$0.50", "4"),
+}
+
+
+def _model_name(model: str | None) -> str:
+    return _MODEL_INFO.get((model or "").lower(), (model or "CLI 預設", "", ""))[0]
+
+
+def _fmt(model: str | None, effort: str | None) -> str:
+    return f"{_model_name(model)} / {effort}" if effort else _model_name(model)
+
+
+def _role_assignment(settings: Settings, role: str) -> tuple[str, str | None, str | None, str | None]:
+    """(第 1 次模型, effort, 重做時模型, effort)；重做時與第 1 次相同則後兩者為 None。"""
+    m, e = settings.model_for(role, 0, False)
+    m2, e2 = settings.model_for(role, 1, True)
+    if (m2, e2) == (m, e):
+        return m or "", e, None, None
+    return m or "", e, m2, e2
+
+
+def canvas_json(settings: Settings | None = None) -> dict[str, Any]:
+    """閉環流程畫布。傳入 settings 時，在 Claude 角色節點上標註實際分配的模型。"""
+    nodes = []
+    for sid, text, x, y, color in _FLOW:
+        role = _STATE_ROLE.get(sid)
+        if settings is not None and role:
+            m, e, m2, e2 = _role_assignment(settings, role)
+            text += f"\n模型：{_fmt(m, e)}" + (f"\n重做時：{_fmt(m2, e2)}" if m2 else "")
+        elif settings is not None and sid in {"GATE", "VERIFY"}:
+            text += "\n不用模型（程式判斷）"
+        nodes.append({"id": f"n-{sid.lower()}", "type": "text", "text": text, "x": x, "y": y, "width": 260,
+                      "height": 140, "color": color})
     edges = []
     for i, (a, b, label, from_side, to_side) in enumerate(_EDGES):
         e: dict[str, Any] = {"id": f"e-{i:02d}", "fromNode": f"n-{a.lower()}", "toNode": f"n-{b.lower()}",
@@ -129,6 +166,68 @@ def canvas_json() -> dict[str, Any]:
         if label:
             e["label"] = label
         edges.append(e)
+    return {"nodes": nodes, "edges": edges}
+
+
+def models_canvas_json(settings: Settings) -> dict[str, Any]:
+    """角色 → 模型 關係畫布：依 runner 實際設定（含環境變數覆寫）產生。紅線＝失敗後升級。"""
+    lanes = [("PLAN", "planner"), ("SPEC_REVIEW", "spec_reviewer"), ("GATE", None), ("EXEC", "executor"),
+             ("VERIFY", None), ("REVIEW", "reviewer"), ("LEARN", "scribe")]
+    nodes: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    model_nodes: dict[str, str] = {}
+    pending: list[tuple[str, str, str, str]] = []  # (角色節點, 模型, 標籤, 種類)
+    escalations: dict[tuple[str, str], list[str]] = {}  # (第 1 次模型, 升級模型) → 說明
+    for i, (state, role) in enumerate(lanes):
+        nid = f"r-{state.lower()}"
+        if role is None:
+            text = f"{state}\nrunner 程式判斷\n不用模型"
+            nodes.append({"id": nid, "type": "text", "text": text, "x": 0, "y": i * 170, "width": 300, "height": 120,
+                          "color": "3"})
+            continue
+        m, e, m2, e2 = _role_assignment(settings, role)
+        color = _MODEL_INFO.get(m.lower(), ("", "", "0"))[2]
+        nodes.append({"id": nid, "type": "text", "text": f"{state}\n{_ROLE_LABEL[role]}", "x": 0, "y": i * 170,
+                      "width": 300, "height": 120, "color": color})
+        pending.append((nid, m, f"第 1 次｜{e or '預設'}", ""))
+        if m2:
+            # 升級畫成「模型 → 模型」一條紅線（不從角色直接連，避免與第 1 次的連線交叉、標籤重疊）
+            who = "審查者隨之升級" if role == "reviewer" else f"{_ROLE_LABEL[role]}重做時"
+            escalations.setdefault((m.lower(), m2.lower()), []).append(f"{who}｜{e2 or '預設'}")
+            pending.append(("", m2, "", "esc"))  # 只為確保升級目標模型有節點
+    # 模型節點放在「第 1 次用它的角色」那幾列的中間，讓第 1 次的連線接近水平；升級線（紅）改從底部接入，避免標籤重疊
+    row_y = {n["id"]: n["y"] for n in nodes}
+    first_rows: dict[str, list[int]] = {}
+    for nid, model, _, kind in pending:
+        if not kind:
+            first_rows.setdefault(model.lower(), []).append(row_y[nid])
+    for _, model, _, _ in pending:
+        key = model.lower()
+        if key not in model_nodes:
+            name, price, color = _MODEL_INFO.get(key, (model, "", "0"))
+            mid = f"m-{len(model_nodes)}"
+            model_nodes[key] = mid
+            ys = first_rows.get(key) or [0]
+            text = f"## {name}" + (f"\n官方單價 {price}\n（每百萬 token 輸入／輸出）" if price else "")
+            nodes.append({"id": mid, "type": "text", "text": text, "x": 1000, "y": sum(ys) // len(ys) - 20,
+                          "width": 300, "height": 160, "color": color})
+    for nid, model, label, kind in pending:
+        if kind:
+            continue
+        edges.append({"id": f"e-{len(edges):02d}", "fromNode": nid, "fromSide": "right",
+                      "toNode": model_nodes[model.lower()], "toSide": "left", "toEnd": "arrow", "label": label})
+    node_y = {n["id"]: n["y"] for n in nodes}
+    for (src, dst), whys in escalations.items():
+        a, b = model_nodes[src], model_nodes[dst]
+        up = node_y[b] < node_y[a]
+        edges.append({"id": f"e-{len(edges):02d}", "fromNode": a, "fromSide": "top" if up else "bottom",
+                      "toNode": b, "toSide": "bottom" if up else "top", "toEnd": "arrow", "color": "1",
+                      "label": "失敗後升級\n" + "\n".join(whys)})
+    legend = ("**怎麼看**\n- 左：閉環中的角色，依流程由上而下\n- 右：模型與官方單價（2026-11-12 查詢）\n"
+              "- 灰線：第 1 次呼叫用的模型；紅線：驗收或審查失敗後，改用的模型\n"
+              "- 節點顏色＝第 1 次用的模型；黃色＝runner 程式，不用模型\n"
+              "- 依 runner 實際設定自動產生，改環境變數後下次 tick 會更新")
+    nodes.append({"id": "legend", "type": "text", "text": legend, "x": 1420, "y": 0, "width": 380, "height": 260})
     return {"nodes": nodes, "edges": edges}
 
 
@@ -142,7 +241,10 @@ def init_vault(settings: Settings) -> None:
             k.write_text("", encoding="utf-8")
     (settings.ai_dir / "儀表.base").write_text(BASE_YAML, encoding="utf-8")
     (settings.ai_dir / "流程.canvas").write_text(
-        json.dumps(canvas_json(), ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (settings.ai_dir / "模型分配.canvas").write_text(
+        json.dumps(models_canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8"
     )
     readme = settings.vault / "README.md"
     if not readme.exists():

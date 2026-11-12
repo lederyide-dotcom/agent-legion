@@ -1,0 +1,170 @@
+{
+  "nodes": [
+    {
+      "id": "r-plan",
+      "type": "text",
+      "text": "PLAN\n指揮官（規劃）",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "r-spec_review",
+      "type": "text",
+      "text": "SPEC_REVIEW\n規格審查者",
+      "x": 0,
+      "y": 170,
+      "width": 300,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "r-gate",
+      "type": "text",
+      "text": "GATE\nrunner 程式判斷\n不用模型",
+      "x": 0,
+      "y": 340,
+      "width": 300,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "r-exec",
+      "type": "text",
+      "text": "EXEC\n指揮官（執行）",
+      "x": 0,
+      "y": 510,
+      "width": 300,
+      "height": 120,
+      "color": "5"
+    },
+    {
+      "id": "r-verify",
+      "type": "text",
+      "text": "VERIFY\nrunner 程式判斷\n不用模型",
+      "x": 0,
+      "y": 680,
+      "width": 300,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "r-review",
+      "type": "text",
+      "text": "REVIEW\n交付審查者",
+      "x": 0,
+      "y": 850,
+      "width": 300,
+      "height": 120,
+      "color": "5"
+    },
+    {
+      "id": "r-learn",
+      "type": "text",
+      "text": "LEARN\n書記官",
+      "x": 0,
+      "y": 1020,
+      "width": 300,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "m-0",
+      "type": "text",
+      "text": "## Opus 5.5\n官方單價 $4／$20\n（每百萬 token 輸入／輸出）",
+      "x": 1000,
+      "y": 65,
+      "width": 300,
+      "height": 160,
+      "color": "6"
+    },
+    {
+      "id": "m-1",
+      "type": "text",
+      "text": "## Sonnet 5.5\n官方單價 $2／$10\n（每百萬 token 輸入／輸出）",
+      "x": 1000,
+      "y": 660,
+      "width": 300,
+      "height": 160,
+      "color": "5"
+    },
+    {
+      "id": "m-2",
+      "type": "text",
+      "text": "## Haiku 5.5\n官方單價 $0.10／$0.50\n（每百萬 token 輸入／輸出）",
+      "x": 1000,
+      "y": 1000,
+      "width": 300,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "legend",
+      "type": "text",
+      "text": "**怎麼看**\n- 左：閉環中的角色，依流程由上而下\n- 右：模型與官方單價（2026-11-12 查詢）\n- 灰線：第 1 次呼叫用的模型；紅線：驗收或審查失敗後，改用的模型\n- 節點顏色＝第 1 次用的模型；黃色＝runner 程式，不用模型\n- 依 runner 實際設定自動產生，改環境變數後下次 tick 會更新",
+      "x": 1420,
+      "y": 0,
+      "width": 380,
+      "height": 260
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-00",
+      "fromNode": "r-plan",
+      "fromSide": "right",
+      "toNode": "m-0",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜medium"
+    },
+    {
+      "id": "e-01",
+      "fromNode": "r-spec_review",
+      "fromSide": "right",
+      "toNode": "m-0",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜medium"
+    },
+    {
+      "id": "e-02",
+      "fromNode": "r-exec",
+      "fromSide": "right",
+      "toNode": "m-1",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜預設"
+    },
+    {
+      "id": "e-03",
+      "fromNode": "r-review",
+      "fromSide": "right",
+      "toNode": "m-1",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜high"
+    },
+    {
+      "id": "e-04",
+      "fromNode": "r-learn",
+      "fromSide": "right",
+      "toNode": "m-2",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "第 1 次｜預設"
+    },
+    {
+      "id": "e-05",
+      "fromNode": "m-1",
+      "fromSide": "top",
+      "toNode": "m-0",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "color": "1",
+      "label": "失敗後升級\n指揮官（執行）重做時｜high\n審查者隨之升級｜high"
+    }
+  ]
+}

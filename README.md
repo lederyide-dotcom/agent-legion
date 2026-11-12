@@ -147,7 +147,7 @@ runner（總指揮）替每次 agent 呼叫依角色選模型與 effort，每個
 .venv\Scripts\python.exe -m legion models
 ```
 
-可列出目前實際生效的分配（含環境變數覆寫）。依據是研究報告中 Anthropic 自測的成本與通過率（廠商數字，未經獨立驗證），建議用 `02_data/metrics.csv` 對照自己的任務再調整。各角色內部不再派生 Claude Code 子代理（工具清單不含 Agent），所以表上就是全部會用到的模型。
+可列出目前實際生效的分配（含環境變數覆寫）。在 Obsidian 開 `vault/AI/模型分配.canvas` 可看角色與模型的關係圖（含官方單價與升級路線），`AI/流程.canvas` 的每個角色節點也標註了所用模型；兩張畫布都依實際設定自動產生，每次 tick 會更新。依據是研究報告中 Anthropic 自測的成本與通過率（廠商數字，未經獨立驗證），建議用 `02_data/metrics.csv` 對照自己的任務再調整。各角色內部不再派生 Claude Code 子代理（工具清單不含 Agent），所以表上就是全部會用到的模型。
 
 ## 使用方式
 
