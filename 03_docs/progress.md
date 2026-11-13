@@ -112,3 +112,14 @@
 - 使用者 2026-11-13 指示「交給你自主處理」：重做 T-0020 那一步（從 legion/T-0019 接續的新戰役）、獨立驗證後把最終分支 fast-forward 合併進 target-repo-b 的 master（僅限 ff、僅限 tests/ 與 telegram_bot.py 的變更、合併後測試全過）
 - 排程工作結束必須主動通知使用者（手機推播），不能只寫檔
 - 詳見 02_data/verify_20261113.md
+## 戰役 repo-b-tests-2 與合併（2026-11-14 排程自動執行，詳見 02_data/verify_20261114.md）
+- 從 legion/T-0019 接續的新戰役：T-0021 一次 DONE，$0.4507（T-0020 為 $0.9792 且 HALT）；規劃者第一次就通過規格審查、執行者一次成功——前一日修的「接續任務看不到上一任務成果」bug 在真實 backend 下確認有效
+- 新增 8 個測試案例（結尾缺換行 4、多重圍欄 4），只新增不改寫；50 passed；未改 telegram_bot.py
+- 已把 legion/T-0021 ff 合併進 target-repo-b 的 master（298c048→0b9d364），合併後 50 passed、工作目錄乾淨、未 push
+- 無任務等使用者；jsonl 數量前後相同
+
+### 下一步建議
+1. 使用者決定多重圍欄行為是否要改（目前測試固定了「兩段被合併、中間圍欄殘留」的現狀）
+2. 清理 target-repo-b 已合併的 legion/T-0017～T-0021 分支與 worktree，以及 T-0012／T-0020 的 HALT 紀錄（需使用者同意）
+3. 規劃＋規格審查（Opus）占單任務花費 57%：小型 write 任務可試 sonnet 規劃，比較品質與花費
+4. 在 cost_ledger 記錄 effort

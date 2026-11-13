@@ -564,3 +564,12 @@ date,commit,metric,value,command
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.cost_usd,0.0500,python -m legion demo --mock
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.duration_s,4.74,python -m legion demo --mock
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.parent_id,D-0003,python -m legion demo --mock
+2026-11-14T04:08:31+08:00,f30c840,mission.repo-b-tests-2.cost_usd,0.4507,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 60
+2026-11-14T04:08:31+08:00,f30c840,mission.repo-b-tests-2.tasks_done,1,python -m legion run --backend claude --task-budget 1 --daily-budget 2 --max-ticks 60
+2026-11-14T04:08:31+08:00,f30c840,T-0021.cost_usd,0.4507,python -m legion status
+2026-11-14T04:08:31+08:00,f30c840,T-0021.spec_review_rounds,1,cost_ledger.csv 計數 T-0021 spec_reviewer
+2026-11-14T04:08:31+08:00,f30c840,T-0021.executor_calls,1,cost_ledger.csv 計數 T-0021 executor
+2026-11-14T04:08:31+08:00,f30c840,T-0021.human_touches,0,python -m legion status
+2026-11-14T04:10:00+08:00,f30c840,target-repo-b.legion_T-0021.pytest_passed,50,python -m pytest -q tests -p no:cacheprovider（worktree T-0021）
+2026-11-14T04:10:00+08:00,f30c840,target-repo-b.master_after_merge.pytest_passed,50,python -m pytest -q tests -p no:cacheprovider（master 0b9d364）
+2026-11-14T04:10:00+08:00,f30c840,claude_projects_jsonl_delta,0,計數 %USERPROFILE%\.claude\projects\**\*.jsonl 前後
