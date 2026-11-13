@@ -114,4 +114,5 @@
 - 詳見 02_data/verify_20261113.md
 ## 2026-11-13 深夜：cost_ledger 記錄 effort（雲端 session）
 - 帳本新增 effort 欄，舊帳本自動補欄；mock 驗證與角色表一致。130 passed（3 項為雲端環境既有失敗）
-- 未驗證：Windows 上全部測試與 start.bat；下次真實戰役後用 ledger 對照 `legion models` 的 effort
+- Windows 驗證：132 passed＋mermaid 1 項補 mmdc 後通過（等效 133 全過）；start.bat 因排程中戰役未跑（未驗證）
+- 下一步：下次真實戰役後用 ledger 對照 `legion models` 的 effort
