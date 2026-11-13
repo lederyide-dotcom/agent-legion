@@ -268,6 +268,7 @@ class MockAgent:
         self.calls: list[tuple[str, str, str]] = []  # (task_id, role, session_id)
         self.prompts: list[tuple[str, str, str]] = []  # (task_id, role, prompt)：測試用來檢查提示內容
         self.models: list[tuple[str, str, str | None, str | None]] = []  # (task_id, role, model, effort)
+        self.cwds: list[tuple[str, str, str]] = []  # (task_id, role, 工作目錄)
 
     @staticmethod
     def _pick(seq: list[Any], i: int, default: Any) -> Any:
@@ -287,6 +288,7 @@ class MockAgent:
         self.calls.append((call.task.id, call.role, sid))
         self.prompts.append((call.task.id, call.role, call.prompt))
         self.models.append((call.task.id, call.role, call.model, call.effort))
+        self.cwds.append((call.task.id, call.role, str(call.cwd)))
         cost = float(sc.get("cost", self.cost))
         task = call.task
         out: dict[str, Any]

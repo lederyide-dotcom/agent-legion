@@ -306,9 +306,12 @@ class Runner:
         m = task.meta.get("mission")
         if m:  # 戰役總預算在每次呼叫前都檢查，執行中的任務也不能超支
             spent = sum(t.cost_usd for t in await self._mission_tasks(m["name"]))
-            if spent >= float(m["budget_usd"]):
-                raise Halt(f"budget_mission: 戰役花費 {spent:.4f} ≥ {float(m['budget_usd'])}")
-            remaining = min(remaining, float(m["budget_usd"]) - spent)
+            left = float(m["budget_usd"]) - spent
+            if left < self.s.mission_min_call_usd:
+                # 剩餘額度不夠一次呼叫：先停下，不要發出一個注定因預算不足而失敗、卻照樣計費的呼叫
+                raise Halt(f"budget_mission: 戰役花費 {spent:.4f}，剩餘 {max(left, 0):.4f} 不足以再呼叫"
+                           f"（上限 {float(m['budget_usd'])}）")
+            remaining = min(remaining, left)
         return remaining
 
     def _ledger(self, task: Task, role: str, backend: str, model: str | None, session_id: str, status: str,
@@ -442,6 +445,10 @@ class Runner:
 
     # ------------------------------------------------------------ PLAN
     async def _plan(self, task: Task) -> Task:
+        if task.kind == "write" and task.meta.get("mission") and task.meta.get("base_branch"):
+            # 戰役接續的任務：規劃與規格審查就要在接續的分支上看程式（真實試跑 T-0020：規劃者看的是主分支，
+            # 看不到上一個任務的成果，導致規格被退回、第一次執行空轉）
+            task = await self._ensure_worktree(task)
         wd = self._workdir(task) if task.repo else self.s.ai_dir
         desc = f"{wd}（{task.kind}）"
         prev = (task.meta.get("reviews", {}).get("spec_review") or [{}])[-1]

@@ -52,6 +52,11 @@ def test_mission_chains_tasks_until_goal_is_reached(env: Env) -> None:
             assert "multiply" not in _git(env.repo, "show", "main:calc.py")
             # 每個任務的審查只看到自己的變更（base 是上一個任務的分支）
             assert tasks[1].base_commit == _git(env.repo, "rev-parse", f"legion/{tasks[0].id}").strip()
+            # 真實試跑 T-0020 的回歸：接續任務的規劃者與規格審查者要在接續的 worktree 裡看程式（看得到上一步的成果），
+            # 不是在主分支
+            for role in ("planner", "spec_reviewer"):
+                cwd = next(c for tid, r, c in env.agent.cwds if tid == tasks[1].id and r == role)
+                assert Path(cwd) == Path(tasks[1].worktree or "") and Path(cwd) != env.repo
             note = (env.settings.ai_dir / "missions" / "calc.md").read_text(encoding="utf-8")
             assert "目標達成" in note and f"legion/{tasks[2].id}" in note and "3／5" in note
             # 參謀用 opus/medium
