@@ -114,5 +114,6 @@
 - 詳見 02_data/verify_20261113.md
 ## 2026-11-13 深夜：cost_ledger 記錄 effort（雲端 session）
 - 帳本新增 effort 欄，舊帳本自動補欄；mock 驗證與角色表一致。130 passed（3 項為雲端環境既有失敗）
-- Windows 驗證：132 passed＋mermaid 1 項補 mmdc 後通過（等效 133 全過）；start.bat 因排程中戰役未跑（未驗證）
+- Windows 驗證：132 passed＋mermaid 1 項補 mmdc 後通過（等效 133 全過）；start.bat 從乾淨 worktree 實測 exit 0（6eb52f1，需設 COMPOSE_PROJECT_NAME）
+- mmdc 路徑可用 LEGION_MERMAID_CLI 覆寫（Windows 實測通過）
 - 下一步：下次真實戰役後用 ledger 對照 `legion models` 的 effort
