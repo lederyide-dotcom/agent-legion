@@ -146,12 +146,23 @@ def main(argv: list[str] | None = None) -> int:
     dm.add_argument("--mock", action="store_true", required=True)
     sub.add_parser("status")
     sub.add_parser("models", help="顯示各角色目前分配的模型與 effort（含環境變數覆寫）")
+    sub.add_parser("brief", help="每日晨報：等你處理的任務、停下的任務、待 merge 分支、戰役、花費（不花額度）")
     args = ap.parse_args(argv)
 
     s = Settings(schema_name=args.schema)
 
     if args.cmd == "models":
         print(models_table(s))
+        return 0
+    if args.cmd == "brief":
+        from .brief import build
+
+        async def make(st: Store) -> dict[str, Any]:
+            b, _ = await build(s, st)
+            return {k: b[k] for k in ("headline", "file", "waiting", "recent_halts", "pending_merge",
+                                      "cost_yesterday", "cost_today")}
+
+        print(json.dumps(asyncio.run(_with_store(s, make)), ensure_ascii=False, indent=2))
         return 0
 
     if args.cmd == "init-vault":

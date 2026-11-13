@@ -222,6 +222,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 |---|---|
 | 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見下方「模型分配」） |
 | 看各角色用哪個模型 | `legion models` |
+| 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
 | 看狀態 | `legion status` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
 
