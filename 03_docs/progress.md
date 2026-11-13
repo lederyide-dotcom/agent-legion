@@ -105,3 +105,10 @@
 2. 在 cost_ledger 記錄 effort，才能驗證角色 effort
 3. 評估規劃／規格審查用 Opus 的性價比：小任務可考慮 sonnet，或讓規格審查 revise 前先比對白名單
 4. 使用者檢查 legion/T-0019 後自行 merge；多重圍欄行為是否要改，由使用者決定
+
+## 2026-11-13 戰役試跑後的狀態（新 session 從這裡接）
+- 戰役 repo-b-tests：T-0019 DONE（成果在 target-repo-b 的分支 legion/T-0019，尚未 merge）；T-0020 HALT（戰役預算用完；成果只在 .worktrees/T-0020，未審查未提交，不採用）。合計 $1.51
+- 已修的 bug：白名單誤判 git 的 `--`；戰役接續任務的規劃改在接續分支的 worktree；戰役剩餘額度低於 $0.05 先停。皆只經 mock 驗證
+- 使用者 2026-11-13 指示「交給你自主處理」：重做 T-0020 那一步（從 legion/T-0019 接續的新戰役）、獨立驗證後把最終分支 fast-forward 合併進 target-repo-b 的 master（僅限 ff、僅限 tests/ 與 telegram_bot.py 的變更、合併後測試全過）
+- 排程工作結束必須主動通知使用者（手機推播），不能只寫檔
+- 詳見 02_data/verify_20261113.md
