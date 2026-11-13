@@ -564,3 +564,7 @@ date,commit,metric,value,command
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.cost_usd,0.0500,python -m legion demo --mock
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.duration_s,4.74,python -m legion demo --mock
 2026-11-13T20:36:48+08:00,447ff7a,demo_mock.D-0004.parent_id,D-0003,python -m legion demo --mock
+2026-11-13T21:32:37+08:00,91fd653,pytest.passed,130,python -m pytest -q（雲端 Linux 容器，本機 PostgreSQL 16）
+2026-11-13T21:32:37+08:00,91fd653,pytest.failed_preexisting,3,python -m pytest -q（起點 commit 同樣 3 項失敗：root 身分、無 mmdc、Windows 路徑）
+2026-11-13T21:32:37+08:00,91fd653,ledger_migration.rows_unchanged,89,append_cost 對 02_data/cost_ledger.csv 副本補 effort 欄
+2026-11-13T21:32:37+08:00,91fd653,ledger_migration.cost_total_usd,6.606888,同上（補欄前後相同）

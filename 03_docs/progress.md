@@ -102,7 +102,7 @@
 
 ### 下一步建議
 1. 修 risk.accept_cmd_allowed：允許 git 的 `--` 分隔符（加測試），再讓使用者決定 T-0020 要 approve 或 reject 後改丟新戰役檔（base_branch: legion/T-0019）
-2. 在 cost_ledger 記錄 effort，才能驗證角色 effort
+2. ~~在 cost_ledger 記錄 effort~~（2026-11-13 已完成，見 verify_20261113.md 末段；真實呼叫套用與否未驗證）
 3. 評估規劃／規格審查用 Opus 的性價比：小任務可考慮 sonnet，或讓規格審查 revise 前先比對白名單
 4. 使用者檢查 legion/T-0019 後自行 merge；多重圍欄行為是否要改，由使用者決定
 
@@ -112,3 +112,6 @@
 - 使用者 2026-11-13 指示「交給你自主處理」：重做 T-0020 那一步（從 legion/T-0019 接續的新戰役）、獨立驗證後把最終分支 fast-forward 合併進 target-repo-b 的 master（僅限 ff、僅限 tests/ 與 telegram_bot.py 的變更、合併後測試全過）
 - 排程工作結束必須主動通知使用者（手機推播），不能只寫檔
 - 詳見 02_data/verify_20261113.md
+## 2026-11-13 深夜：cost_ledger 記錄 effort（雲端 session）
+- 帳本新增 effort 欄，舊帳本自動補欄；mock 驗證與角色表一致。130 passed（3 項為雲端環境既有失敗）
+- 未驗證：Windows 上全部測試與 start.bat；下次真實戰役後用 ledger 對照 `legion models` 的 effort
