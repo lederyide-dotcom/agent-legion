@@ -126,6 +126,12 @@ async def build(settings: Settings, store: Store, today: date | None = None) -> 
     path = settings.ai_dir / "reports" / f"brief-{b['date']}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render(b), encoding="utf-8")
+    from .motion import write_dashboard  # 晨報順便更新 Obsidian 儀表.md 上方的 KPI 卡（附屬功能，失敗不影響晨報）
+
+    try:
+        await write_dashboard(settings, store, brief=b)
+    except OSError as e:
+        b["dashboard_error"] = str(e)
     b["headline"] = headline(b)
     b["file"] = str(path)
     return b, path

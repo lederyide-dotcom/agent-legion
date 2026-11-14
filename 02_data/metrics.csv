@@ -593,3 +593,5 @@ date,commit,metric,value,command
 2026-11-14T23:30:00+08:00,90cc53f,legion.pytest_passed,214,.venv\Scripts\python.exe -m pytest -q（PowerShell；含 README 覆蓋測試未提交工作目錄）
 2026-11-14T23:59:00+08:00,5ff052c,legion.pytest_passed,272,.venv\Scripts\python.exe -m pytest -q（PowerShell；含環境變數覆蓋測試與審查修正，未提交工作目錄）
 2026-11-15T00:30:00+08:00,3305de8,legion.pytest_passed,293,.venv\Scripts\python.exe -m pytest -q（PowerShell；含 diagrams 與 mobile 未提交工作目錄）
+2026-11-15T01:30:00+08:00,988d105,legion.pytest_passed,301,.venv\Scripts\python.exe -m pytest -q（PowerShell；含動態 SVG 未提交工作目錄）
+2026-11-15T02:10:00+08:00,988d105,legion.pytest_passed,301,.venv\Scripts\python.exe -m pytest -q（PowerShell；動態 SVG 審查修正後未提交工作目錄）

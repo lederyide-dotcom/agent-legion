@@ -93,6 +93,29 @@ EDGES: tuple[Edge, ...] = (
 
 _BY_ID = {n.id: n for n in NODES}
 
+# 動態流程圖重播的真實任務：T-0022。依據 vault/AI/records/T-0022/record.md 的狀態時間軸與證據（軍師在第 14 列 VERIFY
+# 期間執行，E-036、E-037），加上之後 `legion choose T-0022 B` 與手動驗證合併（02_data/verify_20261114.md 第 14 節）
+REPLAY_TASK = "T-0022"
+REPLAY: tuple[tuple[str, str], ...] = (
+    ("INBOX", "收到想法：safe_workspace_path 補邊界測試"),
+    ("PLAN", "指揮官規劃（Sonnet）"),
+    ("SPEC_REVIEW", "規格審查：退回重寫"),
+    ("PLAN", "依審查意見重寫規格"),
+    ("SPEC_REVIEW", "規格審查：通過"),
+    ("GATE", "守門：判為 high 風險"),
+    ("WAIT_HUMAN", "等你核准 → 核准"),
+    ("EXEC", "在 worktree 執行（Sonnet）"),
+    ("VERIFY", "守門檢查不過：改到既有測試行"),
+    ("EXEC", "升級 Opus 重做"),
+    ("VERIFY", "驗收通過"),
+    ("REVIEW", "交付審查：退回"),
+    ("EXEC", "依審查意見修正"),
+    ("VERIFY", "同一錯誤反覆出現"),
+    ("ADVISOR", "軍師診斷：規格與守門規則衝突，提出 4 個錦囊"),
+    ("WAIT_HUMAN", "高風險不自動決議 → 你選 B：核准那一行例外"),
+    ("HALT", "錦囊 B 需人工 → 手動驗證後合併"),
+)
+
 
 # ---------------------------------------------------------------- mermaid（README 與 Obsidian 流程.md）
 _SHAPES = {"rect": ("[", "]"), "stadium": ("([", "])"), "hex": ("{{", "}}"), "cylinder": ("[(", ")]")}
@@ -129,11 +152,26 @@ def mermaid() -> str:
     return "\n".join(lines)
 
 
+# 動態 SVG 的位置（相對於 repo 根目錄與 vault）；內容由 motion.py 產生
+FLOW_SVG = "03_docs/img/flow.svg"
+DASHBOARD_SVG = "03_docs/img/dashboard.svg"
+VAULT_IMG = "AI/img"
+MOTION_NOTE = (f"橘色光暈與底部字幕依序重播任務 {REPLAY_TASK} 的真實路徑，連線上的虛線往流向移動；"
+               "系統開啟「減少動態」時不播放。")
+
+
 def flow_markdown() -> str:
-    """Obsidian 的 AI/流程.md：與 README 同一張圖（Obsidian 內建 mermaid）。"""
+    """Obsidian 的 AI/流程.md：與 README 同一張動態圖；下方附靜態 mermaid。"""
     return ("# 閉環流程\n\n> 由 `src/legion/diagrams.py` 產生，與 GitHub README 的圖相同；請改程式，不要手改此檔。\n\n"
-            f"```mermaid\n{mermaid()}\n```\n\n圖例：{LEGEND}\n\n"
-            "互動版（可拖曳、標註各角色模型）：[[流程.canvas]]；任務總覽：[[儀表.base]]\n")
+            f"![[{VAULT_IMG}/flow.svg]]\n\n圖例：{LEGEND}{MOTION_NOTE}\n\n"
+            f"## 靜態版\n\n```mermaid\n{mermaid()}\n```\n\n"
+            "互動版（可拖曳、標註各角色模型）：[[流程.canvas]]；任務總覽：[[儀表]]\n")
+
+
+def dashboard_note() -> str:
+    """Obsidian 的 AI/儀表.md：上方動態 KPI 卡，下方嵌入儀表.base 表格。"""
+    return ("# 儀表\n\n> 由 `src/legion/diagrams.py` 產生；KPI 卡在 `legion brief` 或 `legion docs` 時更新。\n\n"
+            f"![[{VAULT_IMG}/dashboard.svg]]\n\n![[儀表.base]]\n")
 
 
 # ---------------------------------------------------------------- canvas（Obsidian 流程.canvas）
@@ -247,8 +285,16 @@ MARKS = {"flow": ("<!-- legion:flow:start -->", "<!-- legion:flow:end -->"),
 
 
 def _blocks() -> dict[str, str]:
-    return {"flow": f"```mermaid\n{mermaid()}\n```\n\n圖例：{LEGEND}",
-            "dashboard": dashboard_markdown()}
+    flow = (f'<p align="center"><img src="{FLOW_SVG}" width="100%" '
+            f'alt="閉環流程動態圖：虛線表示流向，橘色光暈重播 {REPLAY_TASK} 的真實路徑"></p>\n\n'
+            f"圖例：{LEGEND}{MOTION_NOTE}\n\n"
+            "<details><summary>靜態版（mermaid 原始碼，GitHub 直接渲染）</summary>\n\n"
+            f"```mermaid\n{mermaid()}\n```\n\n</details>")
+    dashboard = (f'<p align="center"><img src="{DASHBOARD_SVG}" width="100%" '
+                 'alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數與花費"></p>\n\n'
+                 "上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。\n\n"
+                 + dashboard_markdown())
+    return {"flow": flow, "dashboard": dashboard}
 
 
 def sync_readme(text: str) -> str:
@@ -260,3 +306,11 @@ def sync_readme(text: str) -> str:
             raise ValueError(f"README 缺少標記 {start} … {end}")
         text = pat.sub(lambda _m, s=start, b=body, e=end: f"{s}\n{b}\n{e}", text, count=1)
     return text
+
+
+def source_hash() -> str:
+    """流程定義＋重播路徑的指紋：嵌進動態 SVG，測試用來確認 SVG 有跟著定義重新產生。"""
+    import hashlib
+    import json
+
+    return hashlib.sha256((mermaid() + json.dumps(REPLAY, ensure_ascii=False)).encode("utf-8")).hexdigest()[:12]

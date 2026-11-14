@@ -9,6 +9,12 @@
 ## 閉環流程
 
 <!-- legion:flow:start -->
+<p align="center"><img src="03_docs/img/flow.svg" width="100%" alt="閉環流程動態圖：虛線表示流向，橘色光暈重播 T-0022 的真實路徑"></p>
+
+圖例：藍色＝Claude 擔任的角色、橘色＝runner 以程式判斷（不經 LLM）、紅色＝停下來等人或熔斷、灰色＝起點、終點與暫存；虛線（畫布上為灰線）是例外或補救路徑。橘色光暈與底部字幕依序重播任務 T-0022 的真實路徑，連線上的虛線往流向移動；系統開啟「減少動態」時不播放。
+
+<details><summary>靜態版（mermaid 原始碼，GitHub 直接渲染）</summary>
+
 ```mermaid
 flowchart TD
     INBOX([INBOX<br/>使用者丟想法]) --> PLAN[PLAN<br/>指揮官規劃]
@@ -49,7 +55,7 @@ flowchart TD
     class INBOX,DONE,HOLD,ANY plain
 ```
 
-圖例：藍色＝Claude 擔任的角色、橘色＝runner 以程式判斷（不經 LLM）、紅色＝停下來等人或熔斷、灰色＝起點、終點與暫存；虛線（畫布上為灰線）是例外或補救路徑。
+</details>
 <!-- legion:flow:end -->
 
 | 角色 | 由誰擔任 | 權限 |
@@ -223,7 +229,7 @@ mission:
 
 | 入口 | 內容 | 產生方式 |
 |---|---|---|
-| 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑） |
+| 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/儀表.md` 的 KPI 卡） |
 | 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
 | 文件庫互動頁 | vault 的待你決定、報告、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；圖片仍請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
 
@@ -260,10 +266,10 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見上方「模型分配」） |
 | 持續推進到沒事可做 | `legion run --backend claude`（可加 `--task-budget`、`--daily-budget`、`--max-ticks`） |
 | 看各角色用哪個模型 | `legion models` |
-| 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
+| 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
-| 同步 README 的流程圖與儀表說明（改 `diagrams.py` 後） | `legion docs`；`legion docs --check` 只檢查 |
+| 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
 | 看狀態 | `legion status` |
 | 看版本、作者與原始出處 | `legion --version` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
@@ -299,12 +305,17 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 
 | 檔案 | 內容 |
 |---|---|
-| `AI/流程.md` | 跟上方「閉環流程」**同一張圖**（Obsidian 內建 mermaid） |
+| `AI/流程.md` | 跟上方「閉環流程」**同一張動態圖**（`AI/img/flow.svg`），下方附靜態 mermaid |
 | `AI/流程.canvas` | 同一份流程，可拖曳，Claude 角色節點標註實際分配的模型 |
+| `AI/儀表.md` | 動態 KPI 卡（`AI/img/dashboard.svg`，與上方 GitHub 那張同一種）＋嵌入下面的儀表表格 |
 | `AI/儀表.base` | 任務總覽，三個檢視如下 |
 | `AI/模型分配.canvas` | 角色與模型、官方單價、升級路線 |
 
 <!-- legion:dashboard:start -->
+<p align="center"><img src="03_docs/img/dashboard.svg" width="100%" alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數與花費"></p>
+
+上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。
+
 | 檢視 | 篩選或分組 | 欄位 |
 |---|---|---|
 | 依狀態 | 依狀態分組 | 任務、標題、狀態、風險、成本、人工介入、審查結論 |
@@ -314,7 +325,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 狀態圖示：✅ 完成、⛔ 熔斷、✋ 等你、⏳ 進行中；風險：🔴 高、🟡 中、🟢 低。
 <!-- legion:dashboard:end -->
 
-流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)：改那個檔後執行 `legion docs` 同步本 README，Obsidian 端在 `legion init-vault` 或每次 tick 時更新；`legion docs --check` 與測試會擋下兩邊不一致。
+流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)，動畫在 [src/legion/motion.py](src/legion/motion.py)：改了之後在 PowerShell 執行 `legion docs`，同步本 README 並重新產生 `03_docs/img/` 與 `vault/AI/img/` 的動態 SVG；`legion init-vault`、每次 tick 會更新 `流程.md`、`流程.canvas`、`儀表.base`，`legion brief` 每天更新 KPI 卡。`legion docs --check` 與測試（含 SVG 的來源指紋）會擋下兩邊不一致。動畫只用 SVG 內的 CSS（GitHub 與 Obsidian 都不執行腳本），系統開啟「減少動態」時不播放。
 
 ### 5. 零成本驗證
 
@@ -347,7 +358,7 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角色權限）、prompts.py、risk.py、
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
                  brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
-                 diagrams.py（流程圖與儀表的單一來源）、mobile.py（vault 轉手機文件庫 JSON）、
+                 diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
 scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1

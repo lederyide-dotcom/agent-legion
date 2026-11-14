@@ -210,15 +210,37 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as e:
             print(e, file=sys.stderr)
             return 1
-        if new == old:
+        if args.check:
+            if new != old:
+                print("README 的流程圖或儀表說明過期：請執行 legion docs", file=sys.stderr)
+                return 1
             print("README 已是最新")
             return 0
-        if args.check:
-            print("README 的流程圖或儀表說明過期：請執行 legion docs", file=sys.stderr)
-            return 1
-        readme.write_bytes(new.encode("utf-8"))
-        print("已更新 README 的流程圖與儀表說明")
-        return 0
+        if new != old:
+            readme.write_bytes(new.encode("utf-8"))
+        print("已更新 README 的流程圖與儀表說明" if new != old else "README 已是最新")
+        # 動態 SVG：流程圖需要瀏覽器與 mmdc，儀表需要 DB。環境問題（沒瀏覽器、逾時、DB 連不上）只提示並保留舊檔；
+        # animate_flow 的 ValueError 表示 mermaid 輸出格式變了，是程式要改，回傳 1
+        import subprocess
+
+        import psycopg
+
+        from .motion import write_dashboard, write_flow
+
+        rc = 0
+        try:
+            print(f"流程動態圖：{asyncio.run(write_flow(s, PROJECT_ROOT))}")
+        except (OSError, RuntimeError, subprocess.TimeoutExpired) as e:
+            print(f"流程動態圖未更新（環境問題，保留舊檔）：{e}", file=sys.stderr)
+        except ValueError as e:
+            print(f"流程動態圖產生失敗，需要修改 motion.py：{e}", file=sys.stderr)
+            rc = 1
+        try:
+            out = asyncio.run(_with_store(s, lambda st: write_dashboard(s, st, PROJECT_ROOT)))
+            print(f"儀表 KPI 卡：{out}")
+        except (OSError, psycopg.Error) as e:
+            print(f"儀表 KPI 卡未更新（{type(e).__name__}，保留舊檔）：{e}", file=sys.stderr)
+        return rc
 
     if args.cmd == "inbox":
         from pathlib import Path
