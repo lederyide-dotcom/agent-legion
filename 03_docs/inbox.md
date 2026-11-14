@@ -16,7 +16,7 @@
 | D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo（2026-11-14 David：之後再說） | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
 | D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層（2026-11-14 David：之後再說） | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
 | D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理（2026-11-14 David：之後再說） | 人做 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
-| D14 | water-bim 凍結的提案 v1、v2 與 case-metrics_v1 仍含「漢華」：測試以 SHA-256 鎖定「不得變更」；另 anti-todo-tw skill 由 claude.ai 同步，本機改會被覆蓋 | 凍結檔：改內容並同步更新測試裡的鎖定雜湊（需你同意改測試）；skill：請在 claude.ai 的 skill 設定修改 | water-bim `tests/test_water_bim.py:180-229` |
+| D14 | water-bim 還剩 `.github/workflows/tests.yml` 第 1 行署名含「漢華 I&C」：Windows 推送 token 沒有 workflow 權限，推不上去；anti-todo-tw skill 由 claude.ai 同步，本機改會被覆蓋 | tests.yml：在 GitHub 網頁直接改那一行，或交給雲端 session；skill：在 claude.ai 的 skill 設定修改 | water-bim 分支 `win/remove-org-name` |
 
 ## 已決定（2026-11-14 David 從互動頁回覆）
 
@@ -31,7 +31,7 @@
 | D9 | 對進行中的任務 cancel 維持兩段式 | 結案；README 已寫明 | README HALT 列 |
 | D11 | T-0022 閘門核准＋第 17 行只追加元素的例外（「依你建議」） | ✅ 手動驗證後合併；守門規則本身不改 | `02_data/verify_20261114.md` 第 14 節 |
 | D12 | 公開版授權採方案 A：程式碼 PolyForm Noncommercial 1.0.0＋文件 CC BY-NC-SA 4.0 | 記錄決定；NOTICE 先加 `Required Notice:` 行；公開時才切換 LICENSE | `03_docs/public_release_license.md` |
-| D13 | 刪除「漢華 I&C」字眼 | ✅ legion 本來就沒有；water-bim 現行檔 255 個已刪（commit 4ddcfe5，未推送）；凍結提案 3 檔與 anti-todo-tw skill 待處理（見 D14） | `02_data/verify_20261114.md` 第 16 節 |
+| D13 | 刪除「漢華 I&C」字眼；凍結提案一併更新並改鎖定雜湊（選項窗同意）；推送 | ✅ legion 本來就沒有；water-bim 已刪並推到 `win/remove-org-name`（1099621，含凍結提案與測試雜湊更新，CI 測試集 234 OK）；剩 tests.yml 與 skill（D14） | `02_data/verify_20261114.md` 第 16 節 |
 
 ## Claude Code 可自主做
 
