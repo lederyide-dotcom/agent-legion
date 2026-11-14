@@ -71,20 +71,24 @@ flowchart LR
     class b1 plain
 ```
 
-迭代發生在任務之間：健檢找出問題，下一個任務用測試鎖定並修正，書記官再指出剩下的缺口。以下是對一個 Telegram bot 專案實跑的例子，每一步都由測試驗證，最後由使用者決定 merge：
+迭代發生在任務之間：健檢找出問題，下一個任務用測試鎖定並修正，書記官再指出剩下的缺口。以下是對一個 Telegram bot 專案實跑的例子，每一步都由測試驗證，最後由使用者決定 merge（目前該專案共 53 項測試）：
 
 ```mermaid
 flowchart LR
     H["T-0016 唯讀健檢<br/>推測檔名驗證可被繞過"] --> T["T-0017 補測試＋修正<br/>14 項測試鎖定漏洞"]
     T --> S["書記官指出剩餘邊界<br/>保留名後接空白"]
     S --> F["T-0018 再修正<br/>21 項測試"]
-    F --> M(["使用者 merge"])
+    F --> W["戰役 T-0019～T-0021<br/>strip_code_fence 補測試"]
+    W --> B["T-0022 邊界測試<br/>保留名後接多個空白"]
+    B --> M(["使用者 merge"])
 
     classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
     classDef human fill:#fdecea,stroke:#d93025,color:#111
-    class H,T,S,F claude
+    class H,T,S,F,W,B claude
     class M human
 ```
+
+戰役會遇到停下來的情況：第一場戰役（repo-b-tests）在 T-0020 碰到預算上限而停下，使用者換個寫法重開第二場（repo-b-tests-2），T-0021 一次完成。T-0022 則是規格和守門規則衝突：規格要求在單行參數清單尾端加案例，守門規則把這種改動判為削弱既有測試；使用者核准例外後手動合併，規劃提示也補上說明，避免再發生。
 
 ## 環境需求
 
@@ -241,6 +245,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 看狀態 | `legion status` |
+| 看版本、作者與原始出處 | `legion --version` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
 
 AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不會被動到，也不會自動 merge**。
@@ -307,7 +312,9 @@ tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控
 02_data/         驗收證據、metrics、花費帳本、安裝清冊
 03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
-                 inbox_page.html（收件匣互動頁）
+                 inbox_page.html（收件匣互動頁）、sharing_and_citation.md（分享與引用規範）、
+                 public_release_license.md（公開版授權方案）
+LICENSE、NOTICE、CITATION.cff   授權、作者與出處標示、引用格式
 reports/         研究報告
 ```
 
@@ -329,4 +336,4 @@ reports/         研究報告
 - **引用與分享須標示作者與出處**：標題、作者「楊奕德 DavidY」、原始連結 https://github.com/lederyide-dotcom/agent-legion、授權（參照 CC 的 TASL 原則），並保留 [NOTICE](NOTICE)。GitHub 頁面的「Cite this repository」來自 [CITATION.cff](CITATION.cff)。完整規範見 [03_docs/sharing_and_citation.md](03_docs/sharing_and_citation.md)。
 - 作者與出處也內建在程式裡：`legion --version`、`src/legion/__init__.py`，以及程式產生的開發紀錄與晨報頁尾；clone 後執行同樣會標示。
 - 第三方套件依各自的授權條款使用。
-- 作者保留日後另行公開（包括以開源授權發布）的權利；公開版本的授權只適用於該版本所含的內容。候選方案見 [03_docs/public_release_license.md](03_docs/public_release_license.md)。
+- 作者保留日後另行公開的權利。公開版已決定採用：**程式碼 PolyForm Noncommercial 1.0.0、文件 CC BY-NC-SA 4.0**（可學習、研究、非商業使用，須署名；商業使用另洽作者）。目前版本仍保留所有權利，公開時才切換；公開版本的授權只適用於該版本所含的內容。細節與公開前的待辦見 [03_docs/public_release_license.md](03_docs/public_release_license.md)。
