@@ -1,3 +1,4 @@
+# 本 repo 文字檔一律 LF（不管用什麼工具、在哪個系統改）；Windows 批次檔與 PowerShell 腳本維持 CRLF
+* text=auto eol=lf
 *.bat text eol=crlf
 *.ps1 text eol=crlf
-
