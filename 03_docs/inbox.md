@@ -30,8 +30,9 @@
 | D12 | 公開版授權採方案 A：程式碼 PolyForm Noncommercial 1.0.0＋文件 CC BY-NC-SA 4.0 | 記錄決定；NOTICE 先加 `Required Notice:` 行；公開時才切換 LICENSE | `03_docs/public_release_license.md` |
 | D13 | 刪除「漢華 I&C」字眼；凍結提案一併更新並改鎖定雜湊（選項窗同意）；推送 | ✅ legion 本來就沒有；water-bim 已刪並推到 `win/remove-org-name`（1099621，含凍結提案與測試雜湊更新，CI 測試集 234 OK）；剩 tests.yml 與 skill（D14） | `02_data/verify_20261114.md` 第 16 節 |
 | D8 | 推播：等離開電腦時再測一次手機有沒有收到（桌面 app 開著時推播會被壓下）；Telegram 第 2 層看測試結果再說 | ⏳ David 離開電腦時測試 | — |
-| D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理：人做 | ⏳ David 抽查 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
-| D14 | 「漢華 I&C」最後兩處：water-bim `.github/workflows/tests.yml` 第 1 行在 GitHub 網頁直接改（或交給雲端 session）；anti-todo-tw skill 在 claude.ai 的 skill 設定修改 | ⏳ David 在網頁上改 | water-bim 分支 `win/remove-org-name` |
+| D14 | 「漢華 I&C」最後兩處：water-bim `tests.yml` 第 1 行、anti-todo-tw skill | ✅ David 已改（7935ef7）；其餘 main 上的「漢華」併入 D15 的 `win/author-davidy-tw` 一起處理 | water-bim 分支 `win/author-davidy-tw` |
+| D10 | T-0016 報告機密處理抽查：Claude 代查後結案（選項窗） | ✅ 3.4 無機密片段，22 處引用以當時版本核對相符；hold 檔移到 `vault/AI/inbox_done/D10__fu-T-0016-1.md` | `02_data/verify_20261114.md` 第 19 節 |
+| D15 | 作者名統一為 DavidY-tw、不放本名；legion＋water-bim 都改（選項窗） | ✅ legion 全改並加防呆測試；water-bim 268 檔改完推到 `win/author-davidy-tw`（ef92c4a，485 項測試 OK）。剩：`tests.yml` 第 1 行「DavidY」→「DavidY-tw」需 David 網頁改；分支合進 main 依 water-bim 流程 | `02_data/verify_20261114.md` 第 20 節 |
 
 ## Claude Code 可自主做
 

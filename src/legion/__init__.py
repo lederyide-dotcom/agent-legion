@@ -1,11 +1,11 @@
 """AI Agents 自主指揮軍團閉環 PoC v0.4。
 
-作者：楊奕德 DavidY。原始出處：https://github.com/lederyide-dotcom/agent-legion
+作者：DavidY-tw。原始出處：https://github.com/lederyide-dotcom/agent-legion
 © 2026 保留所有權利，見 LICENSE 與 NOTICE。複製、轉載或改作時須保留作者與出處標示。
 """
 
 __version__ = "0.4.0"
-__author__ = "楊奕德 DavidY"
+__author__ = "DavidY-tw"
 __url__ = "https://github.com/lederyide-dotcom/agent-legion"
 __license__ = "All rights reserved（見 LICENSE）"
 

@@ -16,7 +16,7 @@ Creative Commons 官方建議**不要**把 CC 授權用在軟體上，因為 CC 
 
 | 方案 | 程式碼 | 文件 | 別人可以商業使用嗎 | 保護作者署名的方式 | 適合的情況 |
 |---|---|---|---|---|---|
-| A. 署名＋非商業（推薦） | PolyForm Noncommercial 1.0.0 | CC BY-NC-SA 4.0 | 不行，商業使用要另外向作者取得授權 | PolyForm 只強制轉發授權條款與以 `Required Notice:` 開頭的行，所以 NOTICE 要寫成 `Required Notice: Copyright 2026 楊奕德 DavidY (https://github.com/lederyide-dotcom/agent-legion)`；CC BY-NC-SA 要求依 TASL 標示 | 想公開展示、讓人學習，但保留商業價值 |
+| A. 署名＋非商業（推薦） | PolyForm Noncommercial 1.0.0 | CC BY-NC-SA 4.0 | 不行，商業使用要另外向作者取得授權 | PolyForm 只強制轉發授權條款與以 `Required Notice:` 開頭的行，所以 NOTICE 要寫成 `Required Notice: Copyright 2026 DavidY-tw (https://github.com/lederyide-dotcom/agent-legion)`；CC BY-NC-SA 要求依 TASL 標示 | 想公開展示、讓人學習，但保留商業價值 |
 | B. 開源＋署名 | Apache-2.0 | CC BY 4.0 | 可以 | Apache-2.0 第 4 條要求散布時保留 `NOTICE` 檔；CC BY 要求依 TASL 標示 | 想要更多人採用、累積作品集聲量 |
 | C. 只公開文件 | 不公開 | CC BY-NC-ND 4.0 | 不行，也不得改作 | 只能原樣轉載並標示 | 只想展示設計與成果，程式碼不公開 |
 

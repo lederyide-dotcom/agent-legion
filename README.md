@@ -1,6 +1,6 @@
 # agent-legion — 人掌舵、AI 自主執行的開發閉環
 
-> 作者：**楊奕德 DavidY**　│　© 2026 保留所有權利（見 [LICENSE](LICENSE)）　│　AI 協作：Claude
+> 作者：**DavidY-tw**　│　© 2026 保留所有權利（見 [LICENSE](LICENSE)）　│　AI 協作：Claude
 
 把一句想法丟進 Obsidian 的 `vault/INBOX/`，agent-legion 就會讓 Claude 分工完成**規劃 → 規格審查 → 風險判定 → 執行 → 驗證 → 交付審查 → 紀錄**，需要人決定的事才停下來問。
 
@@ -340,11 +340,11 @@ reports/         研究報告
 
 ## 著作權與授權
 
-© 2026 楊奕德 DavidY，保留所有權利（All rights reserved），詳見 [LICENSE](LICENSE)。
+© 2026 DavidY-tw，保留所有權利（All rights reserved），詳見 [LICENSE](LICENSE)。
 
 - 本專案目前**沒有開放授權**：取得檢視權限不代表可以重製、修改、散布或商業使用。
 - 開發過程使用 AI（Claude）作為輔助工具；構想、架構與流程設計、需求與驗收標準、取捨判斷、驗證與整合都由作者主導，並投入個人時間與成本。AI 產出均經作者審閱、修改與整合。
-- **引用與分享須標示作者與出處**：標題、作者「楊奕德 DavidY」、原始連結 https://github.com/lederyide-dotcom/agent-legion、授權（參照 CC 的 TASL 原則），並保留 [NOTICE](NOTICE)。GitHub 頁面的「Cite this repository」來自 [CITATION.cff](CITATION.cff)。完整規範見 [03_docs/sharing_and_citation.md](03_docs/sharing_and_citation.md)。
+- **引用與分享須標示作者與出處**：標題、作者「DavidY-tw」、原始連結 https://github.com/lederyide-dotcom/agent-legion、授權（參照 CC 的 TASL 原則），並保留 [NOTICE](NOTICE)。GitHub 頁面的「Cite this repository」來自 [CITATION.cff](CITATION.cff)。完整規範見 [03_docs/sharing_and_citation.md](03_docs/sharing_and_citation.md)。
 - 作者與出處也內建在程式裡：`legion --version`、`src/legion/__init__.py`，以及程式產生的開發紀錄與晨報頁尾；clone 後執行同樣會標示。
 - 第三方套件依各自的授權條款使用。
 - 作者保留日後另行公開的權利。公開版已決定採用：**程式碼 PolyForm Noncommercial 1.0.0、文件 CC BY-NC-SA 4.0**（可學習、研究、非商業使用，須署名；商業使用另洽作者）。目前版本仍保留所有權利，公開時才切換；公開版本的授權只適用於該版本所含的內容。細節與公開前的待辦見 [03_docs/public_release_license.md](03_docs/public_release_license.md)。

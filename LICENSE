@@ -1,7 +1,7 @@
-Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
+Copyright (c) 2026 DavidY-tw. All rights reserved.
 
 本專案 agent-legion（以下稱「本專案」）的原始碼、文件、架構設計、流程、提示詞、
-測試、資料與圖表，著作權及其他一切權利均屬作者楊奕德 DavidY 所有。
+測試、資料與圖表，著作權及其他一切權利均屬作者 DavidY-tw 所有。
 
 一、未授權
 除法律另有規定外，未經作者事先書面同意，任何人不得重製、散布、修改、改作、
@@ -15,7 +15,7 @@ Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
 與整合後，才成為本專案的一部分。在法律允許的範圍內，上述成果的權利歸作者所有。
 
 三、署名與出處（不得移除）
-經作者授權的使用（包括轉載、clone、fork、改作），都必須標示作者「楊奕德 DavidY」
+經作者授權的使用（包括轉載、clone、fork、改作），都必須標示作者「DavidY-tw」
 與原始出處 https://github.com/lederyide-dotcom/agent-legion，並完整保留 NOTICE、
 CITATION.cff 與程式內建的作者及出處標示；改作須註明已修改及修改者，且不得暗示
 作者背書。依法不需授權的使用（例如合理範圍內的引用），請依法明示出處。
@@ -35,7 +35,7 @@ Python 套件，以及 tools/mermaid 的 npm 套件）各自依其原授權條�
 
 ---
 
-English summary: Copyright (c) 2026 DavidY (楊奕德). All rights reserved.
+English summary: Copyright (c) 2026 DavidY-tw. All rights reserved.
 No license is granted. Any use authorised by the author must credit the
 author, link to https://github.com/lederyide-dotcom/agent-legion and keep
 NOTICE intact; uses permitted by law should cite the source as the law requires.

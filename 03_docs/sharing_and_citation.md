@@ -1,6 +1,6 @@
 # 分享與引用規範
 
-> 適用於 agent-legion 的程式、文件、圖表與程式產生的紀錄。作者：楊奕德 DavidY。原始出處：https://github.com/lederyide-dotcom/agent-legion
+> 適用於 agent-legion 的程式、文件、圖表與程式產生的紀錄。作者：DavidY-tw。原始出處：https://github.com/lederyide-dotcom/agent-legion
 >
 > 本文件整理作者對分享與引用的要求，並對照著作權法與 Creative Commons（CC）的慣例，不是法律意見。正式公開或發生爭議時，請以法律專業意見為準。
 
@@ -25,7 +25,7 @@
 引用格式範例：
 
 ```
-agent-legion，楊奕德 DavidY，https://github.com/lederyide-dotcom/agent-legion（引用日期 2026-11-14）
+agent-legion，DavidY-tw，https://github.com/lederyide-dotcom/agent-legion（引用日期 2026-11-14）
 ```
 
 學術或技術文件可使用 GitHub 頁面上的「Cite this repository」（來自 `CITATION.cff`）。
@@ -39,7 +39,7 @@ agent-legion，楊奕德 DavidY，https://github.com/lederyide-dotcom/agent-legi
 | 項目 | 要寫什麼 | 範例 |
 |---|---|---|
 | **T**itle 標題 | 作品名稱 | agent-legion |
-| **A**uthor 作者 | 作者姓名 | 楊奕德 DavidY |
+| **A**uthor 作者 | 作者姓名 | DavidY-tw |
 | **S**ource 出處 | 原始 GitHub 連結 | https://github.com/lederyide-dotcom/agent-legion |
 | **L**icense 授權 | 所依據的授權條款與連結 | 例如「保留所有權利，經作者授權使用」或公開版的授權名稱 |
 
@@ -48,7 +48,7 @@ agent-legion，楊奕德 DavidY，https://github.com/lederyide-dotcom/agent-legi
 - **保留內建標示**：`NOTICE`、`LICENSE`、`CITATION.cff`，以及程式內建的作者與出處（`legion --version`、`src/legion/__init__.py`、程式產生的開發紀錄與晨報頁尾）都不得移除或改寫。
 - **註明修改**：改作版本要寫明「已修改」、修改了什麼、修改者是誰。
 - **不得暗示背書**：不得讓人誤以為作者認可或參與了改作版本。
-- **fork／clone 的公開 repo**：README 開頭要寫明「本專案改自 agent-legion（楊奕德 DavidY，https://github.com/lederyide-dotcom/agent-legion）」。
+- **fork／clone 的公開 repo**：README 開頭要寫明「本專案改自 agent-legion（DavidY-tw，https://github.com/lederyide-dotcom/agent-legion）」。
 
 ## 4. 禁止事項（目前版本，未經書面同意）
 

@@ -12,7 +12,7 @@ from legion.cli import main
 from legion.config import PROJECT_ROOT
 
 URL = "https://github.com/lederyide-dotcom/agent-legion"
-AUTHOR = "楊奕德 DavidY"
+AUTHOR = "DavidY-tw"
 
 
 def test_package_metadata_and_version_output(capsys: pytest.CaptureFixture[str]) -> None:
@@ -31,10 +31,19 @@ def test_notice_citation_license_consistent() -> None:
         text = (root / name).read_text(encoding="utf-8")
         assert URL in text and AUTHOR in text, name
     cff = yaml.safe_load((root / "CITATION.cff").read_text(encoding="utf-8"))
-    assert cff["repository-code"] == URL and cff["authors"][0]["alias"] == "DavidY"
+    assert cff["repository-code"] == URL and cff["authors"][0]["alias"] == "DavidY-tw"
     assert cff["version"] == legion.__version__
     readme = (root / "README.md").read_text(encoding="utf-8")
     assert URL in readme and "NOTICE" in readme and "CITATION.cff" in readme
+
+
+def test_author_name_is_unified() -> None:
+    """2026-11-14 David 決定作者名統一為 DavidY-tw、不放本名：署名檔不得出現舊寫法。"""
+    root = Path(PROJECT_ROOT)
+    for name in ("LICENSE", "NOTICE", "CITATION.cff", "README.md", "pyproject.toml",
+                 "03_docs/sharing_and_citation.md", "03_docs/public_release_license.md", "src/legion/__init__.py"):
+        text = (root / name).read_text(encoding="utf-8")
+        assert "奕德" not in text and "DavidY " not in text and "DavidY）" not in text, name
 
 
 def test_brief_footer_carries_attribution() -> None:
