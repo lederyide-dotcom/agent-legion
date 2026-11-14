@@ -78,6 +78,7 @@ def test_record_has_8_chapters_and_every_criterion(env: Env) -> None:
     r = check_record(rec, accept)
     assert r.ok, r
     assert r.n_evidence > 5
+    assert "https://github.com/lederyide-dotcom/agent-legion" in text.splitlines()[-1]  # 頁尾內建作者與出處
 
 
 def test_record_checker_detects_untraceable_and_uncited(env: Env) -> None:

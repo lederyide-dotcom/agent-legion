@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "引用、轉載或改作本專案時，請標示作者與原始出處（見 NOTICE）。If you use or refer to this software, please cite it as below."
+title: "agent-legion：人掌舵、AI 自主執行的開發閉環"
+type: software
+authors:
+  - family-names: "楊"
+    given-names: "奕德"
+    alias: "DavidY"
+repository-code: "https://github.com/lederyide-dotcom/agent-legion"
+url: "https://github.com/lederyide-dotcom/agent-legion"
+version: "0.4.0"
+date-released: "2026-11-14"
+keywords:
+  - ai-agents
+  - claude
+  - autonomous-development
+  - obsidian

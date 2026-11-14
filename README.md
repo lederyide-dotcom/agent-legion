@@ -326,5 +326,7 @@ reports/         研究報告
 
 - 本專案目前**沒有開放授權**：取得檢視權限不代表可以重製、修改、散布或商業使用。
 - 開發過程使用 AI（Claude）作為輔助工具；構想、架構與流程設計、需求與驗收標準、取捨判斷、驗證與整合都由作者主導，並投入個人時間與成本。AI 產出均經作者審閱、修改與整合。
+- **引用與分享須標示作者與出處**：標題、作者「楊奕德 DavidY」、原始連結 https://github.com/lederyide-dotcom/agent-legion、授權（參照 CC 的 TASL 原則），並保留 [NOTICE](NOTICE)。GitHub 頁面的「Cite this repository」來自 [CITATION.cff](CITATION.cff)。完整規範見 [03_docs/sharing_and_citation.md](03_docs/sharing_and_citation.md)。
+- 作者與出處也內建在程式裡：`legion --version`、`src/legion/__init__.py`，以及程式產生的開發紀錄與晨報頁尾；clone 後執行同樣會標示。
 - 第三方套件依各自的授權條款使用。
-- 作者保留日後另行公開（包括以開源授權發布）的權利；公開版本的授權只適用於該版本所含的內容。
+- 作者保留日後另行公開（包括以開源授權發布）的權利；公開版本的授權只適用於該版本所含的內容。候選方案見 [03_docs/public_release_license.md](03_docs/public_release_license.md)。

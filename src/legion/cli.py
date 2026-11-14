@@ -9,6 +9,7 @@ import sys
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from . import ATTRIBUTION, __author__
 from .agents import AgentBackend, ClaudeCliAgent, MockAgent, reviewer_backend
 from .config import Settings
 from .db import Store
@@ -97,8 +98,10 @@ def main(argv: list[str] | None = None) -> int:
         except (AttributeError, ValueError):
             pass
     _windows_loop()
-    ap = argparse.ArgumentParser(prog="legion")
+    ap = argparse.ArgumentParser(prog="legion", formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--schema", default=os.environ.get("LEGION_SCHEMA", "legion"))
+    ap.add_argument("--version", action="version",
+                    version=f"{ATTRIBUTION}\n© 2026 {__author__}，保留所有權利（見 LICENSE、NOTICE）")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init-db")
     sub.add_parser("init-vault")

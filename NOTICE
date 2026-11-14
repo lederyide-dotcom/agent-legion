@@ -1,0 +1,15 @@
+agent-legion
+Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
+原始出處：https://github.com/lederyide-dotcom/agent-legion
+
+本檔案是作者與出處的標示。目前版本經作者授權的複製、轉載、改作或散布（包括 clone、fork、
+節錄、翻譯、改寫成其他語言或格式）都必須完整保留本檔案，並在明顯位置標示：
+
+  agent-legion，作者 楊奕德 DavidY，原始出處 https://github.com/lederyide-dotcom/agent-legion
+
+程式內建的作者與出處標示（src/legion/__init__.py 的 __author__、__url__、ATTRIBUTION，
+`legion --version` 的輸出，以及程式產生的開發紀錄與晨報頁尾）同屬本標示，不得移除或改寫。
+改作版本須另外註明「已修改」以及修改者，且不得讓人誤認為原作者背書。
+
+日後公開版本的 NOTICE 會依當時選定的授權條款改寫，以該版本為準。
+授權條款見 LICENSE；引用格式見 CITATION.cff；分享與引用規範見 03_docs/sharing_and_citation.md。

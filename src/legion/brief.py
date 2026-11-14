@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from . import ledger
+from . import ATTRIBUTION, ledger
 from .cleanup import plan as cleanup_plan
 from .config import Settings
 from .db import Store, utcnow
@@ -116,7 +116,8 @@ def render(b: dict[str, Any]) -> str:
                           f"最後 {m['last']}（{m['state']}{'，' + m['outcome'] if m['outcome'] else ''}）"
                           for m in b["missions"]] or ["- （無）"]), ""]
     lines += ["## 花費", f"- 昨日 ${b['cost_yesterday']:.4f}　今日至今 ${b['cost_today']:.4f}　每日上限 ${b['daily_budget']:.2f}",
-              "", f"_產生時間 {datetime.now().astimezone().isoformat(timespec='seconds')}；資料來源：DB、花費帳本、git_"]
+              "", f"_產生時間 {datetime.now().astimezone().isoformat(timespec='seconds')}；資料來源：DB、花費帳本、git_",
+              "", f"_由 {ATTRIBUTION} 產生_"]
     return "\n".join(lines) + "\n"
 
 

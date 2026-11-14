@@ -589,3 +589,4 @@ date,commit,metric,value,command
 2026-11-14T20:30:00+08:00,d3eeaaf,legion.inbox_rows,28,.venv\Scripts\python.exe -m legion inbox --out <scratchpad>\inbox.json
 2026-11-14T21:30:00+08:00,9ca7d57,legion.T-0022.cost_usd,0.8464,cost_ledger.csv 合計（sonnet 規劃＋審查 0.1802；重試 4 次）
 2026-11-14T21:30:00+08:00,24c090c,target_repo_b.pytest_passed,53,.venv\Scripts\python.exe -m pytest -q tests（合併後）
+2026-11-14T22:30:00+08:00,99f311a,legion.pytest_passed,166,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（PowerShell；含 A14 未提交工作目錄）

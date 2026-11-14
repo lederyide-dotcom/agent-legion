@@ -5,7 +5,7 @@ Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
 
 一、未授權
 除法律另有規定外，未經作者事先書面同意，任何人不得重製、散布、修改、改作、
-公開傳輸、公開展示、再授權、用於訓練模型或作商業利用本專案的全部或一部分。
+公開傳輸、再授權、用於訓練模型或作商業利用本專案的全部或一部分。
 取得本專案的檢視或存取權限，不代表取得任何授權。
 
 二、AI 協作聲明
@@ -14,12 +14,19 @@ Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
 均由作者主導並投入個人時間與成本完成；AI 產出的內容均經作者審閱、選擇、修改
 與整合後，才成為本專案的一部分。在法律允許的範圍內，上述成果的權利歸作者所有。
 
-三、第三方元件
+三、署名與出處（不得移除）
+經作者授權的使用（包括轉載、clone、fork、改作），都必須標示作者「楊奕德 DavidY」
+與原始出處 https://github.com/lederyide-dotcom/agent-legion，並完整保留 NOTICE、
+CITATION.cff 與程式內建的作者及出處標示；改作須註明已修改及修改者，且不得暗示
+作者背書。依法不需授權的使用（例如合理範圍內的引用），請依法明示出處。
+詳細規範見 03_docs/sharing_and_citation.md。
+
+四、第三方元件
 本專案使用的第三方套件與工具（例如 requirements.txt、pyproject.toml 列出的
 Python 套件，以及 tools/mermaid 的 npm 套件）各自依其原授權條款使用，不因本聲明
 而改變。
 
-四、未來公開版本
+五、未來公開版本
 作者保留日後以其他授權條款（包括開源授權）公開本專案全部或一部分的權利。
 屆時以該公開版本隨附的授權條款為準，且只適用於該版本所含的內容；
 本版本及未公開的部分仍依本聲明處理。
@@ -29,7 +36,10 @@ Python 套件，以及 tools/mermaid 的 npm 套件）各自依其原授權條�
 ---
 
 English summary: Copyright (c) 2026 DavidY (楊奕德). All rights reserved.
-No license is granted. AI tools were used as assistants; the concept, design,
+No license is granted. Any use authorised by the author must credit the
+author, link to https://github.com/lederyide-dotcom/agent-legion and keep
+NOTICE intact; uses permitted by law should cite the source as the law requires.
+AI tools were used as assistants; the concept, design,
 requirements, judgement, verification and integration are the author's own work.
 The author may release a public version under a separate license in the future;
 that license applies only to the content included in that release.

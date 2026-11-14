@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml
 
+from . import ATTRIBUTION
 from .config import Settings
 from .db import Store
 from .models import DOC_DRAFT, AgentRun, Evidence, State, Task, TaskEvent
@@ -200,6 +201,7 @@ async def render_record(settings: Settings, store: Store, task: Task) -> Path:
     for e in evs:
         md.append(f"| {e.id} | {e.path} | {e.sha256} | {_fmt(e.created_at)} | {e.producer} |")
     md.append("")
+    md += ["---", f"> 本文件由 {ATTRIBUTION} 產生。轉載或引用請保留作者與出處。", ""]
 
     path = settings.record_dir(task.id) / "record.md"
     path.parent.mkdir(parents=True, exist_ok=True)
