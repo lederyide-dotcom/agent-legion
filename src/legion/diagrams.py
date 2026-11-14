@@ -291,7 +291,7 @@ def _blocks() -> dict[str, str]:
             "<details><summary>靜態版（mermaid 原始碼，GitHub 直接渲染）</summary>\n\n"
             f"```mermaid\n{mermaid()}\n```\n\n</details>")
     dashboard = (f'<p align="center"><img src="{DASHBOARD_SVG}" width="100%" '
-                 'alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數與花費"></p>\n\n'
+                 'alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數、花費，以及最近幾次評測基準的結果"></p>\n\n'
                  "上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。\n\n"
                  + dashboard_markdown())
     return {"flow": flow, "dashboard": dashboard}

@@ -203,12 +203,34 @@ def dashboard_stats(settings: Settings, tasks: list[Any], brief: dict[str, Any] 
             "total": len(tasks), "cost_today": b["cost_today"], "daily_budget": b["daily_budget"],
             "cost_7d": round(cost_7d, 4), "cost_all": round(sum(t.cost_usd for t in tasks), 4),
             "waiting_ids": [w["id"] for w in b["waiting"]][:4],
-            "last_halt": f"{last['id']}：{last['reason']}" if last else ""}
+            "last_halt": f"{last['id']}：{last['reason']}" if last else "",
+            "bench": _bench_history(settings)}
+
+
+def _bench_history(settings: Settings) -> list[dict[str, Any]]:
+    from .bench import history
+
+    return history(settings.data_dir)
+
+
+def _bench_row(runs: list[dict[str, Any]], y: int) -> str:
+    """評測趨勢：最近幾次 legion bench，每次一個點（全部符合＝綠、有不符＝紅），最後一次寫出比數。"""
+    if not runs:
+        return f'<text class="muted" x="24" y="{y}" font-size="13">評測基準：尚未執行（legion bench）</text>'
+    last = runs[-1]
+    dots = "".join(
+        f'<circle class="{"ok" if r["passed"] == r["cases"] and r["cases"] else "bad"}" cx="{178 + i * 16}" '
+        f'cy="{y - 4}" r="5"><title>{escape(str(r["at"]))}：{int(r["passed"])}/{int(r["cases"])}</title></circle>'
+        for i, r in enumerate(runs))
+    x = 178 + len(runs) * 16 + 4
+    return (f'<text class="muted" x="24" y="{y}" font-size="13">評測基準（最近 {len(runs)} 次）</text>{dots}'
+            f'<text class="muted" x="{x}" y="{y}" font-size="13">最新 {last["passed"]}/{last["cases"]} 符合預期'
+            f'｜{escape(str(last["commit"]))}</text>')
 
 
 def dashboard_svg(st: dict[str, Any]) -> str:
     """儀表 KPI 卡：靜止時就完整；動態只有花費條流光、資料時間旁的即時點、有事等你時外框呼吸提醒。亮暗配色跟隨系統。"""
-    W, H = 860, 300
+    W, H = 860, 326
     c = st["counts"]
     tiles = [("進行中", c["running"], "run"), ("等你處理", c["waiting"], "wait"), ("熔斷", c["halt"], "halt"),
              ("完成", c["done"], "done")]
@@ -242,6 +264,7 @@ text{{font-family:{FONT};fill:var(--fg)}}
 .tbg.run{{fill:var(--run-s)}}.tbg.wait{{fill:var(--wait-s)}}.tbg.halt{{fill:var(--halt-s)}}.tbg.done{{fill:var(--done-s)}}
 .tbg{{stroke:transparent;stroke-width:3}}
 .track{{fill:var(--track)}}.bar{{fill:var(--bar)}}.bar.over{{fill:var(--wait)}}
+.ok{{fill:var(--done)}}.bad{{fill:var(--halt)}}
 /* 靜止時就完整：數字與花費條一開始就在；動態只用在流光、即時點與提醒，不影響閱讀 */
 .pulse .tbg{{animation:lg-pulse 2s ease-in-out 1s infinite}}
 @keyframes lg-pulse{{0%,100%{{stroke:transparent}}50%{{stroke:var(--wait)}}}}
@@ -272,7 +295,8 @@ text{{font-family:{FONT};fill:var(--fg)}}
         f'<g clip-path="url(#lg-barclip)"><rect class="sheen" x="24" y="212" width="80" height="10" fill="url(#lg-sheen)"/></g>'
         f'<text class="muted" x="24" y="252" font-size="13">等你處理：{escape(waiting)}</text>'
         f'<text class="muted" x="24" y="276" font-size="13">最近熔斷：{escape(halt)}</text>'
-        "</svg>")
+        + _bench_row(st.get("bench") or [], 304)
+        + "</svg>")
 
 
 def _write(svg: str, targets: list[Path]) -> None:

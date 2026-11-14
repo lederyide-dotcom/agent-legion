@@ -140,6 +140,7 @@ def build_parser() -> argparse.ArgumentParser:
     ex = sub.add_parser("export")
     ex.add_argument("task_id")
     ex.add_argument("--format", choices=["docx", "pdf"], required=True)
+    sub.add_parser("bench", help="評測基準：8 道固定題目驗證閉環控制邏輯（mock，不花額度），結果寫入 02_data/bench")
     dm = sub.add_parser("demo")
     dm.add_argument("--mock", action="store_true", required=True)
     sub.add_parser("status")
@@ -279,6 +280,18 @@ def main(argv: list[str] | None = None) -> int:
         asyncio.run(_with_store(s, lambda st: asyncio.sleep(0)))
         print(f"資料表已建立（schema {s.schema_name}）")
         return 0
+    if args.cmd == "bench":
+        from .bench import run_bench, save
+
+        res = asyncio.run(run_bench(s))
+        path = save(res, s.data_dir)
+        for r in res["rows"]:
+            mark = "✅" if r["ok"] else "❌"
+            print(f"{mark} {r['key']:<13} {r.get('state', '-'):<11} {r['what']}")
+            for prob in r["problems"]:
+                print(f"     ↳ {prob}")
+        print(f"符合預期 {res['passed']}/{res['cases']}｜agent 呼叫 {res['agent_calls']} 次｜{res['wall_s']} 秒｜{path}")
+        return 0 if res["passed"] == res["cases"] else 1
     if args.cmd == "demo":
         from .demo import run_demo
 

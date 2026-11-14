@@ -269,6 +269,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
+| 評測基準（8 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
 | 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
 | 看狀態 | `legion status` |
 | 看版本、作者與原始出處 | `legion --version` |
@@ -307,12 +308,12 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 |---|---|
 | `AI/流程.md` | 跟上方「閉環流程」**同一張動態圖**（`AI/img/flow.svg`），下方附靜態 mermaid |
 | `AI/流程.canvas` | 同一份流程，可拖曳，Claude 角色節點標註實際分配的模型 |
-| `AI/儀表.md` | 動態 KPI 卡（`AI/img/dashboard.svg`，與上方 GitHub 那張同一種）＋嵌入下面的儀表表格 |
+| `AI/儀表.md` | 動態 KPI 卡（`AI/img/dashboard.svg`，與上方 GitHub 那張同一種；含最近幾次 `legion bench` 的結果）＋嵌入下面的儀表表格 |
 | `AI/儀表.base` | 任務總覽，三個檢視如下 |
 | `AI/模型分配.canvas` | 角色與模型、官方單價、升級路線 |
 
 <!-- legion:dashboard:start -->
-<p align="center"><img src="03_docs/img/dashboard.svg" width="100%" alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數與花費"></p>
+<p align="center"><img src="03_docs/img/dashboard.svg" width="100%" alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數、花費，以及最近幾次評測基準的結果"></p>
 
 上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。
 
@@ -332,9 +333,12 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 ```bat
 .venv\Scripts\python.exe -m pytest -q
 .venv\Scripts\python.exe -m legion demo --mock
+.venv\Scripts\python.exe -m legion bench
 ```
 
 pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
+
+`legion bench` 是評測基準：8 道固定題目（一次就過、驗收失敗重試、規格退回、交付審查退回、刪檔判高風險、範圍外檔案、同一錯誤請示軍師、後續想法暫存），在獨立的 schema、vault、worktree 裡用 mock 跑，約 25 秒、不花額度。每題都有預期結局，任何一題不符就代表閉環的控制邏輯被改壞了（例如拿掉「刪檔判高風險」規則，`high-risk` 那題會失敗）。結果存到 `02_data/bench/`、追加到 `metrics.csv`，儀表 KPI 卡會畫出最近幾次的趨勢。
 
 ## 安全邊界（程式強制）
 
@@ -358,14 +362,14 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角色權限）、prompts.py、risk.py、
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
                  brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
-                 diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、
+                 diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、bench.py（評測基準）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
 scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1
 sandbox_repo/    給 agent 練習用的玩具專案
 tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控
-02_data/         驗收證據、metrics、花費帳本、安裝清冊
+02_data/         驗收證據、metrics、花費帳本、安裝清冊、bench/（評測基準每次的結果）
 03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
                  inbox_page.html（收件匣互動頁）、vault_page.html（手機文件庫）、sharing_and_citation.md（分享與引用規範）、
                  public_release_license.md（公開版授權方案）
@@ -378,6 +382,7 @@ reports/         研究報告
 - 排程只測過「使用者登入時執行」模式；電腦關機或 Claude 未登入時不會動。
 - 花費是 Claude CLI 回報的用戶端估算（`total_cost_usd`），不是帳單金額。
 - 規格審查與交付審查目前都用 Claude；跨廠商審查者（Codex）尚未實作。
+- 評測基準目前只有 mock 模式，量的是 runner 的控制邏輯；用真實 Claude 量模型與 prompt 品質要花錢，尚未實作。
 - 任務進行中沒有「核准修改既有測試」的路徑：要改既有測試必須事先在想法檔寫 `allow_test_changes: true`；否則只能由人自行驗證後手動 merge（T-0022 即如此處理）。
 - 用 sonnet 做規劃＋規格審查單輪較便宜，但目前只有少數樣本，規格品質不足時下游重試反而更貴（見 `02_data/cost_analysis_20261114.md`）；預設仍是 Opus。
 - 開發過程中的事故與修正都記在 [03_docs/progress.md](03_docs/progress.md)。

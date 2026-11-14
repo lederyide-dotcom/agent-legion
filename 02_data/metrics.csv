@@ -595,3 +595,9 @@ date,commit,metric,value,command
 2026-11-15T00:30:00+08:00,3305de8,legion.pytest_passed,293,.venv\Scripts\python.exe -m pytest -q（PowerShell；含 diagrams 與 mobile 未提交工作目錄）
 2026-11-15T01:30:00+08:00,988d105,legion.pytest_passed,301,.venv\Scripts\python.exe -m pytest -q（PowerShell；含動態 SVG 未提交工作目錄）
 2026-11-15T02:10:00+08:00,988d105,legion.pytest_passed,301,.venv\Scripts\python.exe -m pytest -q（PowerShell；動態 SVG 審查修正後未提交工作目錄）
+2026-11-15T01:41:11+08:00,b978be6,bench.mock.match_rate,1.0,legion bench
+2026-11-15T01:41:11+08:00,b978be6,bench.mock.agent_calls,41,legion bench
+2026-11-15T01:41:11+08:00,b978be6,bench.mock.wall_s,22.81,legion bench
+2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.match_rate,1.0,legion bench
+2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.agent_calls,41,legion bench
+2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.wall_s,24.86,legion bench
