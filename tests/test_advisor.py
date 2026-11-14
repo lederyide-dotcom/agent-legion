@@ -120,7 +120,7 @@ def test_auto_decision_never_picks_unsafe_options(env: Env) -> None:
         st = await env.ticks(settings=s)
         try:
             t = (await st.list_tasks())[0]
-            assert t.state == State.WAIT_HUMAN  # 沒有安全、低風險、預算內的錦囊 → 繼續等人
+            assert t.state == State.WAIT_HUMAN  # 沒有安全、非 high 風險、預算內的錦囊 → 繼續等人
             assert await st.all_events("advisor_auto_skipped")
         finally:
             await st.close()

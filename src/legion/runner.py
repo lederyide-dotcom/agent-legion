@@ -1199,7 +1199,7 @@ class Runner:
         if opt is None:
             raise ValueError(f"{task_id} 沒有錦囊 {option_id}")
         if auto and (opt.get("kind") not in prompts.ADVISOR_SAFE_KINDS or self._auto_pick(task, adv) is None):
-            raise ValueError("自動決議只能採用安全種類、低風險、預算內的錦囊")
+            raise ValueError("自動決議只能採用安全種類、非 high 風險、預算內的錦囊")
         if not auto:
             task = await self.store.human_touch(task_id, "advisor_choice", {"by": by, "option": option_id})
         kind = opt.get("kind")

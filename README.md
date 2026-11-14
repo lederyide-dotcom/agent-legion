@@ -31,7 +31,7 @@ flowchart TD
     VERIFY -- 同一錯誤反覆 / 超重試 --> ADV[ADVISOR<br/>軍師診斷＋錦囊]
     ADV -- 至少 3 個錦囊 --> WH
     ADV -. 呼叫失敗 / 預算不足 / 錦囊不足 .-> HALT
-    WH -. 閒置 15 分鐘自動採用推薦（限低風險） .-> PLAN
+    WH -. 閒置 15 分鐘自動決議（非 high 風險） .-> PLAN
     ANY[任一狀態] -. 超預算 / 逾時 / STOP .-> HALT([HALT])
 
     classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
@@ -134,14 +134,18 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 | 變數 | 預設 | 說明 |
 |---|---|---|
-| `LEGION_DB_USER`／`PASSWORD`／`NAME`／`PORT` | `legion`／`legion_local_only`／`legion`／`55432` | 本機開發用 DB，docker-compose 也讀同一組 |
+| `LEGION_DB_USER`、`LEGION_DB_PASSWORD`、`LEGION_DB_NAME`、`LEGION_DB_PORT` | `legion`／`legion_local_only`／`legion`／`55432` | 本機開發用 DB，docker-compose 也讀同一組 |
 | `LEGION_SCHEMA` | `legion` | 正式資料的 schema；demo 用 `demo`，測試用隨機 schema |
 | `LEGION_VAULT`、`LEGION_DATA_DIR`、`LEGION_OUTPUT_DIR`、`LEGION_WORKTREES` | `./vault`、`./02_data`、`./01_output`、`./.worktrees` | 目錄位置 |
 | `LEGION_BACKEND` | `claude` | agent backend（`mock` 為零成本模擬） |
 | `LEGION_MODEL` | 不設定 | 設定後**所有角色**統一用這個模型、不升級（等同 `tick --model`）；平常不設定，改用下方的角色表 |
-| `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`；effort 設 `none` 表示不指定 |
+| `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`、`ADVISOR`、`STRATEGIST`（例如 `LEGION_MODEL_PLANNER`、`LEGION_EFFORT_PLANNER`）；effort 設 `none` 表示不指定 |
 | `LEGION_ESCALATE_MODEL`、`LEGION_ESCALATE_EFFORT` | `opus`、`high` | 執行者重做時的升級模型；`LEGION_ESCALATE_MODEL=off` 關閉升級 |
+| `LEGION_ADVISOR`、`LEGION_ADVISOR_IDLE_MINUTES` | `1`、`15` | 卡住時請示軍師（`0` 關閉）；人閒置幾分鐘後自動決議：優先採用推薦錦囊，限安全種類、非 high 風險、預算內，見下方「軍師」 |
 | `LEGION_SOFFICE`、`LEGION_BROWSER` | 自動偵測 | 外部工具位置 |
+| `LEGION_RENDER_MERMAID`、`LEGION_MERMAID_CLI` | `1`、`tools\mermaid` 內的 mmdc | 是否把 mermaid 轉成圖片，以及 mmdc 位置（git worktree 裡沒有 node_modules 時指回主目錄） |
+| `LEGION_FONT_MONO`、`LEGION_FONT_CJK` | `%WINDIR%\Fonts` 的 consola.ttf、msjh.ttc | 終端輸出轉圖用的字型 |
+| `LEGION_CRASH_AT` | 不設定 | 只給測試用：設成 `STATE:point` 時在該處直接結束行程，模擬中途被中斷 |
 
 熔斷數值（單任務 $2、每日 $2、重試 3、逾時 900 秒、回灌每輪 2／深度 2）在 [src/legion/config.py](src/legion/config.py)，`tick` 也可用 `--task-budget`、`--daily-budget` 暫時覆寫。
 
