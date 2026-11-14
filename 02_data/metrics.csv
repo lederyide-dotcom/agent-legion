@@ -575,3 +575,11 @@ date,commit,metric,value,command
 2026-11-14T04:10:00+08:00,f30c840,claude_projects_jsonl_delta,0,計數 %USERPROFILE%\.claude\projects\**\*.jsonl 前後
 2026-11-14T13:30:00+08:00,0f98a9c,legion.pytest_passed,139,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（含 cleanup 10 項，未提交工作目錄）
 2026-11-14T13:30:00+08:00,0f98a9c,legion.cleanup.dry_run_removable,3,.venv\Scripts\python.exe -m legion cleanup（T-0017、T-0018、T-0021）
+2026-11-13T21:32:37+08:00,91fd653,pytest.passed,130,python -m pytest -q（雲端 Linux 容器，本機 PostgreSQL 16）
+2026-11-13T21:32:37+08:00,91fd653,pytest.failed_preexisting,3,python -m pytest -q（起點 commit 同樣 3 項失敗：root 身分、無 mmdc、Windows 路徑）
+2026-11-13T21:32:37+08:00,91fd653,ledger_migration.rows_unchanged,89,append_cost 對 02_data/cost_ledger.csv 副本補 effort 欄
+2026-11-13T21:32:37+08:00,91fd653,ledger_migration.cost_total_usd,6.606888,同上（補欄前後相同）
+2026-11-13T22:38:24+08:00,095b1dd,pytest_windows.passed,132,python -m pytest -q（Windows worktree；另 1 項 mermaid 補 mmdc 後單跑通過）
+2026-11-13T23:27:24+08:00,6eb52f1,start_bat_windows_clean.exit_code,0,scripts\start.bat（乾淨 worktree，COMPOSE_PROJECT_NAME=202611_agent-legion）
+2026-11-13T23:27:24+08:00,6eb52f1,start_bat_windows_clean.duration_s,97,同上
+2026-11-13T23:27:24+08:00,6eb52f1,pytest_windows.mermaid_env_override.passed,2,LEGION_MERMAID_CLI 指主目錄 mmdc

@@ -315,11 +315,11 @@ class Runner:
         return remaining
 
     def _ledger(self, task: Task, role: str, backend: str, model: str | None, session_id: str, status: str,
-                cost: float) -> None:
+                cost: float, effort: str | None) -> None:
         if backend == "mock" and not self.s.ledger_include_mock:
             return
         ledger.append_cost(self.s.cost_ledger, schema=self.s.schema_name, task=task.id, role=role, backend=backend,
-                           model=model, session_id=session_id, status=status, cost_usd=cost)
+                           model=model, session_id=session_id, status=status, cost_usd=cost, effort=effort)
 
     async def _save_prompt(self, task: Task, role: str, prompt: str) -> None:
         """提示存證：全文存在本機 .legion_tmp/prompts/（gitignore，不進 vault、不推上 GitHub），
@@ -364,8 +364,8 @@ class Runner:
             res = await backend.run(call)
         except AgentFailure as exc:
             # 失敗或逾時也要把花費入帳，避免預算熔斷低估。帳本先寫：崩潰時寧可多記，不可漏記
-            self._ledger(task, role, backend.name, None, exc.session_id or "(none)",
-                         "timeout" if isinstance(exc, AgentTimeout) else "error", exc.cost_usd)
+            self._ledger(task, role, backend.name, model, exc.session_id or "(none)",
+                         "timeout" if isinstance(exc, AgentTimeout) else "error", exc.cost_usd, effort)
             await self.store.record_run(AgentRun(
                 task_id=task.id, state=task.state.value, step=task.step, role=role, backend=backend.name,
                 session_id=exc.session_id or "(none)", cost_usd=exc.cost_usd, duration_s=exc.duration_s,
@@ -373,7 +373,7 @@ class Runner:
                 started_at=started,
             ))
             raise
-        self._ledger(task, role, res.backend, res.model, res.session_id, "completed", res.cost_usd)
+        self._ledger(task, role, res.backend, res.model, res.session_id, "completed", res.cost_usd, effort)
         await self.store.record_run(AgentRun(
             task_id=task.id, state=task.state.value, step=task.step, role=role, backend=res.backend,
             model=res.model, session_id=res.session_id, cost_usd=res.cost_usd, duration_s=res.duration_s,

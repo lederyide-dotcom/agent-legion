@@ -90,7 +90,7 @@ flowchart LR
 | Python 3.10 | runner | 以 `py -3.10` 建立 `.venv` |
 | Docker Desktop | PostgreSQL 16 | 只綁 `127.0.0.1` |
 | Claude Code CLI（`claude`） | 真實 agent | 需已登入；只跑 mock 時不需要 |
-| Node.js | Mermaid 轉圖（`tools/mermaid`） | 選用；失敗時任務不會中斷 |
+| Node.js | Mermaid 轉圖（`tools/mermaid`） | 選用；失敗時任務不會中斷。mmdc 位置可用 `LEGION_MERMAID_CLI` 覆寫（git worktree 驗證時指回主目錄） |
 | Edge 或 Chrome | Mermaid 轉圖用的瀏覽器 | 自動偵測，或設 `LEGION_BROWSER` |
 | LibreOffice | 紀錄文件轉 PDF | 選用；自動偵測，或設 `LEGION_SOFFICE` |
 | Obsidian | 看 vault 儀表與紀錄 | 選用 |

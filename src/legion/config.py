@@ -134,7 +134,10 @@ class Settings(BaseModel):
 
     # 紀錄文件
     render_mermaid: bool = Field(default_factory=lambda: os.environ.get("LEGION_RENDER_MERMAID", "1") != "0")
-    mermaid_cli: Path = PROJECT_ROOT / "tools" / "mermaid" / "node_modules" / ".bin" / "mmdc.cmd"
+    # LEGION_MERMAID_CLI 可覆寫：git worktree 或其他機器上沒有 gitignore 的 tools/mermaid/node_modules 時，指向既有的 mmdc
+    mermaid_cli: Path = Field(default_factory=lambda: Path(os.environ["LEGION_MERMAID_CLI"])
+                              if os.environ.get("LEGION_MERMAID_CLI")
+                              else PROJECT_ROOT / "tools" / "mermaid" / "node_modules" / ".bin" / "mmdc.cmd")
     browser: Path = Field(default_factory=_default_browser)
     soffice: Path = Field(default_factory=_default_soffice)
 

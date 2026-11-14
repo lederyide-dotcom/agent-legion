@@ -92,3 +92,13 @@ def test_one_pass_task_never_escalates(env: Env) -> None:
     used = {(role, m, e) for tid, role, m, e in env.agent.models if tid == t.id}
     assert ("executor", "sonnet", None) in used and ("reviewer", "sonnet", "high") in used
     assert not any(role == "executor" and m == "opus" for role, m, _ in used)
+
+
+def test_mermaid_cli_env_override(monkeypatch, tmp_path: Path) -> None:  # type: ignore[no-untyped-def]
+    from legion.config import PROJECT_ROOT
+    monkeypatch.delenv("LEGION_MERMAID_CLI", raising=False)
+    assert Settings().mermaid_cli == PROJECT_ROOT / "tools" / "mermaid" / "node_modules" / ".bin" / "mmdc.cmd"
+    monkeypatch.setenv("LEGION_MERMAID_CLI", str(tmp_path / "mmdc.cmd"))
+    assert Settings().mermaid_cli == tmp_path / "mmdc.cmd"
+    monkeypatch.setenv("LEGION_MERMAID_CLI", "")  # 空字串＝未設定
+    assert Settings().mermaid_cli.name == "mmdc.cmd" and Settings().mermaid_cli.parent.name == ".bin"
