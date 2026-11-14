@@ -19,6 +19,8 @@ flowchart TD
     EXEC --> VERIFY{{VERIFY<br/>runner 親自跑驗收指令}}
     VERIFY -- 失敗，重試 ≤ 3 --> EXEC
     VERIFY -- 通過 --> REVIEW[REVIEW<br/>交付審查者]
+    VERIFY -- 出現範圍外檔案 --> WH
+    WH -. 核准該路徑 .-> VERIFY
     REVIEW -- fail 退回 --> EXEC
     REVIEW -- pass --> LEARN[LEARN<br/>書記官紀錄]
     LEARN --> DONE([DONE])
@@ -103,7 +105,7 @@ cd agent-legion
 scripts\start.bat
 ```
 
-`start.bat` 會依序：啟動 DB → 建立 `.venv` 並安裝套件（第一次）→ 建表 → 建 vault 骨架 → 跑一次**零成本**的 mock demo（3 個任務＋1 個回灌，示範正常完成、高風險攔下、回灌）。完成後用 Obsidian 開啟 `vault/` 資料夾。
+`start.bat` 會依序：啟動 DB（compose 專案名稱固定取主 repo 資料夾名稱，所以在 git worktree 裡執行也會沿用同一個 DB；可用 `COMPOSE_PROJECT_NAME` 覆寫） → 建立 `.venv` 並安裝套件（第一次）→ 建表 → 建 vault 骨架 → 跑一次**零成本**的 mock demo（3 個任務＋1 個回灌，示範正常完成、高風險攔下、回灌）。完成後用 Obsidian 開啟 `vault/` 資料夾。
 
 ## 設定
 
@@ -192,6 +194,17 @@ mission:
 .venv\Scripts\python.exe -m legion run
 ```
 
+## 人掌舵的入口
+
+日常只需要看兩個地方，其餘由 Claude Code 自主完成：
+
+| 入口 | 內容 | 產生方式 |
+|---|---|---|
+| 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑） |
+| 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
+
+分工：**定目標與範圍、花真錢、刪除未合併的工作、碰機密或對外服務、改預設模型或風險規則**由人決定；實作、驗證、合併已驗證的分支、整理清單、寫證據由 Claude Code 做，完成後在晨報或回報中告知。
+
 ## 使用方式
 
 指令一律在專案根目錄執行。下表的 `legion` 代表 `.venv\Scripts\python.exe -m legion`；部分 Windows 環境的應用程式控制原則會擋 `.venv\Scripts\legion.exe`，用 `python -m` 形式即可。
@@ -220,7 +233,8 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 
 | 動作 | 指令 |
 |---|---|
-| 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見下方「模型分配」） |
+| 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見上方「模型分配」） |
+| 持續推進到沒事可做 | `legion run --backend claude`（可加 `--task-budget`、`--daily-budget`、`--max-ticks`） |
 | 看各角色用哪個模型 | `legion models` |
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
@@ -233,7 +247,9 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 
 | 狀態 | 意思 | 處理 |
 |---|---|---|
-| `WAIT_HUMAN` | 高風險動作（刪檔、改 `.claude/`、需人工核准的安裝等） | 讀 `vault/AI/questions/<任務編號>.md`，再 `legion answer <任務編號> approve` 或 `reject` |
+| `WAIT_HUMAN` | 高風險動作（刪檔、改 `.claude/`、需人工核准的安裝、驗收指令不在白名單等） | 讀 `vault/AI/questions/<任務編號>.md`，再 `legion answer <任務編號> approve` 或 `reject` |
+| `WAIT_HUMAN`（驗收後） | 驗收指令跑完後出現超出允許範圍的檔案（例如測試寫出的 log） | 同上；核准以**路徑**為單位，之後同一路徑內容變了也不用再核准，不消耗重試次數 |
+| `WAIT_HUMAN`（軍師錦囊） | 任務卡住，軍師提出 3 個以上錦囊 | `legion choose <任務編號> <選項>`，或 `legion answer <任務編號> approve` 採用推薦 |
 | `HALT` | 熔斷（超預算、超重試、逾時、STOP 檔） | 排除原因後 `legion resume <任務編號>`；不再續跑就 `legion cancel <任務編號> --reason "原因"`（清掉續跑點，之後 `legion cleanup` 才會把它當成已結束）。注意：對進行中的任務 cancel 會先停成「可續跑的 HALT」，要完全收尾需再 cancel 一次 |
 
 緊急全部停止：建立 `vault/STOP` 檔（內容不限）。
@@ -243,6 +259,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 | 需求 | 指令或位置 |
 |---|---|
 | 看改了什麼 | `.worktrees/<任務編號>` 的分支，確認後自行 merge |
+| 清理已 merge 的分支與 worktree | `legion cleanup` 先列出，`legion cleanup --apply` 才刪。只刪「任務已結束、分支已併入目標 repo 的 HEAD、worktree 乾淨（只容許快取資料夾）」的；游離 HEAD、rebase／merge 進行中、未併入、有被忽略檔、可續跑的 HALT、被其他任務當 `base_branch`、不在 `.worktrees/` 下的一律保留。晨報會列出「可清理」 |
 | 看開發紀錄文件（8 章，結論都引用證據編號） | `vault/AI/records/<任務編號>/record.md` |
 | 核可紀錄文件 | `legion approve-doc <任務編號>` |
 | 匯出 Word／PDF（存到 `01_output/`） | `legion export <任務編號> --format docx` 或 `--format pdf` |
@@ -263,14 +280,15 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 - **風險只升不降**：agent 只能提議風險，最終取「規則判定」與「提議」的較高者；執行後再依實際 diff 重新判定。
 - **角色工具最小化**：唯讀角色只拿得到 `Read`、`Glob`、`Grep`；執行者的 Bash 有允許與拒絕清單（安裝、push、merge、`.env`、金鑰一律拒絕）。
 - **runner 才是硬邊界**：Bash 規則不是安全邊界，所以驗收指令由 runner 以白名單親自執行、比對 worktree 以外的 git 狀態、證據設為唯讀並比對雜湊。
-- **既有測試只能新增**：runner 以 diff 檢查，以下都算削弱、驗收直接失敗：刪除或改名既有測試檔、改寫既有測試的任何一行、在既有測試檔加 skip／xfail 標記、重新定義同名測試、無法逐行比對的變更。新增測試檔、在既有測試補新案例都允許。
+- **既有測試只能新增**：runner 以**行級** diff 檢查，以下都算削弱、驗收直接失敗：刪除或改名既有測試檔、改寫既有測試的任何一行（包括只在單行 `parametrize` 清單尾端追加元素；新案例請寫成新行或新的測試函式，規劃提示已說明）、在既有測試檔加 skip／xfail 標記、重新定義同名測試、無法逐行比對的變更。新增測試檔、在既有測試補新案例都允許。
 - **改變測試收集方式要人核准**：修改 pytest／pyproject／setup.cfg／tox 設定、`.gitignore`／`.gitattributes`、會作用到既有測試的 `conftest.py`，或用 git 索引旗標隱藏變更，判為 high、停下等核准。核准是綁定整份 diff 的內容，之後內容再變就要重新核准。真的要改既有測試，由人在想法檔寫 `allow_test_changes: true`。
 - **改動範圍允許清單**：想法檔可寫 `allowed_paths`（glob，`dir/**` 代表整個子目錄）；有 `subdir` 時預設只能改該子目錄。超出範圍判為 high、停下等核准。兩者都只能由人設定，agent 無法替自己放寬。
+- **範圍證據由 runner 產生**：每次驗收都相對「任務起點 commit」列出全部變更（agent 已 commit 的與未追蹤的新檔都算），寫成證據給審查者看；規劃者不必再寫 `git status --short` 這類 commit 後就變空的範圍指令。
 - **同一錯誤 3 次即停**：驗收失敗會正規化成特徵（失敗的測試名稱與 exit code，忽略耗時等數字），同一特徵出現 3 次就 HALT，不等重試上限。
 - **每次呼叫 agent 前檢查 STOP**：不只在 tick 開頭，長流程中途建立 `vault/STOP` 也會在下一次呼叫前停下。
 - **原生 Windows 沒有 sandbox**：Claude Code 內建 sandbox 不支援原生 Windows，worktree 只隔離檔案。要給更高自主權的任務，請放在 WSL2 或容器裡執行。
 - **安裝分級**：只在執行階段，由 runner 分成自動／自動＋通知／必須問，全部寫入 `02_data/install_ledger.csv`。
-- **花費帳本**：每次 agent 呼叫都寫入 `02_data/cost_ledger.csv`（不隨 DB 重建消失），每日預算以帳本與 DB 較大者判定。
+- **花費帳本**：每次 agent 呼叫都寫入 `02_data/cost_ledger.csv`（含模型與 effort；不隨 DB 重建消失），每日預算以帳本與 DB 較大者判定。
 - **不留本機逐字紀錄**：`claude -p` 加上 `--no-session-persistence`；提示全文只存在本機 `.legion_tmp/prompts/`（不進 git），vault 只留雜湊。
 
 ## 專案結構
@@ -278,14 +296,16 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 ```
 src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角色權限）、prompts.py、risk.py、
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
+                 brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
-scripts/         start.bat、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1
+scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1
 sandbox_repo/    給 agent 練習用的玩具專案
 tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控
 02_data/         驗收證據、metrics、花費帳本、安裝清冊
-03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）
+03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
+                 inbox_page.html（收件匣互動頁）
 reports/         研究報告
 ```
 
@@ -294,4 +314,6 @@ reports/         研究報告
 - 排程只測過「使用者登入時執行」模式；電腦關機或 Claude 未登入時不會動。
 - 花費是 Claude CLI 回報的用戶端估算（`total_cost_usd`），不是帳單金額。
 - 規格審查與交付審查目前都用 Claude；跨廠商審查者（Codex）尚未實作。
+- 任務進行中沒有「核准修改既有測試」的路徑：要改既有測試必須事先在想法檔寫 `allow_test_changes: true`；否則只能由人自行驗證後手動 merge（T-0022 即如此處理）。
+- 用 sonnet 做規劃＋規格審查單輪較便宜，但目前只有少數樣本，規格品質不足時下游重試反而更貴（見 `02_data/cost_analysis_20261114.md`）；預設仍是 Opus。
 - 開發過程中的事故與修正都記在 [03_docs/progress.md](03_docs/progress.md)。
