@@ -233,7 +233,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 | 狀態 | 意思 | 處理 |
 |---|---|---|
 | `WAIT_HUMAN` | 高風險動作（刪檔、改 `.claude/`、需人工核准的安裝等） | 讀 `vault/AI/questions/<任務編號>.md`，再 `legion answer <任務編號> approve` 或 `reject` |
-| `HALT` | 熔斷（超預算、超重試、逾時、STOP 檔） | 排除原因後 `legion resume <任務編號>`，或 `legion cancel <任務編號> --reason "原因"` |
+| `HALT` | 熔斷（超預算、超重試、逾時、STOP 檔） | 排除原因後 `legion resume <任務編號>`；不再續跑就 `legion cancel <任務編號> --reason "原因"`（清掉續跑點，之後 `legion cleanup` 才會把它當成已結束）。注意：對進行中的任務 cancel 會先停成「可續跑的 HALT」，要完全收尾需再 cancel 一次 |
 
 緊急全部停止：建立 `vault/STOP` 檔（內容不限）。
 

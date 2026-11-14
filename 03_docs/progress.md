@@ -129,3 +129,11 @@
 2. 清理 target-repo-b 已合併的 legion/T-0017～T-0021 分支與 worktree，以及 T-0012／T-0020 的 HALT 紀錄（需使用者同意）
 3. 規劃＋規格審查（Opus）占單任務花費 57%：小型 write 任務可試 sonnet 規劃，比較品質與花費
 4. 在 cost_ledger 記錄 effort
+
+## 2026-11-14 下午：人只掌舵，其餘自主完成（新 session 從這裡接）
+- 交接入口：`03_docs/inbox.md`（打 `/next` 接續）。每天 08:00 排程 `legion brief` 晨報會列出：等人處理、停下、待 merge、可清理、戰役、花費
+- 雲端／本機分工：雲端 session 寫程式推 `claude/…` 分支 → 本機 session 在 Windows 用臨時 worktree 驗證同一個 commit → 合併。本次已合併 claude/ecstatic-gates-ww9mp9（cost_ledger 加 effort 欄、`LEGION_MERMAID_CLI`），合併後 144 passed
+- 新指令 `legion cleanup`：預設只列；`--apply` 只刪已併入 HEAD 且 worktree 乾淨的分支與 worktree。已清 target-repo-b 的 T-0017、T-0018、T-0019、T-0021；剩 legion/T-0020（未併入的舊 commit，內容已被 T-0021 取代，刪除需 David 決定）
+- `legion cancel` 可收尾「HALT 但可續跑」的任務（清 return_state、保留原因）；T-0020 已用此方式收尾
+- start.bat 自動用主 repo 資料夾名稱當 compose 專案名稱，worktree 內跑也沿用同一個 legion-db
+- 花費分析：`02_data/cost_analysis_20261114.md`（Opus 規劃＋審查約為 sonnet 的 3.9 倍，建議小型 write 任務試 sonnet，待 David 決定）

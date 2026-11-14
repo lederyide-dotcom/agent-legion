@@ -1212,8 +1212,23 @@ class Runner:
         return await self._go(task, task.return_state, {"resumed_by": by}, halt_reason=None, retries=0)
 
     async def cancel(self, task_id: str, by: str, reason: str) -> Task:
-        """人工取消：轉入 HALT（計入 human_touches）。"""
+        """人工取消：轉入 HALT（計入 human_touches）。
+
+        已是 HALT 但還能續跑（有 return_state）時，改成不再續跑：清掉 return_state，原本的停止原因保留在 halt_reason。
+        """
         task = await self.store.get_task(task_id)
+        if task.state == State.HALT and task.return_state is not None:
+            prev = task.halt_reason or ""
+            # transition 以 state＋step 做樂觀鎖：若同時有人 resume，這裡會失敗，不會把跑起來的任務標成取消
+            task = await self.store.transition(task, State.HALT, {"action": "cancel_halted", "by": by,
+                                                                  "reason": reason, "previous": prev[:500]},
+                                               return_state=None,
+                                               halt_reason=f"operator_cancel: {reason}（原本：{prev[:500]}）")
+            task = await self.store.human_touch(task_id, "manual_state_change", {"by": by, "action": "cancel",
+                                                                                "reason": reason})
+            await self.store.add_event(task_id, "cancel_halted", {"by": by, "reason": reason, "previous": prev[:500]})
+            await self._after_change(task)
+            return task
         if task.state in TERMINAL_STATES:
             raise ValueError(f"{task_id} 已是 {task.state.value}")
         task = await self.store.human_touch(task_id, "manual_state_change", {"by": by, "action": "cancel",

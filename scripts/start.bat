@@ -5,6 +5,10 @@ setlocal
 cd /d "%~dp0.."
 
 echo [1/5] 啟動 PostgreSQL（Docker）
+REM 專案名稱固定用主 repo 資料夾名稱：在 git worktree 跑也會沿用同一個 legion-db，不會另建同名容器
+if defined COMPOSE_PROJECT_NAME goto compose_up
+for /f "delims=" %%N in ('powershell -NoProfile -ExecutionPolicy Bypass -File scripts\compose_name.ps1') do set "COMPOSE_PROJECT_NAME=%%N"
+:compose_up
 docker compose up -d db || exit /b 1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\wait_db.ps1 || exit /b 1
 

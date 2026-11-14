@@ -583,3 +583,4 @@ date,commit,metric,value,command
 2026-11-13T23:27:24+08:00,6eb52f1,start_bat_windows_clean.exit_code,0,scripts\start.bat（乾淨 worktree，COMPOSE_PROJECT_NAME=202611_agent-legion）
 2026-11-13T23:27:24+08:00,6eb52f1,start_bat_windows_clean.duration_s,97,同上
 2026-11-13T23:27:24+08:00,6eb52f1,pytest_windows.mermaid_env_override.passed,2,LEGION_MERMAID_CLI 指主目錄 mmdc
+2026-11-14T16:30:00+08:00,467f256,legion.pytest_passed,146,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（含 cancel 收尾與 compose 名稱，未提交工作目錄）

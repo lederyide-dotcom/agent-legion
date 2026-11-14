@@ -411,7 +411,10 @@ def write_mission_note(settings: Settings, mission: dict[str, Any], tasks: list[
     spent = sum(t.cost_usd for t in tasks)
     last = tasks[-1] if tasks else None
     outcome = (last.meta.get("mission_outcome") if last else None) or ""
-    if last and last.state.value in {"HALT", "WAIT_HUMAN"}:
+    if last and last.state.value == "HALT" and (last.halt_reason or "").startswith("operator_cancel") \
+            and last.return_state is None:
+        status = f"⏹ {last.id} 已取消，戰役結束"
+    elif last and last.state.value in {"HALT", "WAIT_HUMAN"}:
         status = f"⏸ {last.id} 停在 {last.state.value}，等使用者處理"
     elif outcome and last and last.state.value == "DONE":
         status = _OUTCOME_LABEL.get(outcome, outcome)
