@@ -14,9 +14,6 @@
 | # | 決定什麼 | 建議 | 依據 |
 |---|---|---|---|
 | D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo（2026-11-14 David：之後再說） | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
-| D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層（2026-11-14 David：之後再說） | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
-| D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理（2026-11-14 David：之後再說） | 人做 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
-| D14 | water-bim 還剩 `.github/workflows/tests.yml` 第 1 行署名含「漢華 I&C」：Windows 推送 token 沒有 workflow 權限，推不上去；anti-todo-tw skill 由 claude.ai 同步，本機改會被覆蓋 | tests.yml：在 GitHub 網頁直接改那一行，或交給雲端 session；skill：在 claude.ai 的 skill 設定修改 | water-bim 分支 `win/remove-org-name` |
 
 ## 已決定（2026-11-14 David 從互動頁回覆）
 
@@ -32,6 +29,9 @@
 | D11 | T-0022 閘門核准＋第 17 行只追加元素的例外（「依你建議」） | ✅ 手動驗證後合併；守門規則本身不改 | `02_data/verify_20261114.md` 第 14 節 |
 | D12 | 公開版授權採方案 A：程式碼 PolyForm Noncommercial 1.0.0＋文件 CC BY-NC-SA 4.0 | 記錄決定；NOTICE 先加 `Required Notice:` 行；公開時才切換 LICENSE | `03_docs/public_release_license.md` |
 | D13 | 刪除「漢華 I&C」字眼；凍結提案一併更新並改鎖定雜湊（選項窗同意）；推送 | ✅ legion 本來就沒有；water-bim 已刪並推到 `win/remove-org-name`（1099621，含凍結提案與測試雜湊更新，CI 測試集 234 OK）；剩 tests.yml 與 skill（D14） | `02_data/verify_20261114.md` 第 16 節 |
+| D8 | 推播：等離開電腦時再測一次手機有沒有收到（桌面 app 開著時推播會被壓下）；Telegram 第 2 層看測試結果再說 | ⏳ David 離開電腦時測試 | — |
+| D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理：人做 | ⏳ David 抽查 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
+| D14 | 「漢華 I&C」最後兩處：water-bim `.github/workflows/tests.yml` 第 1 行在 GitHub 網頁直接改（或交給雲端 session）；anti-todo-tw skill 在 claude.ai 的 skill 設定修改 | ⏳ David 在網頁上改 | water-bim 分支 `win/remove-org-name` |
 
 ## Claude Code 可自主做
 
@@ -51,6 +51,7 @@
 | A12 | 依 D2＋D7 跑 fu-T-0018-1（T-0022）：safe_workspace_path 補邊界測試，sonnet 規劃＋規格審查（D2 第 1 個試跑） | ✅ 2026-11-14 | David 核准閘門與第 17 行例外（D11）；手動驗證後 ff 合併進 target-repo-b master 24c090c（53 passed） | `02_data/verify_20261114.md` 第 14 節、`02_data/cost_analysis_20261114.md` 補充 |
 | A13 | 規劃提示補「既有測試只增不減以行為單位」：新案例寫新行或新測試函式（T-0022 根因） | ✅ 2026-11-14 | `tests/test_scope_check.py` 5 passed | `src/legion/prompts.py` write_scope_note |
 | A14 | 作者權益：LICENSE（保留所有權利＋署名不得移除）、NOTICE、CITATION.cff、分享與引用規範；作者與 GitHub 出處內建在 `legion --version`、套件中繼資料、開發紀錄與晨報頁尾、互動頁 | ✅ 2026-11-14 | 全套 166 passed；code-reviewer 必修 1 項已修 | `02_data/verify_20261114.md` 第 15 節、`03_docs/sharing_and_citation.md` |
+| A15 | README 覆蓋測試：角色、狀態、子命令、LEGION_* 環境變數逐段比對（起因：README 漏寫軍師）；全域 code-reviewer 加文件同步檢查並試跑 | ✅ 2026-11-14 | 舊 README 會讓測試失敗；全套 272 passed | `02_data/verify_20261114.md` 第 17、18 節；5ff052c、8d5f756 |
 
 ## inbox_hold 分流建議（給 D7）
 
