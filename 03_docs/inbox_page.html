@@ -120,6 +120,7 @@ function build(data){
       if(steer){status='<span class="pill p-wait">等你決定</span>';decide=true;kind="wait"}
       else if(hasState){const v=r["狀態"];kind=v.includes("✅")?"ok":v.includes("⛔")?"no":"wait";
         status=`<span class="pill p-${kind}">${md(v)}</span>`}
+      else if(!sec.headers.includes("建議")){kind="ok";status='<span class="pill p-ok">已決定</span>'}
       else{const v=r["建議"]||"";kind=v.startsWith("✅")?"ok":"wait";decide=kind!=="ok";
         status=`<span class="pill p-${kind==="ok"?"ok":"acc"}">${md(kind==="ok"?"✅ 已處理":"建議："+v)}</span>`}
       const rec=r["建議"]||"";

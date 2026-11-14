@@ -13,15 +13,21 @@
 
 | # | 決定什麼 | 建議 | 依據 |
 |---|---|---|---|
-| D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
-| D2 | 小型 write 任務的規劃＋規格審查改用 sonnet | 試跑 2～3 個任務再比較（預估每任務省約 $0.19） | `02_data/cost_analysis_20261114.md` |
-| D3 | `strip_code_fence` 多重圍欄行為要不要改 | 維持現狀即可，除非 bot 實際遇到多段程式碼 | target-repo-b `tests/test_strip_code_fence.py` |
-| D4 | 刪除 target-repo-b 的 `legion/T-0020` 分支（未併入的舊 commit，內容已被 T-0021 取代） | 刪（需 `git branch -D`，屬刪除未合併工作） | `02_data/verify_20261114.md` |
-| D5 | target-repo 的 `legion/T-0015`（sandbox 驗證任務，worktree 有未提交變更） | 封存不合併：它是階段 1 的試驗 | 晨報「待 merge」 |
-| D6 | 研究第 2 步「實測 deny 規則與 hook」要花真錢（約 $0.3～0.5） | 等有新的真實任務時順便驗，不單獨花 | spec v0.5 |
-| D7 | inbox_hold 剩下 6 個後續想法的取捨 | 見下方「inbox_hold 分流建議」 | `vault/AI/inbox_hold/` |
-| D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層 | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
-| D9 | 對進行中的任務 `legion cancel` 時，要不要一次就收尾（目前會先停成可續跑的 HALT，要再 cancel 一次） | 維持現狀：第一次 cancel 保留後悔空間；README 已寫明 | code-reviewer 建議 4 |
+| D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo（2026-11-14 David：之後再說） | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
+| D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層（2026-11-14 David：之後再說） | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
+| D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理（2026-11-14 David：之後再說） | 人做 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
+
+## 已決定（2026-11-14 David 從互動頁回覆）
+
+| # | 決定 | 執行結果 | 證據 |
+|---|---|---|---|
+| D2 | 小型 write 任務的規劃＋規格審查試用 sonnet，跑 2～3 個任務再比較 | 第 1 個試跑任務見 A12；其餘等有新任務時用同一設定 | `02_data/cost_analysis_20261114.md` |
+| D3 | `strip_code_fence` 多重圍欄維持現狀 | 結案 | target-repo-b `tests/test_strip_code_fence.py` |
+| D4 | 刪除 target-repo-b 的 `legion/T-0020` | ✅ 已移除 worktree 並 `git branch -D`（原 aec50ea）；master 不變 0b9d364 | `02_data/verify_20261114.md` 第 13 節 |
+| D5 | `legion/T-0015` 封存不合併 | ✅ 未提交變更 commit 成 f1a2f9b，分支改名 `archive/legion-T-0015`，worktree 已移除 | 同上 |
+| D6 | deny 規則與 hook 實測等真實任務時順便驗 | 延後，不單獨花費 | spec v0.5 |
+| D7 | inbox_hold 依分流建議 | ✅ 0017-2、0019-1、0019-2 封存到 `vault/AI/inbox_done/archived-D7__*`；0018-1 放行（A12）；0016-2 低優先留在 hold；0016-1 改列 D10 | 下方分流表 |
+| D9 | 對進行中的任務 cancel 維持兩段式 | 結案；README 已寫明 | README HALT 列 |
 
 ## Claude Code 可自主做
 
@@ -38,6 +44,7 @@
 | A9 | 範圍驗收自動化：runner 產生「變更範圍」證據（相對起點 commit、含已 commit 與未追蹤新檔）；驗收後才出現的範圍外檔案停下等核准，核准以路徑為單位；規劃者提示不必再寫範圍指令 | ✅ 2026-11-14 | 5 項測試；code-reviewer 必修 1 項已修；相關 6 個想法檔已封存到 `vault/AI/inbox_done/resolved-A9__*` | `tests/test_scope_check.py`、`02_data/verify_20261114.md` 第 11 節 |
 | A10 | progress.md 交接段落 | ✅ 2026-11-14 | 新 session 只讀 progress.md 即可接手 | `03_docs/progress.md` 最後一段 |
 | A11 | 收件匣互動頁：`legion inbox` 把本檔表格轉 JSON，頁面讀它顯示；改本檔後重產並重新發布（連結不變） | ✅ 2026-11-14 | 12 項測試；code-reviewer 必修 2 項已修；本機實測頁面 27 列與本檔一致 | `tests/test_inbox.py`、`03_docs/inbox_page.html`、`02_data/verify_20261114.md` 第 12 節 |
+| A12 | 依 D2＋D7 跑 fu-T-0018-1：target-repo-b 的 safe_workspace_path 補邊界測試，規劃與規格審查改用 sonnet（D2 第 1 個試跑） | ⏳ | 任務 DONE、target-repo-b 測試通過、花費記入帳本並與 Opus 規劃的同類任務比較 | — |
 
 ## inbox_hold 分流建議（給 D7）
 
@@ -45,9 +52,9 @@
 |---|---|---|
 | fu-T-0001-1、fu-T-0005-1、fu-T-0015-1、fu-T-0018-2、fu-T-0021-1 | ✅ 已由 A9 解決並封存 | 範圍驗收在 commit 後輸出為空、看不到未追蹤檔 |
 | fu-T-0021-2（-k 預期收集筆數） | ✅ 已封存 | pytest 收集 0 筆時 exit 5，驗收本來就會失敗 |
-| fu-T-0018-1（safe_workspace_path 邊界測試） | 值得做，約 $0.2 | 補 `NUL .log` 等邊界，真實安全價值；花費需 D 同意 |
-| fu-T-0016-1（人工抽查 T-0016 報告機密處理） | 人做 | 涉及機密判斷，留給人 |
-| fu-T-0016-2（報告內容檢查） | 低優先 | 目前 `--verify-refs` 已擋最大風險 |
-| fu-T-0017-2（legion 測試 sys.path） | 封存 | 全套測試穩定通過，沒有實際問題 |
-| fu-T-0019-1（移除未使用 import） | 封存 | T-0020 試過，runner 禁止刪既有測試行；價值低 |
-| fu-T-0019-2（diff 驗收與 parametrize id） | 封存 | 已由 T-0021 涵蓋 |
+| fu-T-0018-1（safe_workspace_path 邊界測試） | ✅ D7 放行 → A12 | 補 `NUL .log` 等邊界，真實安全價值；花費需 D 同意 |
+| fu-T-0016-1（人工抽查 T-0016 報告機密處理） | 改列 D10（之後再說） | 涉及機密判斷，留給人 |
+| fu-T-0016-2（報告內容檢查） | 低優先（D7 同意，留在 hold） | 目前 `--verify-refs` 已擋最大風險 |
+| fu-T-0017-2（legion 測試 sys.path） | ✅ 已封存（D7） | 全套測試穩定通過，沒有實際問題 |
+| fu-T-0019-1（移除未使用 import） | ✅ 已封存（D7） | T-0020 試過，runner 禁止刪既有測試行；價值低 |
+| fu-T-0019-2（diff 驗收與 parametrize id） | ✅ 已封存（D7） | 已由 T-0021 涵蓋 |
