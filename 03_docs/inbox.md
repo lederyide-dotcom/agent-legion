@@ -57,6 +57,8 @@
 | A16 | 流程圖與儀表單一來源：README、Obsidian 流程.md／流程.canvas／儀表.base 由 diagrams.py 產生並補齊實際路徑；`legion docs` 同步 | ✅ 2026-11-15 | 全套 293 passed；mermaid 轉圖目視正常；Obsidian 顯示待 David 桌機確認 | `02_data/verify_20261114.md` 第 21 節 |
 | A17 | 手機文件庫互動頁：vault 報告、紀錄、待決事項匯出（遮蔽疑似機密）＋`03_docs/vault_page.html` | ✅ 2026-11-15 | 77 份文件、遮蔽 0 筆 | `02_data/verify_20261114.md` 第 21 節 |
 | A18 | 動態流程與儀表：GitHub README 與 Obsidian 共用動態 SVG（連線流動＋重播 T-0022＋KPI 卡），`legion docs` 產生、晨報更新 KPI 卡 | ✅ 2026-11-15 | 瀏覽器實測動畫時間窗與實線流動；全套 301 passed；GitHub 與 Obsidian 實際播放待確認 | `02_data/verify_20261114.md` 第 22 節 |
+| A19 | 評測基準 `legion bench`：8 道固定題目驗證閉環控制邏輯（mock），儀表畫趨勢 | ✅ 2026-11-15 | 8/8；三個變異測試都會失敗（刪檔規則、執行後範圍檢查、守門放行 high） | `02_data/verify_20261115.md` 第 1 節；6963955 |
+| A20 | 改檔防護四層：.gitattributes LF、產生器寫 LF、Claude hook 寫檔當下檢查、git pre-commit；14 檔換行一次統一 | ✅ 2026-11-15 | 探測檔（CRLF、斷行字串）被 hook 與 pre-commit 都擋下 | `02_data/verify_20261115.md` 第 2 節；2ca4f0e、e3b4566 |
 
 ## inbox_hold 分流建議（給 D7）
 

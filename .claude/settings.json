@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && P=.venv/Scripts/python.exe; [ -x \"$P\" ] || P=.venv/bin/python; \"$P\" scripts/check_text_files.py --hook",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

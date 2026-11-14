@@ -1,0 +1,38 @@
+#!/bin/sh
+# 提交前檢查（啟用：git config core.hooksPath .githooks；clone 後要先建好 .venv，見 README「改檔防護」）
+# 1. 換行與語法：暫存內容不得有 CRLF（.bat／.cmd／.ps1 除外）、.py 要能編譯、不能整檔只改換行
+# 2. ruff（只查暫存的 .py；檔名可含中文或空白）
+# 3. README 的流程圖與儀表說明要跟 diagrams.py 同步
+# 刻意的換行整理請加 LEGION_ALLOW_EOL_CHURN=1 並列入 .git-blame-ignore-revs
+#
+# legion 會在 .worktrees/ 底下對本 repo 自動提交；worktree 裡沒有 .venv，所以找不到時退回主 worktree 的 .venv，
+# 並優先載入「這個」worktree 的 src，檢查的才是要提交的程式碼。
+TOP="$(git rev-parse --show-toplevel)" || exit 1
+cd "$TOP" || exit 1
+MAIN="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+
+find_tool() {  # $1＝Windows 名稱、$2＝其他平台名稱
+  for base in "$TOP" "$MAIN"; do
+    [ -x "$base/.venv/Scripts/$1" ] && { echo "$base/.venv/Scripts/$1"; return; }
+    [ -x "$base/.venv/bin/$2" ] && { echo "$base/.venv/bin/$2"; return; }
+  done
+}
+PY="$(find_tool python.exe python)"
+RUFF="$(find_tool ruff.exe ruff)"
+if [ -z "$PY" ]; then
+  echo "pre-commit：找不到 .venv（本 worktree 與主 worktree 都沒有）。請先執行 scripts\\start.bat 建立環境。"
+  exit 1
+fi
+
+EXTRA=""
+[ "$LEGION_ALLOW_EOL_CHURN" = "1" ] && EXTRA="--allow-eol-churn"
+"$PY" scripts/check_text_files.py --staged $EXTRA || exit 1
+
+if [ -n "$RUFF" ]; then
+  git -c core.quotepath=false diff --cached --name-only -z --diff-filter=ACMR -- '*.py' \
+    | xargs -0 -r "$RUFF" check || { echo "pre-commit：ruff 不通過"; exit 1; }
+fi
+
+# 先載入「這個」worktree 的 src（不用 PYTHONPATH：Git Bash 呼叫 Windows Python 時分隔符號不可靠）
+"$PY" -c "import sys; sys.path.insert(0, 'src'); from legion.cli import main; raise SystemExit(main(['docs', '--check']))" || exit 1
+exit 0

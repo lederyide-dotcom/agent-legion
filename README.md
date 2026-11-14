@@ -340,6 +340,19 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 
 `legion bench` 是評測基準：8 道固定題目（一次就過、驗收失敗重試、規格退回、交付審查退回、刪檔判高風險、範圍外檔案、同一錯誤請示軍師、後續想法暫存），在獨立的 schema、vault、worktree 裡用 mock 跑，約 25 秒、不花額度。每題都有預期結局，任何一題不符就代表閉環的控制邏輯被改壞了（例如拿掉「刪檔判高風險」規則，`high-risk` 那題會失敗）。結果存到 `02_data/bench/`、追加到 `metrics.csv`，儀表 KPI 卡會畫出最近幾次的趨勢。
 
+### 6. 改檔防護（換行與語法）
+
+本 repo 文字檔一律 LF（`.bat`、`.cmd`、`.ps1` 除外），由四層把關：
+
+| 層 | 做什麼 | 啟用方式 |
+|---|---|---|
+| `.gitattributes` | `* text=auto eol=lf`：不管用什麼工具改，進 repo 都是 LF | clone 後自動生效 |
+| 程式產生的檔 | 所有 `write_text` 加 `newline="\n"`、CSV 寫入器加 `lineterminator="\n"` | 已內建 |
+| Claude Code hook | 每次寫檔後檢查那個檔、執行指令後檢查工作目錄的變動：不得有 CRLF、`.py` 要能編譯；不通過就當場回報給 Claude | `.claude/settings.json`（專案層級） |
+| git pre-commit | 提交前檢查暫存內容（同上），加上 ruff、`legion docs --check`，以及「整檔只改換行」偵測；legion 在 `.worktrees/` 自動提交時會用主目錄的 `.venv` | clone 後先跑 `scripts\start.bat` 建好 `.venv`，再執行一次 `git config core.hooksPath .githooks` |
+
+檢查程式是 [scripts/check_text_files.py](scripts/check_text_files.py)，中文或含空白的檔名也會檢查。只改格式的 commit 列在 `.git-blame-ignore-revs`（`git config blame.ignoreRevsFile .git-blame-ignore-revs`）。
+
 ## 安全邊界（程式強制）
 
 - **風險只升不降**：agent 只能提議風險，最終取「規則判定」與「提議」的較高者；執行後再依實際 diff 重新判定。
@@ -365,7 +378,11 @@ src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角�
                  diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、bench.py（評測基準）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
-scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1
+scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1、
+                 check_text_files.py（改檔檢查：換行與語法）
+.githooks/       pre-commit（提交前檢查）
+.claude/         settings.json（專案層級 Claude Code hook：改檔當下檢查）
+.gitattributes、.git-blame-ignore-revs   換行規則（LF）、blame 略過只改格式的 commit
 sandbox_repo/    給 agent 練習用的玩具專案
 tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控

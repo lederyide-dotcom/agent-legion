@@ -21,3 +21,6 @@ vault/INBOX/*
 vault/STOP
 # 本機研究筆記（含個人環境資訊）；整理後的報告在 reports/
 research_notes/
+
+# Claude Code 個人設定（專案共用的 hook 在 .claude/settings.json）
+.claude/settings.local.json
