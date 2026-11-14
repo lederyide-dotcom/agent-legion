@@ -17,8 +17,8 @@
 | 8 | 研究報告第 2 步：實測 deny 規則與 hook 真的會擋 | Claude Code | ⛔ blocked：需要真實呼叫，花費要 David 先同意 | spec v0.5「必須停下來問我」：真實任務花費 | |
 | 9 | 提供水利計算函式庫戰役的範圍：要涵蓋的公式或規範，以及要放在哪個 repo | David | ⏳ | 提供後由 Claude Code 寫戰役任務檔給 David 確認，再放進 INBOX | |
 | 10 | 決定 `strip_code_fence` 多重圍欄的行為要不要改（目前測試把「兩段合併、中間圍欄殘留」固定成現狀） | David | ⏳ | 要改就開新戰役：先改測試期望（需 David 核准，屬改既有測試），再改 telegram_bot.py | target-repo-b `tests/test_strip_code_fence.py` |
-| 11 | 做 `legion cleanup`：列出已併入目標 repo 的 `legion/*` 分支與 worktree、HALT 任務的殘留 worktree，預設只列不刪；加 `--apply` 才刪，且只刪「已是 HEAD 祖先」的分支 | Claude Code | ⏳ | 測試：未合併分支、dirty worktree 一律不刪；dry-run 不改任何東西。實際對 target-repo-b 執行 `--apply` 前要 David 同意 | |
-| 12 | 同意清理 target-repo-b 已合併的 legion/T-0017～T-0021 分支與 worktree，以及 T-0012／T-0020 的殘留 | David | ⛔ blocked：等 #11 的 dry-run 清單 | 看清單後回「同意」或剔除項目 | |
+| 11 | 做 `legion cleanup`：列出已併入目標 repo 的 `legion/*` 分支與 worktree、HALT 任務的殘留 worktree，預設只列不刪；加 `--apply` 才刪，且只刪「已是 HEAD 祖先」的分支 | Claude Code | ✅ 2026-11-14 | 10 項反例測試、全套 139 passed；code-reviewer 必修 4 項已修 | `src/legion/cleanup.py`、`tests/test_cleanup.py`、`02_data/verify_20261114.md` 第 8 節 |
+| 12 | 同意對 target-repo-b 執行 `legion cleanup --apply`：dry-run 清單只會刪 T-0017、T-0018、T-0021 的分支與 worktree。T-0015（未提交變更）、T-0019（T-0020 要從它接續）、T-0020（可續跑）保留；.worktrees/T-0001、T-0003、T-0004 是孤兒，只列不刪 | David | ⏳ | 回「同意」後由 Claude Code 執行並記錄；T-0020 要不要 cancel（cancel 後 T-0019 也能清）另外決定 | `02_data/verify_20261114.md` 第 8 節 |
 | 13 | 挑選 `vault/AI/inbox_hold/` 裡 10 個後續想法：要做的搬回 INBOX，不做的搬到 99_archive | David | ⏳ | 真實 backend 不自動領取回灌想法（事故 4） | |
 | 14 | 決定 target-repo-b 的 `legion/T-0015` 分支（晨報列為唯一待 merge）要合併還是封存 | David | ⏳ | 合併前 Claude Code 可先跑測試、列 diff 給你看 | `vault/AI/reports/brief-2026-11-14.md` |
 | 15 | 決定是否加 Telegram 通知作為第 2 層推播 | David | ⏳ | 依 #4 結果再決定；會碰 bot token，屬「必須停下來問我」 | |

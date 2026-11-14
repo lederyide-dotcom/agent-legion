@@ -147,6 +147,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("status")
     sub.add_parser("models", help="顯示各角色目前分配的模型與 effort（含環境變數覆寫）")
     sub.add_parser("brief", help="每日晨報：等你處理的任務、停下的任務、待 merge 分支、戰役、花費（不花額度）")
+    cl = sub.add_parser("cleanup", help="列出可清理的已併入分支與 worktree；加 --apply 才刪")
+    cl.add_argument("--apply", action="store_true", help="真的刪除（只刪已併入 HEAD 且 worktree 乾淨的）")
     args = ap.parse_args(argv)
 
     s = Settings(schema_name=args.schema)
@@ -164,6 +166,13 @@ def main(argv: list[str] | None = None) -> int:
 
         print(json.dumps(asyncio.run(_with_store(s, make)), ensure_ascii=False, indent=2))
         return 0
+
+    if args.cmd == "cleanup":
+        from .cleanup import run_cleanup
+
+        res = asyncio.run(_with_store(s, lambda st: run_cleanup(s, st, args.apply)))
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+        return 0 if not res.get("error") and all(not r["errors"] for r in res.get("results", [])) else 1
 
     if args.cmd == "init-vault":
         init_vault(s)

@@ -573,3 +573,5 @@ date,commit,metric,value,command
 2026-11-14T04:10:00+08:00,f30c840,target-repo-b.legion_T-0021.pytest_passed,50,python -m pytest -q tests -p no:cacheprovider（worktree T-0021）
 2026-11-14T04:10:00+08:00,f30c840,target-repo-b.master_after_merge.pytest_passed,50,python -m pytest -q tests -p no:cacheprovider（master 0b9d364）
 2026-11-14T04:10:00+08:00,f30c840,claude_projects_jsonl_delta,0,計數 %USERPROFILE%\.claude\projects\**\*.jsonl 前後
+2026-11-14T13:30:00+08:00,0f98a9c,legion.pytest_passed,139,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（含 cleanup 10 項，未提交工作目錄）
+2026-11-14T13:30:00+08:00,0f98a9c,legion.cleanup.dry_run_removable,3,.venv\Scripts\python.exe -m legion cleanup（T-0017、T-0018、T-0021）
