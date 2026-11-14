@@ -7,6 +7,8 @@ name = "legion"
 version = "0.4.0"
 description = "AI Agents 自主指揮軍團閉環 PoC：Runner＋指揮官＋Vault＋開發紀錄文件"
 requires-python = ">=3.10"
+authors = [{ name = "楊奕德 DavidY" }]
+license = { file = "LICENSE" }  # 保留所有權利（All rights reserved），非開源
 # 版本鎖定見 requirements.lock
 dependencies = [
   "psycopg[binary]==3.2.3",

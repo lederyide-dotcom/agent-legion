@@ -1,0 +1,35 @@
+Copyright (c) 2026 楊奕德 DavidY. All rights reserved.
+
+本專案 agent-legion（以下稱「本專案」）的原始碼、文件、架構設計、流程、提示詞、
+測試、資料與圖表，著作權及其他一切權利均屬作者楊奕德 DavidY 所有。
+
+一、未授權
+除法律另有規定外，未經作者事先書面同意，任何人不得重製、散布、修改、改作、
+公開傳輸、公開展示、再授權、用於訓練模型或作商業利用本專案的全部或一部分。
+取得本專案的檢視或存取權限，不代表取得任何授權。
+
+二、AI 協作聲明
+本專案在開發過程中使用 AI 工具（包括 Anthropic Claude）作為輔助。本專案的構想、
+目標與範圍、架構與流程設計、需求與驗收標準、取捨判斷、測試驗證與最終整合，
+均由作者主導並投入個人時間與成本完成；AI 產出的內容均經作者審閱、選擇、修改
+與整合後，才成為本專案的一部分。在法律允許的範圍內，上述成果的權利歸作者所有。
+
+三、第三方元件
+本專案使用的第三方套件與工具（例如 requirements.txt、pyproject.toml 列出的
+Python 套件，以及 tools/mermaid 的 npm 套件）各自依其原授權條款使用，不因本聲明
+而改變。
+
+四、未來公開版本
+作者保留日後以其他授權條款（包括開源授權）公開本專案全部或一部分的權利。
+屆時以該公開版本隨附的授權條款為準，且只適用於該版本所含的內容；
+本版本及未公開的部分仍依本聲明處理。
+
+如需授權或合作，請透過本專案所在平台與作者聯繫。
+
+---
+
+English summary: Copyright (c) 2026 DavidY (楊奕德). All rights reserved.
+No license is granted. AI tools were used as assistants; the concept, design,
+requirements, judgement, verification and integration are the author's own work.
+The author may release a public version under a separate license in the future;
+that license applies only to the content included in that release.
