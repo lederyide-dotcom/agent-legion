@@ -668,6 +668,7 @@ class Runner:
             return None
         vault.write_question(self.s, task, "實際變更判定為 high 風險，需使用者核准", reasons)
         meta["pending_diff_sig"] = sig
+        meta["pending_oos"] = oos  # 核准時一併記下這些範圍外路徑（路徑層級，見 _scope_check）
         task = await self.store.update_task(task.id, risk=new_risk, risk_reasons=reasons_all, meta=meta)
         return await self._go(task, State.WAIT_HUMAN, {"reason": "diff_high"}, wait_reason="實際變更為 high 風險",
                               return_state=State.VERIFY)
@@ -769,6 +770,21 @@ class Runner:
             dev = await self.ev.add_text(task, task.step, f"verify{n}_diffstat", stat or "（無變更）\n",
                                          "相對於起點 commit 的 diff 統計")
             meta["diffstat_ev"] = dev.id
+            scope = await self._scope_check(task, wt, n)
+            checks.append({k: scope[k] for k in ("name", "ok", "txt")})
+            if not scope["ok"]:
+                # 驗收指令執行後才出現的範圍外檔案（log、測試產物等）：diff gate 看不到，在這裡停下等人核准，
+                # 不退回 EXEC（重做也不會消失，只會耗重試次數）。核准以路徑為單位，產物內容每次不同也能通過。
+                meta["pending_diff_sig"] = await self._diff_sig(wt, task.base_commit or "HEAD")
+                meta["pending_oos"] = scope["oos"]
+                meta["verify_runs"] = [*meta.get("verify_runs", []), {"cmds": cmds_res, "checks": checks, "ok": False}]
+                reasons = [f"high: 驗收後出現超出允許範圍的變更：{'、'.join(scope['oos'][:10])}"]
+                vault.write_question(self.s, task, "驗收後出現超出允許範圍的變更，需使用者核准", reasons)
+                task = await self.store.update_task(
+                    task.id, meta=meta, risk=max_risk(task.risk, "high"),
+                    risk_reasons=[*task.risk_reasons, *[r for r in reasons if r not in task.risk_reasons]])
+                return await self._go(task, State.WAIT_HUMAN, {"reason": "scope_after_verify"},
+                                      wait_reason="驗收後出現超出允許範圍的變更", return_state=State.VERIFY)
         elif task.kind == "readonly":
             dev = await self.ev.add_text(task, task.step, f"verify{n}_diffstat", "唯讀任務：無檔案變更。\n",
                                          "唯讀任務 diff 統計")
@@ -791,6 +807,27 @@ class Runner:
             raise Halt(f"same_error_x{same_count}: 相同的驗收失敗累計出現 {same_count} 次（特徵 {sig}）")
         task = await self._bump_retry(task, "VERIFY 失敗")
         return await self._go(task, State.EXEC, {"verify": "fail"})
+
+    async def _scope_check(self, task: Task, wt: Path, n: int) -> dict[str, Any]:
+        """變更範圍證據（runner 提供，規劃者不必自己寫範圍指令）。
+
+        相對任務起點 commit 比對（已 commit 的變更與未追蹤新檔都算在內，因為先 git add -A）。
+        超出範圍的路徑若全都經使用者核准過（路徑層級）就放行；內容是否削弱測試另由 _test_protection 以實際 diff 把關。
+        """
+        base = task.base_commit or "HEAD"
+        ns = await git([*_GITQ, "diff", "--cached", "--name-status", base], wt)
+        allowed = self._allowed_paths(task)
+        oos = out_of_scope(ns, allowed)
+        approved_paths = set(task.meta.get("approved_oos_paths") or [])
+        approved = bool(oos) and set(oos) <= approved_paths
+        result = "OUT_OF_SCOPE_APPROVED" if approved else ("OUT_OF_SCOPE" if oos else "OK")
+        name = "變更範圍（相對任務起點 commit，含未追蹤新檔）"
+        # result 放最前面：證據摘要只取每份前段，變更檔很多時審查者仍看得到結論
+        body = (f"result: {result}\nout of scope: {', '.join(oos) if oos else '（無）'}\n\n{name}\n\nbase: {base}\n"
+                f"allowed: {', '.join(allowed) if allowed else '（未設定允許範圍：只檢查 worktree 外未被修改）'}\n\n"
+                f"changed (name-status):\n{ns.strip() or '（無變更）'}\n")
+        ev = await self.ev.add_text(task, task.step, f"verify{n}_scope", body, name)
+        return {"name": name, "ok": result != "OUT_OF_SCOPE", "txt": ev.id, "oos": oos}
 
     async def _evidence_digest(self, task: Task) -> str:
         parts = []
@@ -1005,6 +1042,8 @@ class Runner:
             meta["pending_installs_approved"] = True
         if meta.get("pending_diff_sig"):
             meta["approved_diff_sig"] = meta.pop("pending_diff_sig")
+        if "pending_oos" in meta:
+            meta["approved_oos_paths"] = sorted({*meta.get("approved_oos_paths", []), *meta.pop("pending_oos")})
         task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state or State.EXEC, {"approved_by": by}, wait_reason=None)
 

@@ -35,15 +35,15 @@
 | A6 | `legion cancel` 收尾可續跑的 HALT；T-0020 已收尾 | ✅ 2026-11-14 | tests/test_cancel_halted.py | 同上第 10 節 |
 | A7 | start.bat 固定 compose 專案名稱 | ✅ 2026-11-14 | 主目錄與 worktree 都解析成同一名稱 | 同上第 10 節 |
 | A8 | 花費分析：Opus 規劃＋審查占比 | ✅ 2026-11-14 | 數字取自帳本 | `02_data/cost_analysis_20261114.md` |
-| A9 | 範圍驗收自動化：runner 自動附加「相對 base_commit 的 diff＋未追蹤檔」範圍檢查，取代每份規格各寫一次 | ⏳ | 5 個 inbox_hold 想法指向同一問題（fu-T-0001-1、T-0005-1、T-0015-1、T-0018-2、T-0021-1）；加測試；不放寬既有規則 | |
+| A9 | 範圍驗收自動化：runner 產生「變更範圍」證據（相對起點 commit、含已 commit 與未追蹤新檔）；驗收後才出現的範圍外檔案停下等核准，核准以路徑為單位；規劃者提示不必再寫範圍指令 | ✅ 2026-11-14 | 5 項測試；code-reviewer 必修 1 項已修；相關 6 個想法檔已封存到 `vault/AI/inbox_done/resolved-A9__*` | `tests/test_scope_check.py`、`02_data/verify_20261114.md` 第 11 節 |
 | A10 | progress.md 交接段落 | ✅ 2026-11-14 | 新 session 只讀 progress.md 即可接手 | `03_docs/progress.md` 最後一段 |
 
 ## inbox_hold 分流建議（給 D7）
 
 | 想法檔 | 建議 | 理由 |
 |---|---|---|
-| fu-T-0001-1、fu-T-0005-1、fu-T-0015-1、fu-T-0018-2、fu-T-0021-1 | 併成 A9，做完後封存 | 同一問題：範圍驗收在 commit 後輸出為空、看不到未追蹤檔 |
-| fu-T-0021-2（-k 預期收集筆數） | 併入 A9 的後續 | legion 層的收集檢查，同類問題 |
+| fu-T-0001-1、fu-T-0005-1、fu-T-0015-1、fu-T-0018-2、fu-T-0021-1 | ✅ 已由 A9 解決並封存 | 範圍驗收在 commit 後輸出為空、看不到未追蹤檔 |
+| fu-T-0021-2（-k 預期收集筆數） | ✅ 已封存 | pytest 收集 0 筆時 exit 5，驗收本來就會失敗 |
 | fu-T-0018-1（safe_workspace_path 邊界測試） | 值得做，約 $0.2 | 補 `NUL .log` 等邊界，真實安全價值；花費需 D 同意 |
 | fu-T-0016-1（人工抽查 T-0016 報告機密處理） | 人做 | 涉及機密判斷，留給人 |
 | fu-T-0016-2（報告內容檢查） | 低優先 | 目前 `--verify-refs` 已擋最大風險 |
