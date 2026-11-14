@@ -328,7 +328,7 @@ class Runner:
         local = self.s.prompt_dir / task.id / f"step{task.step:03d}_{role}.md"
         local.parent.mkdir(parents=True, exist_ok=True)
         if not local.exists():  # 續跑時保留第一版，與證據雜湊一致
-            local.write_text(prompt, encoding="utf-8")
+            local.write_text(prompt, encoding="utf-8", newline="\n")
         digest = (f"role: {role}\nstep: {task.step}\nsha256: {sha}\nchars: {len(prompt)}\n"
                   f"local_copy: {local}\n（全文不進 git；以 sha256 對照本機副本）\n")
         await self.ev.add_text(task, task.step, f"prompt_{role}", digest, f"{role} 提示雜湊（全文存本機）",
@@ -491,7 +491,7 @@ class Runner:
         spec_md = str(out.get("spec_md", ""))
         spec_path = self.s.ai_dir / "specs" / f"{task.id}.md"
         spec_path.parent.mkdir(parents=True, exist_ok=True)
-        spec_path.write_text(spec_md + "\n", encoding="utf-8")
+        spec_path.write_text(spec_md + "\n", encoding="utf-8", newline="\n")
         await self.store.update_task(
             task.id, accept_cmds=accept, risk=risk, risk_proposed=out.get("risk_proposed"), risk_reasons=reasons,
             plan={"spec_md": spec_md, "actions": actions, "rationale": out.get("rationale", "")},
@@ -574,7 +574,7 @@ class Runner:
         if task.kind == "readonly" and out.get("report_md"):
             rp = self.s.ai_dir / "reports" / f"{task.id}-report.md"
             rp.parent.mkdir(parents=True, exist_ok=True)
-            rp.write_text(str(out["report_md"]), encoding="utf-8")
+            rp.write_text(str(out["report_md"]), encoding="utf-8", newline="\n")
         reqs_raw = list(out.get("install_requests") or [])
         if reqs_raw:
             reqs: list[InstallRequest] = []
@@ -864,7 +864,7 @@ class Runner:
         meta = dict(task.meta)
         runs = await self.store.runs(task.id)
         buf = io.StringIO()
-        w = csv.writer(buf)
+        w = csv.writer(buf, lineterminator="\n")
         w.writerow(["state", "step", "role", "backend", "model", "session_id", "cost_usd", "duration_s"])
         for r in runs:
             w.writerow([r.state, r.step, r.role, r.backend, r.model, r.session_id, f"{r.cost_usd:.6f}",
@@ -911,7 +911,7 @@ class Runner:
         for sub, key in (("lessons", "lessons_md"), ("handoffs", "handoff_md")):
             p = self.s.ai_dir / sub / f"{task.id}.md"
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(str(out.get(key, "")), encoding="utf-8")
+            p.write_text(str(out.get(key, "")), encoding="utf-8", newline="\n")
         meta = dict(task.meta)
         meta["scribe"] = {k: v for k, v in out.items() if not k.startswith("_")}
         task = await self.store.update_task(task.id, meta=meta)

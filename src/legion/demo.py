@@ -44,9 +44,9 @@ def _git(args: list[str], cwd: Path) -> str:
 def make_demo_repo(root: Path) -> Path:
     _rm(root)
     root.mkdir(parents=True)
-    (root / "calc.py").write_text(CALC_V0, encoding="utf-8")
-    (root / "test_calc.py").write_text(TEST, encoding="utf-8")
-    (root / ".gitignore").write_text("__pycache__/\n.pytest_cache/\n", encoding="utf-8")
+    (root / "calc.py").write_text(CALC_V0, encoding="utf-8", newline="\n")
+    (root / "test_calc.py").write_text(TEST, encoding="utf-8", newline="\n")
+    (root / ".gitignore").write_text("__pycache__/\n.pytest_cache/\n", encoding="utf-8", newline="\n")
     _git(["init", "-q", "-b", "main"], root)
     _git(["-c", "user.name=legion-demo", "-c", "user.email=demo@localhost", "add", "-A"], root)
     _git(["-c", "user.name=legion-demo", "-c", "user.email=demo@localhost", "commit", "-q", "-m", "init"], root)
@@ -54,7 +54,7 @@ def make_demo_repo(root: Path) -> Path:
 
 
 def _idea(path: Path, fm: dict[str, Any], body: str) -> None:
-    path.write_text(f"---\n{yaml.safe_dump(fm, allow_unicode=True, sort_keys=False)}---\n{body}\n", encoding="utf-8")
+    path.write_text(f"---\n{yaml.safe_dump(fm, allow_unicode=True, sort_keys=False)}---\n{body}\n", encoding="utf-8", newline="\n")
 
 
 def clean_demo_vault(settings: Settings, prefix: str) -> None:
@@ -146,7 +146,7 @@ async def run_demo(settings: Settings, max_ticks: int = 40) -> dict[str, Any]:
         out = settings.data_dir / "metrics.csv"
         new = not out.exists()
         with out.open("a", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, fieldnames=["date", "commit", "metric", "value", "command"])
+            w = csv.DictWriter(f, fieldnames=["date", "commit", "metric", "value", "command"], lineterminator="\n")
             if new:
                 w.writeheader()
             w.writerows(rows)

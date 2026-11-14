@@ -41,12 +41,12 @@ def main() -> int:
     proc = subprocess.run(
         cmd, input=PROMPT, capture_output=True, text=True, encoding="utf-8", cwd=WORK, timeout=180,
     )
-    (WORK / "out.json").write_text(proc.stdout, encoding="utf-8")
-    (WORK / "err.txt").write_text(proc.stderr, encoding="utf-8")
+    (WORK / "out.json").write_text(proc.stdout, encoding="utf-8", newline="\n")
+    (WORK / "err.txt").write_text(proc.stderr, encoding="utf-8", newline="\n")
     (WORK / "done.txt").write_text(
         f"exit={proc.returncode} seconds={time.monotonic() - t0:.1f} user={os.environ.get('USERNAME')} "
         f"interactive_stdin={sys.stdin is not None and sys.stdin.isatty() if sys.stdin else False}\n",
-        encoding="utf-8",
+        encoding="utf-8", newline="\n",
     )
     return 0
 

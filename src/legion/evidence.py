@@ -148,12 +148,12 @@ async def render_mermaid(settings: Settings, mmd: str, workdir: Path) -> bytes:
     workdir.mkdir(parents=True, exist_ok=True)
     src = workdir / "flow.mmd"
     out = workdir / "flow.png"
-    src.write_text(mmd, encoding="utf-8")
+    src.write_text(mmd, encoding="utf-8", newline="\n")
     if out.exists():
         out.unlink()
     # puppeteer 設定在執行時產生：瀏覽器路徑來自 LEGION_BROWSER 或自動偵測，不進版控
     cfg = workdir / "puppeteer.json"
-    cfg.write_text(json.dumps({"executablePath": str(settings.browser), "args": ["--no-sandbox"]}), encoding="utf-8")
+    cfg.write_text(json.dumps({"executablePath": str(settings.browser), "args": ["--no-sandbox"]}), encoding="utf-8", newline="\n")
     cmd = [str(settings.mermaid_cli), "-i", str(src), "-o", str(out), "-p", str(cfg), "-b", "white", "-s", "2"]
 
     def go() -> subprocess.CompletedProcess[str]:

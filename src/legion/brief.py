@@ -125,7 +125,7 @@ async def build(settings: Settings, store: Store, today: date | None = None) -> 
     b = collect(settings, await store.list_tasks(), today)
     path = settings.ai_dir / "reports" / f"brief-{b['date']}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render(b), encoding="utf-8")
+    path.write_text(render(b), encoding="utf-8", newline="\n")
     from .motion import write_dashboard  # 晨報順便更新 Obsidian 儀表.md 上方的 KPI 卡（附屬功能，失敗不影響晨報）
 
     try:

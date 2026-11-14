@@ -147,7 +147,7 @@ def append_ledger(path: Path, task_id: str, req: InstallRequest, level: str) -> 
     path.parent.mkdir(parents=True, exist_ok=True)
     new = not path.exists() or path.stat().st_size == 0
     with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=LEDGER_FIELDS)
+        w = csv.DictWriter(f, fieldnames=LEDGER_FIELDS, lineterminator="\n")
         if new:
             w.writeheader()
         w.writerow(row)

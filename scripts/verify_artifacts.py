@@ -47,7 +47,7 @@ async def main() -> int:
     out = s.data_dir / "image_check.csv"
     new = not out.exists()
     with out.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(img_rows[0]))
+        w = csv.DictWriter(f, fieldnames=list(img_rows[0]), lineterminator="\n")
         if new:
             w.writeheader()
         w.writerows(img_rows)

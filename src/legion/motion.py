@@ -39,9 +39,9 @@ async def render_flow_svg(settings: Settings, workdir: Path) -> str:
     """用 mmdc 把 diagrams.mermaid() 轉成 SVG 原始碼（尚未加動畫）。"""
     workdir.mkdir(parents=True, exist_ok=True)
     src, out, cfg, pp = (workdir / n for n in ("flow.mmd", "flow.svg", "mermaid.json", "puppeteer.json"))
-    src.write_text(diagrams.mermaid(), encoding="utf-8")
-    cfg.write_text(json.dumps(MERMAID_CONFIG), encoding="utf-8")
-    pp.write_text(json.dumps({"executablePath": str(settings.browser), "args": ["--no-sandbox"]}), encoding="utf-8")
+    src.write_text(diagrams.mermaid(), encoding="utf-8", newline="\n")
+    cfg.write_text(json.dumps(MERMAID_CONFIG), encoding="utf-8", newline="\n")
+    pp.write_text(json.dumps({"executablePath": str(settings.browser), "args": ["--no-sandbox"]}), encoding="utf-8", newline="\n")
     if out.exists():
         out.unlink()
     cmd = [str(settings.mermaid_cli), "-i", str(src), "-o", str(out), "-c", str(cfg), "-p", str(pp), "-b", "transparent"]

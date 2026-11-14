@@ -152,7 +152,7 @@ def append_csv(out: Path, r: RecordCheck) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     new = not out.exists()
     with out.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+        w = csv.DictWriter(f, fieldnames=CSV_FIELDS, lineterminator="\n")
         if new:
             w.writeheader()
         w.writerow({

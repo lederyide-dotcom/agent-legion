@@ -134,10 +134,10 @@ def init_vault(settings: Settings) -> None:
     keep = [settings.inbox_dir / ".gitkeep"] + [settings.ai_dir / s / ".gitkeep" for s in AI_SUBDIRS]
     for k in keep:
         if not k.exists():
-            k.write_text("", encoding="utf-8")
-    (settings.ai_dir / "儀表.base").write_text(BASE_YAML, encoding="utf-8")
-    (settings.ai_dir / "流程.md").write_text(diagrams.flow_markdown(), encoding="utf-8")
-    (settings.ai_dir / "儀表.md").write_text(diagrams.dashboard_note(), encoding="utf-8")
+            k.write_text("", encoding="utf-8", newline="\n")
+    (settings.ai_dir / "儀表.base").write_text(BASE_YAML, encoding="utf-8", newline="\n")
+    (settings.ai_dir / "流程.md").write_text(diagrams.flow_markdown(), encoding="utf-8", newline="\n")
+    (settings.ai_dir / "儀表.md").write_text(diagrams.dashboard_note(), encoding="utf-8", newline="\n")
     # 動態 SVG：vault 裡還沒有時，先放 repo 的版本（legion docs 產生），Obsidian 的嵌入才不會破圖
     img = settings.vault / diagrams.VAULT_IMG
     img.mkdir(parents=True, exist_ok=True)
@@ -146,10 +146,10 @@ def init_vault(settings: Settings) -> None:
         if src.exists() and not dst.exists():
             dst.write_bytes(src.read_bytes())
     (settings.ai_dir / "流程.canvas").write_text(
-        json.dumps(canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8", newline="\n"
     )
     (settings.ai_dir / "模型分配.canvas").write_text(
-        json.dumps(models_canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(models_canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8", newline="\n"
     )
     readme = settings.vault / "README.md"
     if not readme.exists():
@@ -158,7 +158,7 @@ def init_vault(settings: Settings) -> None:
             "- `INBOX/`：一個 .md 一個想法（可選 frontmatter：title、kind、repo、subdir）。\n"
             "- `STOP`：**建立這個檔案（內容不限）即全系統停止**，所有進行中任務進入 HALT。\n"
             "- `AI/`：agent 與 runner 可寫區；`AI/儀表.base` 是儀表，`AI/流程.md` 是閉環流程圖（與 GitHub README 同一張），`AI/流程.canvas` 是可拖曳並標註模型的版本。\n",
-            encoding="utf-8",
+            encoding="utf-8", newline="\n",
         )
 
 
@@ -244,7 +244,7 @@ def write_followup(settings: Settings, parent: Task, n: int, title: str, body: s
     child = parent.meta.get("mock", {}).get("child")
     if child is not None:
         fm["mock"] = child
-    path.write_text(f"---\n{yaml.safe_dump(fm, allow_unicode=True, sort_keys=False)}---\n{body}\n", encoding="utf-8")
+    path.write_text(f"---\n{yaml.safe_dump(fm, allow_unicode=True, sort_keys=False)}---\n{body}\n", encoding="utf-8", newline="\n")
     return path
 
 
@@ -284,7 +284,7 @@ def export_task(settings: Settings, task: Task) -> Path:
     lines += ["", task.body]
     path = settings.ai_dir / "tasks" / f"{task.id}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return path
 
 
@@ -297,7 +297,7 @@ def write_question(settings: Settings, task: Task, reason: str, details: list[st
         f"# 需要使用者決定：{task.id} {task.title}\n\n原因：{reason}\n\n## 細節\n{body}\n\n"
         f"## 怎麼回答（在專案根目錄執行）\n```\n.venv\\Scripts\\python.exe -m legion answer {task.id} approve\n"
         f".venv\\Scripts\\python.exe -m legion answer {task.id} reject\n```\n",
-        encoding="utf-8",
+        encoding="utf-8", newline="\n",
     )
     return path
 
@@ -333,7 +333,7 @@ def write_mission_note(settings: Settings, mission: dict[str, Any], tasks: list[
         f"# 戰役：{mission['name']}\n\n- 狀態：**{status}**\n"
         f"- 任務：{len(tasks)}／{mission['max_tasks']}　花費：${spent:.4f}／${float(mission['budget_usd']):.2f}\n"
         f"{branch}\n## 目標\n{mission['goal']}\n\n## 任務\n| 編號 | 標題 | 類型 | 狀態 | 花費 |\n|---|---|---|---|---|\n"
-        + "\n".join(rows) + "\n", encoding="utf-8")
+        + "\n".join(rows) + "\n", encoding="utf-8", newline="\n")
     return path
 
 
@@ -364,7 +364,7 @@ def write_advisor_question(settings: Settings, task: Task, adv: dict[str, Any]) 
         f".venv\\Scripts\\python.exe -m legion answer {task.id} reject    # 停止任務\n```\n\n"
         f"> [!info] {minutes:g} 分鐘內沒有決定，指揮官＋軍師會自動決議：優先採用推薦，"
         f"但只限「不需要你處理、風險不是 high、預估花費在剩餘預算內」的錦囊；都不符合就繼續等你。\n",
-        encoding="utf-8",
+        encoding="utf-8", newline="\n",
     )
     return path
 
@@ -398,5 +398,5 @@ async def weekly_report(settings: Settings, store: Store, day: date | None = Non
     ]
     path = settings.ai_dir / "reports" / f"weekly-{day.isoformat()}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(md) + "\n", encoding="utf-8")
+    path.write_text("\n".join(md) + "\n", encoding="utf-8", newline="\n")
     return path

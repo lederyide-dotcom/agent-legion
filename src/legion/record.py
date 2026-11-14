@@ -205,7 +205,7 @@ async def render_record(settings: Settings, store: Store, task: Task) -> Path:
 
     path = settings.record_dir(task.id) / "record.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(md), encoding="utf-8")
+    path.write_text("\n".join(md), encoding="utf-8", newline="\n")
     return path
 
 

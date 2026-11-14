@@ -263,7 +263,7 @@ def append_export_check(out: Path, task_id: str, path: Path, expected_images: in
     out.parent.mkdir(parents=True, exist_ok=True)
     new = not out.exists()
     with out.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=EXPORT_FIELDS)
+        w = csv.DictWriter(f, fieldnames=EXPORT_FIELDS, lineterminator="\n")
         if new:
             w.writeheader()
         w.writerow(row)

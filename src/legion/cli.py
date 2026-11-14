@@ -191,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
 
         data = export_vault(s.vault)
         try:
-            Path(args.out).write_text(data.model_dump_json() + "\n", encoding="utf-8")  # 無 BOM
+            Path(args.out).write_text(data.model_dump_json() + "\n", encoding="utf-8", newline="\n")  # 無 BOM
         except OSError as e:
             print(f"寫入失敗：{e}", file=sys.stderr)
             return 1
@@ -256,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
         out = data.model_dump_json(indent=2)
         if args.out:
             try:
-                Path(args.out).write_text(out + "\n", encoding="utf-8")  # 無 BOM
+                Path(args.out).write_text(out + "\n", encoding="utf-8", newline="\n")  # 無 BOM
             except OSError as e:
                 print(f"寫入失敗：{e}", file=sys.stderr)
                 return 1

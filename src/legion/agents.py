@@ -177,7 +177,7 @@ class ClaudeCliAgent:
         with tempfile.TemporaryDirectory(prefix="legion-") as td:
             settings_path = Path(td) / "settings.json"
             settings_path.write_text(
-                json.dumps({"permissions": {"allow": prof.allow, "deny": prof.deny}}), encoding="utf-8"
+                json.dumps({"permissions": {"allow": prof.allow, "deny": prof.deny}}), encoding="utf-8", newline="\n"
             )
             cmd = self.build_cmd(call, settings_path)
             env = dict(os.environ)
@@ -311,7 +311,7 @@ class MockAgent:
             for rel, content in beh.get("write_files", {}).items():
                 p = call.cwd / rel
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text(content, encoding="utf-8")
+                p.write_text(content, encoding="utf-8", newline="\n")
             for rel in beh.get("delete_files", []):  # 模擬 agent 未在 PLAN 宣告就刪檔
                 (call.cwd / rel).unlink()
             out = {
@@ -353,7 +353,7 @@ class MockAgent:
             if sc.get("tamper_evidence"):
                 for f in (call.add_dirs[0] / "evidence").glob("*.txt") if call.add_dirs else []:
                     f.chmod(0o666)
-                    f.write_text("被竄改", encoding="utf-8")
+                    f.write_text("被竄改", encoding="utf-8", newline="\n")
             crit = call.task.accept_cmds
             out = {
                 "design_notes": f"本任務依規格在 worktree 內完成變更，驗證結果見（{cite}）。",

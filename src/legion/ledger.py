@@ -32,7 +32,7 @@ def _ensure_header(path: Path) -> list[str]:
     header += missing
     tmp = path.with_name(path.name + ".tmp")
     with tmp.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=header, restval="", extrasaction="ignore")
+        w = csv.DictWriter(f, fieldnames=header, restval="", extrasaction="ignore", lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     os.replace(tmp, path)
@@ -46,7 +46,7 @@ def append_cost(path: Path, *, schema: str, task: str, role: str, backend: str, 
     new = not path.exists() or path.stat().st_size == 0
     header = FIELDS if new else _ensure_header(path)
     with path.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=header, restval="")
+        w = csv.DictWriter(f, fieldnames=header, restval="", lineterminator="\n")
         if new:
             w.writeheader()
         w.writerow({
