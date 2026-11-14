@@ -11,6 +11,7 @@ node_modules/
 .legion_tmp/
 01_output/*.docx
 01_output/*.pdf
+01_output/*.zip
 vault/.obsidian/
 # legion 執行時產生的任務紀錄（含目標 repo 的內容與本機路徑），只留在本機
 vault/AI/*/*

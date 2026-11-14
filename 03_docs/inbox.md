@@ -33,6 +33,7 @@
 | D14 | 「漢華 I&C」最後兩處：water-bim `tests.yml` 第 1 行、anti-todo-tw skill | ✅ David 已改（7935ef7）；其餘 main 上的「漢華」併入 D15 的 `win/author-davidy-tw` 一起處理 | water-bim 分支 `win/author-davidy-tw` |
 | D10 | T-0016 報告機密處理抽查：Claude 代查後結案（選項窗） | ✅ 3.4 無機密片段，22 處引用以當時版本核對相符；hold 檔移到 `vault/AI/inbox_done/D10__fu-T-0016-1.md` | `02_data/verify_20261114.md` 第 19 節 |
 | D15 | 作者名統一為 DavidY-tw、不放本名；legion＋water-bim 都改（選項窗） | ✅ legion 全改並加防呆測試；water-bim 268 檔改完推到 `win/author-davidy-tw`（ef92c4a，485 項測試 OK）。剩：`tests.yml` 第 1 行「DavidY」→「DavidY-tw」需 David 網頁改；分支合進 main 依 water-bim 流程 | `02_data/verify_20261114.md` 第 20 節 |
+| D16 | 「頂尖作法提案」做成技能（選項：A 做） | ⏳ 草稿 `03_docs/skills/frontier-proposal-tw/SKILL.md` 已寫好；David 上傳 `01_output/frontier-proposal-tw.zip` 到 claude.ai 成為帳號技能 | 本機 zip 不進 git |
 
 ## Claude Code 可自主做
 
