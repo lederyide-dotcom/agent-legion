@@ -28,13 +28,17 @@ flowchart TD
     LEARN --> DONE([DONE])
     LEARN -. 後續想法 .-> HOLD[(inbox_hold)]
     HOLD -. 使用者放行 .-> INBOX
-    ANY[任一狀態] -. 超預算 / 超重試 / 逾時 / STOP .-> HALT([HALT])
+    VERIFY -- 同一錯誤反覆 / 超重試 --> ADV[ADVISOR<br/>軍師診斷＋錦囊]
+    ADV -- 至少 3 個錦囊 --> WH
+    ADV -. 呼叫失敗 / 預算不足 / 錦囊不足 .-> HALT
+    WH -. 閒置 15 分鐘自動採用推薦（限低風險） .-> PLAN
+    ANY[任一狀態] -. 超預算 / 逾時 / STOP .-> HALT([HALT])
 
     classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
     classDef runner fill:#fff4e5,stroke:#e8a317,color:#111
     classDef human fill:#fdecea,stroke:#d93025,color:#111
     classDef plain fill:#f1f3f4,stroke:#9aa0a6,color:#111
-    class PLAN,SR,EXEC,REVIEW,LEARN claude
+    class PLAN,SR,EXEC,REVIEW,LEARN,ADV claude
     class GATE,VERIFY runner
     class WH,HALT human
     class INBOX,DONE,HOLD,ANY plain
@@ -47,6 +51,8 @@ flowchart TD
 | 指揮官（規劃、執行） | Claude（`claude -p`，每次全新 session） | 規劃唯讀；執行只能改自己的 git worktree |
 | 規格審查者、交付審查者 | Claude 全新 session | 唯讀 |
 | 書記官 | Claude 全新 session | 只寫敘述，不能改證據 |
+| 軍師（錦囊妙計） | Claude 全新 session，只在任務卡住時請示 | 唯讀；提出至少 3 個錦囊並標出推薦，不能自己動手 |
+| 參謀 | Claude 全新 session，戰役中每個任務結案時 | 唯讀；決定戰役「完成」或「下一個任務」 |
 | 風險閘、驗證、熔斷、帳本 | runner（Python 程式） | 程式規則，不經 LLM |
 
 ### 實際跑出來的路徑
@@ -88,7 +94,7 @@ flowchart LR
     class M human
 ```
 
-戰役會遇到停下來的情況：第一場戰役（repo-b-tests）在 T-0020 碰到預算上限而停下，使用者換個寫法重開第二場（repo-b-tests-2），T-0021 一次完成。T-0022 則是規格和守門規則衝突：規格要求在單行參數清單尾端加案例，守門規則把這種改動判為削弱既有測試；使用者核准例外後手動合併，規劃提示也補上說明，避免再發生。
+戰役會遇到停下來的情況：第一場戰役（repo-b-tests）在 T-0020 碰到預算上限而停下，使用者換個寫法重開第二場（repo-b-tests-2），T-0021 一次完成。T-0022 則是規格和守門規則衝突：規格要求在單行參數清單尾端加案例，守門規則把這種改動判為削弱既有測試，執行重試 3 次仍失敗。runner 請示軍師，軍師診斷出「不是執行者能力問題，是規格與規則衝突」，提出 4 個錦囊：A 改規格把案例移到新的測試函式（推薦）、B 由人核准這一行例外、C 拆成兩個子任務、D 放棄這個案例。因為任務是 high 風險，不會自動決議；使用者選 B，人工驗證後手動合併，規劃提示也補上說明，避免再發生。
 
 ## 環境需求
 
@@ -151,6 +157,7 @@ runner（總指揮）替每次 agent 呼叫依角色選模型與 effort，每個
 | 交付審查者 | Sonnet / high | 執行升級過則 **Opus / high** | 審查者不低於執行者 |
 | 書記官 | Haiku | 同左 | 只寫紀錄 |
 | 軍師 | Opus / high | 同左 | 只在任務卡住時請示（見下方） |
+| 參謀 | Opus / medium | 同左 | 只在戰役中決定下一步 |
 
 ```bat
 .venv\Scripts\python.exe -m legion models
