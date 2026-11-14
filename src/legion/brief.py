@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from . import ledger
+from .cleanup import plan as cleanup_plan
 from .config import Settings
 from .db import Store, utcnow
 from .models import State, Task
@@ -74,10 +75,12 @@ def collect(settings: Settings, tasks: list[Task], today: date | None = None) ->
     mission_rows = [{"name": k, "tasks": v["tasks"], "spent": round(v["spent"], 4), "budget": v["budget"],
                      "last": v["last"].id, "state": v["last"].state.value,
                      "outcome": v["last"].meta.get("mission_outcome") or ""} for k, v in sorted(missions.items())]
+    # 可清理：已併入且乾淨的分支與 worktree（只列出；刪除要人跑 legion cleanup --apply）
+    cleanable = [r["id"] for r in cleanup_plan(settings, tasks)["remove"]]
     cost_today = ledger.total_on(settings.cost_ledger, today, settings.schema_name)
     cost_yday = ledger.total_on(settings.cost_ledger, today - timedelta(days=1), settings.schema_name)
     return {"date": today.isoformat(), "waiting": waiting, "recent_halts": recent_halts, "pending_merge": pending,
-            "missions": mission_rows, "cost_today": round(cost_today, 4), "cost_yesterday": round(cost_yday, 4),
+            "missions": mission_rows, "cleanable": cleanable, "cost_today": round(cost_today, 4), "cost_yesterday": round(cost_yday, 4),
             "daily_budget": settings.daily_budget_usd}
 
 
@@ -91,6 +94,8 @@ def headline(b: dict[str, Any]) -> str:
         parts.append(f"{len(b['recent_halts'])} 件停下（{'、'.join(h['id'] for h in b['recent_halts'][:3])}）")
     if b["pending_merge"]:
         parts.append(f"{len(b['pending_merge'])} 個分支待 merge")
+    if b.get("cleanable"):
+        parts.append(f"{len(b['cleanable'])} 項可清理")
     todo = "；".join(parts) if parts else "無待辦"
     text = f"legion 晨報：{todo}；昨日花費 ${b['cost_yesterday']:.2f}"
     return text[:180]
@@ -105,6 +110,8 @@ def render(b: dict[str, Any]) -> str:
     lines += ["## 待 merge 的分支（檢查後自行 merge）",
               *([f"- `{p['branch']}`：{p['title']}" + (f"（{p['note']}）" if p.get("note") else "")
                  for p in b["pending_merge"]] or ["- （無）"]), ""]
+    lines += ["## 可清理（已併入且乾淨；同意後跑 `legion cleanup --apply`）",
+              *([f"- `legion/{i}` 與它的 worktree" for i in b.get("cleanable", [])] or ["- （無）"]), ""]
     lines += ["## 戰役", *([f"- {m['name']}：{m['tasks']} 個任務、${m['spent']:.2f}／${float(m['budget']):.2f}，"
                           f"最後 {m['last']}（{m['state']}{'，' + m['outcome'] if m['outcome'] else ''}）"
                           for m in b["missions"]] or ["- （無）"]), ""]

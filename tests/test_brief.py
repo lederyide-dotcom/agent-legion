@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import subprocess
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 from conftest import CALC_OK, Env, State, low_mock, run
 
@@ -38,8 +39,12 @@ def test_brief_matches_actual_state(env: Env) -> None:
             b_committed, _ = await build(env.settings, st)
             assert b_committed["pending_merge"][0]["note"] == ""  # 已提交、尚未 merge
             subprocess.run(["git", "-C", str(env.repo), "merge", "-q", "--ff-only", f"legion/{done.id}"], check=True)
-            b2, _ = await build(env.settings, st)
+            b2, path2 = await build(env.settings, st)
             assert b2["pending_merge"] == []
+            # 併入後變成「可清理」，晨報提醒，但不會自己刪
+            assert b2["cleanable"] == [done.id] and "1 項可清理" in b2["headline"]
+            assert f"legion/{done.id}" in path2.read_text(encoding="utf-8")
+            assert Path(wt).exists()
         finally:
             await st.close()
 
