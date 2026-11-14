@@ -1,6 +1,9 @@
-# 公開版授權方案（草案，待作者決定）
+# 公開版授權方案
 
-> 目前版本保留所有權利。本文件只列出日後公開時可選的方案與取捨，**選哪一個由作者決定**（inbox D12）。不是法律意見。
+> **2026-11-14 作者決定採方案 A**（inbox D12）：程式碼 PolyForm Noncommercial 1.0.0、文件 CC BY-NC-SA 4.0。目前版本仍保留所有權利，**公開時才切換**。不是法律意見。
+>
+> 已先做：`NOTICE` 加上 PolyForm 要求的 `Required Notice:` 行（現在加不影響保留所有權利）。
+> 公開時再做：放入兩份授權全文（從官方取得：https://polyformproject.org/licenses/noncommercial/1.0.0/ 、https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ），並完成下方「公開前都要做」清單。
 
 ## 先釐清：CC 授權不適合程式碼
 
