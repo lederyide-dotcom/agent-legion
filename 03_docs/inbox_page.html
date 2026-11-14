@@ -1,0 +1,196 @@
+<title>Legion 任務收件匣</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 版面：頂部摘要列 → 篩選鈕 → 一張可展開的表；掌舵列可直接選決定並複製回覆 */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --fg:#1b2430; --muted:#5d6b7a; --line:#d9e0e7;
+  --accent:#2f5f8a; --accent-soft:#e3edf6;
+  --ok:#2e7d4f; --ok-soft:#e2f2e8; --wait:#a5620f; --wait-soft:#fbefdc; --no:#a33a3a; --no-soft:#f7e3e3;
+  --font-body:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ee; --muted:#93a1af; --line:#2c3743;
+  --accent:#7fb0dc; --accent-soft:#1f3245;
+  --ok:#6cc690; --ok-soft:#1c3326; --wait:#e2a656; --wait-soft:#3a2c17; --no:#e58a8a; --no-soft:#3b2121; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ee; --muted:#93a1af; --line:#2c3743;
+  --accent:#7fb0dc; --accent-soft:#1f3245;
+  --ok:#6cc690; --ok-soft:#1c3326; --wait:#e2a656; --wait-soft:#3a2c17; --no:#e58a8a; --no-soft:#3b2121; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;font-size:.9rem}
+.stats{display:flex;flex-wrap:wrap;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font-family:var(--font-mono);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.8rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button,.btn{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 14px;cursor:pointer}
+.bar button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.bar input{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:5px 10px;flex:1;min-width:160px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;letter-spacing:.06em;color:var(--muted);font-weight:500;background:var(--bg)}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--accent-soft)}
+table{table-layout:fixed}
+td.id{font-family:var(--font-mono);font-weight:600;font-size:.85rem;overflow-wrap:anywhere}
+.pill{display:inline-block;font-size:.75rem;padding:1px 9px;border-radius:999px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)}
+.p-wait{background:var(--wait-soft);color:var(--wait)}
+.p-no{background:var(--no-soft);color:var(--no)}
+.p-acc{background:var(--accent-soft);color:var(--accent)}
+.detail td{background:var(--bg);font-size:.88rem}
+.detail dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0;min-width:0;overflow-wrap:anywhere}
+code{font-family:var(--font-mono);font-size:.82em;background:var(--accent-soft);padding:0 4px;border-radius:3px}
+select{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;padding:3px 6px}
+.reply{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:10px}
+.reply pre{margin:0;font-family:var(--font-mono);font-size:.85rem;white-space:pre-wrap;color:var(--fg)}
+.reply .hint{color:var(--muted);font-size:.82rem;margin:0}
+.chev{color:var(--muted);font-size:.8rem}
+.warn{background:var(--wait-soft);color:var(--wait);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.notes summary{cursor:pointer;font-weight:500}
+.notes ul{margin:8px 0 0;padding-left:1.2em;display:grid;gap:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Legion 任務收件匣</h1>
+    <p class="sub" id="src">讀取 inbox 資料中…</p>
+  </header>
+
+  <div class="warn" id="warn" hidden></div>
+  <details class="notes" id="notes" hidden><summary>分工原則與規則</summary><ul id="notelist"></ul></details>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="bar" role="toolbar" aria-label="篩選">
+    <button data-f="all" aria-pressed="true">全部</button>
+    <span id="fbtns" style="display:contents"></span>
+    <input id="q" type="search" placeholder="搜尋關鍵字，例如 T-0020、sonnet">
+  </div>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr><th style="width:130px">編號</th><th>項目</th><th style="width:170px">狀態</th><th style="width:130px">你的決定</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+
+  <section class="reply" aria-label="回覆文字">
+    <div class="bar" style="justify-content:space-between">
+      <strong>給 Claude Code 的回覆</strong>
+      <button class="btn" id="copy">複製</button>
+    </div>
+    <pre id="out"></pre>
+    <p class="hint">選擇只存在這台瀏覽器。複製後貼回對話即可；沒選的項目不會列出。</p>
+  </section>
+</div>
+
+<script>
+const KEY="legion-inbox-choices";
+// 選擇以「編號＋題目」為 key：inbox 改版重用編號時，舊答案不會套到新題目
+let choices=Object.create(null);
+try{Object.assign(choices,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(choices))}catch(e){}};
+let filter="all", open=new Set(), ROWS=[], SECS=[];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const md=s=>esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+const plain=s=>String(s).replace(/[`*]/g,"");
+
+function build(data){
+  SECS=data.sections.map((sec,i)=>({key:"s"+i,title:sec.title}));
+  ROWS=[];
+  data.sections.forEach((sec,i)=>{
+    const steer=sec.title.includes("掌舵"), hasState=sec.headers.includes("狀態");
+    const idCol=sec.headers[0];
+    // 沒有「狀態」欄的想法表：狀態看「建議」欄，標題用其餘第一欄（理由）
+    const titleCol=(steer||hasState)?sec.headers[1]:(sec.headers.find(h=>h!==idCol&&h!=="建議")||sec.headers[1]);
+    const rest=sec.headers.filter(h=>h!==idCol&&h!==titleCol);
+    sec.rows.forEach(r=>{
+      const id=plain(r[idCol]); let status, decide=false, kind;
+      if(steer){status='<span class="pill p-wait">等你決定</span>';decide=true;kind="wait"}
+      else if(hasState){const v=r["狀態"];kind=v.includes("✅")?"ok":v.includes("⛔")?"no":"wait";
+        status=`<span class="pill p-${kind}">${md(v)}</span>`}
+      else{const v=r["建議"]||"";kind=v.startsWith("✅")?"ok":"wait";decide=kind!=="ok";
+        status=`<span class="pill p-${kind==="ok"?"ok":"acc"}">${md(kind==="ok"?"✅ 已處理":"建議："+v)}</span>`}
+      const rec=r["建議"]||"";
+      ROWS.push({sec:"s"+i,id,key:id+"::"+plain(r[titleCol]),title:r[titleCol],status,decide,kind,rec,steer,
+        detail:rest.filter(h=>h!=="狀態"||!hasState).map(h=>[h,r[h]])});
+    });
+  });
+  document.getElementById("fbtns").innerHTML=SECS.map(s=>`<button data-f="${s.key}" aria-pressed="false">${esc(s.title)}</button>`).join("");
+  const notes=data.notes||[], warns=data.warnings||[];
+  document.getElementById("notelist").innerHTML=notes.map(n=>`<li>${md(n)}</li>`).join("");
+  document.getElementById("notes").hidden=!notes.length;
+  document.getElementById("warn").textContent=warns.join("；");
+  document.getElementById("warn").hidden=!warns.length;
+  const t=new Date(data.generated_at);
+  document.getElementById("src").innerHTML=`來源 <code>${esc(data.source)}</code>，產生於 ${esc(t.toLocaleString("zh-TW",{hour12:false}))}（內容雜湊 <code>${esc(data.sha256)}</code>）。點任一列展開細節；待決定的項目可直接選，下方會組好回覆文字。`;
+}
+
+function opts(r){
+  const base=r.steer?["採建議","不同意","之後再說"]:["採建議","做","封存","之後再說"];
+  const v=choices[r.key]||"";
+  return `<select id="c-${esc(r.id)}" data-id="${esc(r.key)}" aria-label="${esc(r.id)} 的決定"><option value="">—</option>${base.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`;
+}
+
+function render(){
+  const q=document.getElementById("q").value.trim().toLowerCase();
+  const list=ROWS.filter(r=>(filter==="all"||r.sec===filter)&&(!q||(r.id+r.title+r.status.replace(/<[^>]+>/g,"")+r.detail.flat().join(" ")).toLowerCase().includes(q)));
+  document.getElementById("tb").innerHTML=list.map(r=>{
+    const o=open.has(r.id);
+    return `<tr class="row" data-id="${esc(r.id)}" tabindex="0" aria-expanded="${o}"><td class="id">${esc(r.id)} <span class="chev">${o?"▾":"▸"}</span></td><td>${md(r.title)}</td><td>${r.status}</td><td>${r.decide?opts(r):'<span class="sub">—</span>'}</td></tr>`+
+      (o?`<tr class="detail"><td></td><td colspan="3"><dl>${r.detail.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${md(v)}</dd>`).join("")}</dl></td></tr>`:"");
+  }).join("")||`<tr><td colspan="4" class="sub">沒有符合的項目</td></tr>`;
+  const dec=ROWS.filter(r=>r.decide), picked=dec.filter(r=>choices[r.key]);
+  const steer=ROWS.filter(r=>r.steer).length;
+  const ownAll=ROWS.filter(r=>SECS.find(s=>s.key===r.sec).title.includes("自主")), own=ownAll.filter(r=>r.kind==="ok");
+  document.getElementById("stats").innerHTML=[
+    [steer,"待你掌舵"],[own.length+"/"+ownAll.length,"自主項目完成"],[dec.length-steer,"想法待取捨"],[picked.length+"/"+dec.length,"你已選擇"]
+  ].map(([b,s])=>`<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
+  const lines=picked.map(r=>{const c=choices[r.key];return `${r.id}：${c}${c==="採建議"&&r.rec?"（"+plain(r.rec)+"）":""}`});
+  document.getElementById("out").textContent=lines.length?"掌舵決定：\n"+lines.join("\n"):"（尚未選擇任何決定）";
+}
+
+document.querySelector(".bar").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-f]"); if(!b) return;
+  filter=b.dataset.f;
+  document.querySelectorAll("button[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  render();
+});
+document.getElementById("q").addEventListener("input",render);
+const tb=document.getElementById("tb");
+const toggle=id=>{open.has(id)?open.delete(id):open.add(id);render()};
+tb.addEventListener("click",e=>{
+  if(e.target.closest("select")) return;
+  const tr=e.target.closest("tr.row"); if(tr) toggle(tr.dataset.id);
+});
+tb.addEventListener("keydown",e=>{
+  const tr=e.target.closest("tr.row");
+  if(tr&&e.target===tr&&(e.key==="Enter"||e.key===" ")){e.preventDefault();toggle(tr.dataset.id)}
+});
+tb.addEventListener("change",e=>{
+  const s=e.target.closest("select"); if(!s) return;
+  if(s.value) choices[s.dataset.id]=s.value; else delete choices[s.dataset.id];
+  save(); render();
+});
+document.getElementById("copy").addEventListener("click",async e=>{
+  const t=document.getElementById("out").textContent, b=e.currentTarget;
+  try{await navigator.clipboard.writeText(t);b.textContent="已複製"}
+  catch(err){const r=document.createRange();r.selectNodeContents(document.getElementById("out"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="已選取，請按 Ctrl+C"}
+  setTimeout(()=>b.textContent="複製",1800);
+});
+fetch("inbox.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()})
+  .then(d=>{build(d);render()})
+  .catch(err=>{document.getElementById("src").textContent="讀不到 inbox.json（"+err.message+"）。請 Claude Code 跑 legion inbox 後重新發布。";
+    document.getElementById("tb").innerHTML='<tr><td colspan="4" class="sub">沒有資料</td></tr>'});
+</script>

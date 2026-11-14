@@ -137,3 +137,9 @@
 - `legion cancel` 可收尾「HALT 但可續跑」的任務（清 return_state、保留原因）；T-0020 已用此方式收尾
 - start.bat 自動用主 repo 資料夾名稱當 compose 專案名稱，worktree 內跑也沿用同一個 legion-db
 - 花費分析：`02_data/cost_analysis_20261114.md`（Opus 規劃＋審查約為 sonnet 的 3.9 倍，建議小型 write 任務試 sonnet，待 David 決定）
+
+## 2026-11-14 晚：收件匣互動頁（A11）
+- David 看進度的入口：https://claude.ai/artifact/HQnSE4jubuiMQKhUAafVBd （私人；可篩選、展開、選決定後複製回覆）
+- 資料流程：`03_docs/inbox.md` →（`legion inbox --out <scratchpad>/inbox.json`）→ 與 `03_docs/inbox_page.html` 一起發布
+- **改了 inbox.md 就要重產並重新發布**：把 `03_docs/inbox_page.html` 複製成 scratchpad 的 `legion-inbox.html`，Artifact 工具帶 `url` 為上面的連結、`files: {"inbox.json": <路徑>}`。新 session 必須先 Artifact read 該連結才能更新
+- 一定要用 `--out` 產 JSON；PowerShell 5.1 的 `>` 會轉成 UTF-16，頁面讀不到

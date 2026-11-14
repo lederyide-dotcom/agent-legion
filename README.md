@@ -223,6 +223,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見下方「模型分配」） |
 | 看各角色用哪個模型 | `legion models` |
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
+| 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 看狀態 | `legion status` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
 

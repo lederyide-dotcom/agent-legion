@@ -149,6 +149,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("brief", help="每日晨報：等你處理的任務、停下的任務、待 merge 分支、戰役、花費（不花額度）")
     cl = sub.add_parser("cleanup", help="列出可清理的已併入分支與 worktree；加 --apply 才刪")
     cl.add_argument("--apply", action="store_true", help="真的刪除（只刪已併入 HEAD 且 worktree 乾淨的）")
+    ib = sub.add_parser("inbox", help="把 03_docs/inbox.md 的表格轉成 JSON（給互動頁讀；不花額度）")
+    ib.add_argument("--file", help="inbox 檔案路徑（預設 03_docs/inbox.md）")
+    ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
     args = ap.parse_args(argv)
 
     s = Settings(schema_name=args.schema)
@@ -165,6 +168,28 @@ def main(argv: list[str] | None = None) -> int:
                                       "cost_yesterday", "cost_today")}
 
         print(json.dumps(asyncio.run(_with_store(s, make)), ensure_ascii=False, indent=2))
+        return 0
+
+    if args.cmd == "inbox":
+        from pathlib import Path
+
+        from .inbox import DEFAULT_INBOX, load_inbox
+
+        try:
+            data = load_inbox(Path(args.file) if args.file else DEFAULT_INBOX)
+        except (OSError, ValueError) as e:
+            print(f"inbox 解析失敗：{e}", file=sys.stderr)
+            return 1
+        out = data.model_dump_json(indent=2)
+        if args.out:
+            try:
+                Path(args.out).write_text(out + "\n", encoding="utf-8")  # 無 BOM
+            except OSError as e:
+                print(f"寫入失敗：{e}", file=sys.stderr)
+                return 1
+            print(f"已寫入 {args.out}（{sum(len(x.rows) for x in data.sections)} 列，sha {data.sha256}）")
+        else:
+            print(out)
         return 0
 
     if args.cmd == "cleanup":

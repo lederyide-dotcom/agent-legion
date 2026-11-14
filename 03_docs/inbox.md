@@ -19,7 +19,7 @@
 | D4 | 刪除 target-repo-b 的 `legion/T-0020` 分支（未併入的舊 commit，內容已被 T-0021 取代） | 刪（需 `git branch -D`，屬刪除未合併工作） | `02_data/verify_20261114.md` |
 | D5 | target-repo 的 `legion/T-0015`（sandbox 驗證任務，worktree 有未提交變更） | 封存不合併：它是階段 1 的試驗 | 晨報「待 merge」 |
 | D6 | 研究第 2 步「實測 deny 規則與 hook」要花真錢（約 $0.3～0.5） | 等有新的真實任務時順便驗，不單獨花 | spec v0.5 |
-| D7 | inbox_hold 10 個後續想法的取捨 | 見下方「inbox_hold 分流建議」 | `vault/AI/inbox_hold/` |
+| D7 | inbox_hold 剩下 6 個後續想法的取捨 | 見下方「inbox_hold 分流建議」 | `vault/AI/inbox_hold/` |
 | D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層 | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
 | D9 | 對進行中的任務 `legion cancel` 時，要不要一次就收尾（目前會先停成可續跑的 HALT，要再 cancel 一次） | 維持現狀：第一次 cancel 保留後悔空間；README 已寫明 | code-reviewer 建議 4 |
 
@@ -37,6 +37,7 @@
 | A8 | 花費分析：Opus 規劃＋審查占比 | ✅ 2026-11-14 | 數字取自帳本 | `02_data/cost_analysis_20261114.md` |
 | A9 | 範圍驗收自動化：runner 產生「變更範圍」證據（相對起點 commit、含已 commit 與未追蹤新檔）；驗收後才出現的範圍外檔案停下等核准，核准以路徑為單位；規劃者提示不必再寫範圍指令 | ✅ 2026-11-14 | 5 項測試；code-reviewer 必修 1 項已修；相關 6 個想法檔已封存到 `vault/AI/inbox_done/resolved-A9__*` | `tests/test_scope_check.py`、`02_data/verify_20261114.md` 第 11 節 |
 | A10 | progress.md 交接段落 | ✅ 2026-11-14 | 新 session 只讀 progress.md 即可接手 | `03_docs/progress.md` 最後一段 |
+| A11 | 收件匣互動頁：`legion inbox` 把本檔表格轉 JSON，頁面讀它顯示；改本檔後重產並重新發布（連結不變） | ✅ 2026-11-14 | 12 項測試；code-reviewer 必修 2 項已修；本機實測頁面 27 列與本檔一致 | `tests/test_inbox.py`、`03_docs/inbox_page.html`、`02_data/verify_20261114.md` 第 12 節 |
 
 ## inbox_hold 分流建議（給 D7）
 
