@@ -587,3 +587,5 @@ date,commit,metric,value,command
 2026-11-14T18:30:00+08:00,0342d1a,legion.pytest_passed,151,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（含 A9 範圍驗收 5 項，未提交工作目錄）
 2026-11-14T20:30:00+08:00,d3eeaaf,legion.pytest_passed,162,.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider（Git Bash；另 1 項 mermaid 因環境找不到 Chrome 失敗，PowerShell 重跑通過；含 A11 未提交工作目錄）
 2026-11-14T20:30:00+08:00,d3eeaaf,legion.inbox_rows,28,.venv\Scripts\python.exe -m legion inbox --out <scratchpad>\inbox.json
+2026-11-14T21:30:00+08:00,9ca7d57,legion.T-0022.cost_usd,0.8464,cost_ledger.csv 合計（sonnet 規劃＋審查 0.1802；重試 4 次）
+2026-11-14T21:30:00+08:00,24c090c,target_repo_b.pytest_passed,53,.venv\Scripts\python.exe -m pytest -q tests（合併後）

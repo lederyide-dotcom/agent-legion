@@ -16,19 +16,19 @@
 | D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo（2026-11-14 David：之後再說） | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
 | D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層（2026-11-14 David：之後再說） | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
 | D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理（2026-11-14 David：之後再說） | 人做 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
-| D11 | 核准 T-0022 的驗收指令：sonnet 規劃的 `python -m pytest -q "tests/test_safe_workspace_path.py::test_rejected[NUL .log]" …`（指定參數化案例的節點 id，含空白與方括號）不在白名單，任務升為 high 停在閘門 | 核准：只是跑指定測試、唯讀；白名單本身不改 | `vault/AI/questions/T-0022.md` |
 
 ## 已決定（2026-11-14 David 從互動頁回覆）
 
 | # | 決定 | 執行結果 | 證據 |
 |---|---|---|---|
-| D2 | 小型 write 任務的規劃＋規格審查試用 sonnet，跑 2～3 個任務再比較 | 第 1 個試跑任務見 A12；其餘等有新任務時用同一設定 | `02_data/cost_analysis_20261114.md` |
+| D2 | 小型 write 任務的規劃＋規格審查試用 sonnet，跑 2～3 個任務再比較 | 第 1 個（T-0022）：規劃便宜但規格和守門規則衝突，全任務 $0.85；已補提示（A13），再試 1～2 個才下結論 | `02_data/cost_analysis_20261114.md` |
 | D3 | `strip_code_fence` 多重圍欄維持現狀 | 結案 | target-repo-b `tests/test_strip_code_fence.py` |
 | D4 | 刪除 target-repo-b 的 `legion/T-0020` | ✅ 已移除 worktree 並 `git branch -D`（原 aec50ea）；master 不變 0b9d364 | `02_data/verify_20261114.md` 第 13 節 |
 | D5 | `legion/T-0015` 封存不合併 | ✅ 未提交變更 commit 成 f1a2f9b，分支改名 `archive/legion-T-0015`，worktree 已移除 | 同上 |
 | D6 | deny 規則與 hook 實測等真實任務時順便驗 | 延後，不單獨花費 | spec v0.5 |
 | D7 | inbox_hold 依分流建議 | ✅ 0017-2、0019-1、0019-2 封存到 `vault/AI/inbox_done/archived-D7__*`；0018-1 放行（A12）；0016-2 低優先留在 hold；0016-1 改列 D10 | 下方分流表 |
 | D9 | 對進行中的任務 cancel 維持兩段式 | 結案；README 已寫明 | README HALT 列 |
+| D11 | T-0022 閘門核准＋第 17 行只追加元素的例外（「依你建議」） | ✅ 手動驗證後合併；守門規則本身不改 | `02_data/verify_20261114.md` 第 14 節 |
 
 ## Claude Code 可自主做
 
@@ -45,7 +45,8 @@
 | A9 | 範圍驗收自動化：runner 產生「變更範圍」證據（相對起點 commit、含已 commit 與未追蹤新檔）；驗收後才出現的範圍外檔案停下等核准，核准以路徑為單位；規劃者提示不必再寫範圍指令 | ✅ 2026-11-14 | 5 項測試；code-reviewer 必修 1 項已修；相關 6 個想法檔已封存到 `vault/AI/inbox_done/resolved-A9__*` | `tests/test_scope_check.py`、`02_data/verify_20261114.md` 第 11 節 |
 | A10 | progress.md 交接段落 | ✅ 2026-11-14 | 新 session 只讀 progress.md 即可接手 | `03_docs/progress.md` 最後一段 |
 | A11 | 收件匣互動頁：`legion inbox` 把本檔表格轉 JSON，頁面讀它顯示；改本檔後重產並重新發布（連結不變） | ✅ 2026-11-14 | 12 項測試；code-reviewer 必修 2 項已修；本機實測頁面 27 列與本檔一致 | `tests/test_inbox.py`、`03_docs/inbox_page.html`、`02_data/verify_20261114.md` 第 12 節 |
-| A12 | 依 D2＋D7 跑 fu-T-0018-1（T-0022）：target-repo-b 的 safe_workspace_path 補邊界測試，規劃與規格審查改用 sonnet（D2 第 1 個試跑） | ⛔ 等 D11 | 任務 DONE、target-repo-b 測試通過、花費記入帳本並與 Opus 規劃的同類任務比較 | 規劃＋審查 2 輪共 $0.18；`vault/AI/questions/T-0022.md` |
+| A12 | 依 D2＋D7 跑 fu-T-0018-1（T-0022）：safe_workspace_path 補邊界測試，sonnet 規劃＋規格審查（D2 第 1 個試跑） | ✅ 2026-11-14 | David 核准閘門與第 17 行例外（D11）；手動驗證後 ff 合併進 target-repo-b master 24c090c（53 passed） | `02_data/verify_20261114.md` 第 14 節、`02_data/cost_analysis_20261114.md` 補充 |
+| A13 | 規劃提示補「既有測試只增不減以行為單位」：新案例寫新行或新測試函式（T-0022 根因） | ✅ 2026-11-14 | `tests/test_scope_check.py` 5 passed | `src/legion/prompts.py` write_scope_note |
 
 ## inbox_hold 分流建議（給 D7）
 

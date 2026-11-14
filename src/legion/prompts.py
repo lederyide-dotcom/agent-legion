@@ -235,6 +235,7 @@ def write_scope_note(task: Task, reviewing: bool = False) -> str:
 - runner 會相對「任務起點 commit」比對全部變更（已 commit 的與未追蹤的新檔都算），列出改了哪些檔，並檢查是否在允許範圍內：{scope}
 - 超出範圍會停下等使用者核准；另會檢查 worktree 以外沒有被修改、既有測試只增不減。這些結果都會寫成證據給審查者看。
 - 所以驗收指令請專注在「功能是否正確」（例如 pytest）。不要用 `git status --short` 證明範圍：agent 可能已經 commit，輸出會是空的。
+- 「既有測試只增不減」以行為單位判斷：既有測試檔的任何一行被改動都算削弱，即使只是在 parametrize 清單尾端追加元素。新案例請寫成新的行（多行清單裡新增一行）或新的測試函式；清單寫在單一行時，就另寫一個新的 `@pytest.mark.parametrize` 測試函式，並讓驗收指令的節點 id 用新函式名稱。
 {review}"""
 
 

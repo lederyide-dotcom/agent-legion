@@ -77,6 +77,7 @@ def test_planner_and_spec_reviewer_are_told_runner_checks_scope() -> None:
     r = Task(id="T-2", title="t", body="b", kind="readonly")
     p = planner_prompt(w, "", "wd")
     assert "範圍檢查（runner 固定機制" in p and "`src/**`" in p and "git status --short" in p
+    assert "清單尾端追加元素" in p and "新的測試函式" in p  # T-0022：單行 parametrize 追加元素被判削弱
     assert "範圍檢查（runner 固定機制" not in planner_prompt(r, "", "wd")
     s = spec_review_prompt(w, "spec", ["python -m pytest -q"])
     assert "不算缺漏" in s and "範圍檢查（runner 固定機制" in s and "仍屬「必修」" in s
