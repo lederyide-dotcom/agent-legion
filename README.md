@@ -8,31 +8,36 @@
 
 ## 閉環流程
 
+<!-- legion:flow:start -->
 ```mermaid
 flowchart TD
     INBOX([INBOX<br/>使用者丟想法]) --> PLAN[PLAN<br/>指揮官規劃]
     PLAN --> SR[SPEC_REVIEW<br/>規格審查者]
     SR -- revise 退回 --> PLAN
     SR -- pass --> GATE{{GATE<br/>依規則判定風險}}
-    GATE -- high --> WH([WAIT_HUMAN<br/>等使用者決定])
-    WH -- 核准 --> EXEC
-    WH -- 拒絕 --> HALT
-    GATE -- low / mid --> EXEC[EXEC<br/>指揮官在 worktree 執行]
+    GATE -- high --> WH([WAIT_HUMAN<br/>等使用者決定（錦囊閒置可自動決議）])
+    WH -- 核准 / 錦囊：帶指引重試 --> EXEC[EXEC<br/>指揮官在 worktree 執行]
+    WH -- 拒絕 / 錦囊：拆分、放棄 --> HALT([HALT])
+    GATE -- low / mid --> EXEC
     EXEC --> VERIFY{{VERIFY<br/>runner 親自跑驗收指令}}
+    EXEC -- 要安裝套件 --> WH
     VERIFY -- 失敗，重試 ≤ 3 --> EXEC
     VERIFY -- 通過 --> REVIEW[REVIEW<br/>交付審查者]
-    VERIFY -- 出現範圍外檔案 --> WH
-    WH -. 核准該路徑 .-> VERIFY
+    VERIFY -- diff 判為 high / 範圍外檔案 --> WH
+    WH -. 核准後重驗 .-> VERIFY
     REVIEW -- fail 退回 --> EXEC
     REVIEW -- pass --> LEARN[LEARN<br/>書記官紀錄]
     LEARN --> DONE([DONE])
     LEARN -. 後續想法 .-> HOLD[(inbox_hold)]
     HOLD -. 使用者放行 .-> INBOX
     VERIFY -- 同一錯誤反覆 / 超重試 --> ADV[ADVISOR<br/>軍師診斷＋錦囊]
+    SR -. 退回超過上限 .-> ADV
+    REVIEW -. 退回超過上限 .-> ADV
     ADV -- 至少 3 個錦囊 --> WH
     ADV -. 呼叫失敗 / 預算不足 / 錦囊不足 .-> HALT
-    WH -. 閒置 15 分鐘自動決議（非 high 風險） .-> PLAN
-    ANY[任一狀態] -. 超預算 / 逾時 / STOP .-> HALT([HALT])
+    WH -- 錦囊：改寫規格 --> PLAN
+    ANY[任一狀態] -. 超預算 / 逾時 / STOP / 軍師關閉或問滿 .-> HALT
+    HALT -. legion resume 回原狀態 .-> ANY
 
     classDef claude fill:#e8f0fe,stroke:#4a6cf7,color:#111
     classDef runner fill:#fff4e5,stroke:#e8a317,color:#111
@@ -44,7 +49,8 @@ flowchart TD
     class INBOX,DONE,HOLD,ANY plain
 ```
 
-圖例：藍色是 Claude 擔任的角色，橘色是 runner 以程式判斷（不經 LLM），紅色是停下來等人或熔斷。
+圖例：藍色＝Claude 擔任的角色、橘色＝runner 以程式判斷（不經 LLM）、紅色＝停下來等人或熔斷、灰色＝起點、終點與暫存；虛線（畫布上為灰線）是例外或補救路徑。
+<!-- legion:flow:end -->
 
 | 角色 | 由誰擔任 | 權限 |
 |---|---|---|
@@ -213,12 +219,13 @@ mission:
 
 ## 人掌舵的入口
 
-日常只需要看兩個地方，其餘由 Claude Code 自主完成：
+日常只需要看這幾個地方（手機也能看），其餘由 Claude Code 自主完成：
 
 | 入口 | 內容 | 產生方式 |
 |---|---|---|
 | 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑） |
 | 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
+| 文件庫互動頁 | vault 的待你決定、報告、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；圖片仍請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
 
 分工：**定目標與範圍、花真錢、刪除未合併的工作、碰機密或對外服務、改預設模型或風險規則**由人決定；實作、驗證、合併已驗證的分支、整理清單、寫證據由 Claude Code 做，完成後在晨報或回報中告知。
 
@@ -255,6 +262,8 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 看各角色用哪個模型 | `legion models` |
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
+| 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
+| 同步 README 的流程圖與儀表說明（改 `diagrams.py` 後） | `legion docs`；`legion docs --check` 只檢查 |
 | 看狀態 | `legion status` |
 | 看版本、作者與原始出處 | `legion --version` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
@@ -283,6 +292,29 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 | 匯出 Word／PDF（存到 `01_output/`） | `legion export <任務編號> --format docx` 或 `--format pdf` |
 | 週報 | `legion report` |
 | 後續想法 | 預設暫存在 `vault/AI/inbox_hold/`；要做就把檔案移回 `vault/INBOX/`。`tick --auto-followups` 可改為自動領取 |
+
+### 在 Obsidian 看（與 GitHub 同一份定義）
+
+用 Obsidian 開啟 `vault/` 資料夾：
+
+| 檔案 | 內容 |
+|---|---|
+| `AI/流程.md` | 跟上方「閉環流程」**同一張圖**（Obsidian 內建 mermaid） |
+| `AI/流程.canvas` | 同一份流程，可拖曳，Claude 角色節點標註實際分配的模型 |
+| `AI/儀表.base` | 任務總覽，三個檢視如下 |
+| `AI/模型分配.canvas` | 角色與模型、官方單價、升級路線 |
+
+<!-- legion:dashboard:start -->
+| 檢視 | 篩選或分組 | 欄位 |
+|---|---|---|
+| 依狀態 | 依狀態分組 | 任務、標題、狀態、風險、成本、人工介入、審查結論 |
+| 依風險 | 依風險分組 | 任務、標題、風險、狀態、成本 USD |
+| 等待使用者 | 只列 WAIT_HUMAN、HALT | 任務、標題、狀態、等待原因、熔斷原因 |
+
+狀態圖示：✅ 完成、⛔ 熔斷、✋ 等你、⏳ 進行中；風險：🔴 高、🟡 中、🟢 低。
+<!-- legion:dashboard:end -->
+
+流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)：改那個檔後執行 `legion docs` 同步本 README，Obsidian 端在 `legion init-vault` 或每次 tick 時更新；`legion docs --check` 與測試會擋下兩邊不一致。
 
 ### 5. 零成本驗證
 
@@ -315,6 +347,7 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角色權限）、prompts.py、risk.py、
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
                  brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
+                 diagrams.py（流程圖與儀表的單一來源）、mobile.py（vault 轉手機文件庫 JSON）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
 scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1
@@ -323,7 +356,7 @@ tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控
 02_data/         驗收證據、metrics、花費帳本、安裝清冊
 03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
-                 inbox_page.html（收件匣互動頁）、sharing_and_citation.md（分享與引用規範）、
+                 inbox_page.html（收件匣互動頁）、vault_page.html（手機文件庫）、sharing_and_citation.md（分享與引用規範）、
                  public_release_license.md（公開版授權方案）
 LICENSE、NOTICE、CITATION.cff   授權、作者與出處標示、引用格式
 reports/         研究報告

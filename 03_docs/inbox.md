@@ -53,6 +53,8 @@
 | A13 | 規劃提示補「既有測試只增不減以行為單位」：新案例寫新行或新測試函式（T-0022 根因） | ✅ 2026-11-14 | `tests/test_scope_check.py` 5 passed | `src/legion/prompts.py` write_scope_note |
 | A14 | 作者權益：LICENSE（保留所有權利＋署名不得移除）、NOTICE、CITATION.cff、分享與引用規範；作者與 GitHub 出處內建在 `legion --version`、套件中繼資料、開發紀錄與晨報頁尾、互動頁 | ✅ 2026-11-14 | 全套 166 passed；code-reviewer 必修 1 項已修 | `02_data/verify_20261114.md` 第 15 節、`03_docs/sharing_and_citation.md` |
 | A15 | README 覆蓋測試：角色、狀態、子命令、LEGION_* 環境變數逐段比對（起因：README 漏寫軍師）；全域 code-reviewer 加文件同步檢查並試跑 | ✅ 2026-11-14 | 舊 README 會讓測試失敗；全套 272 passed | `02_data/verify_20261114.md` 第 17、18 節；5ff052c、8d5f756 |
+| A16 | 流程圖與儀表單一來源：README、Obsidian 流程.md／流程.canvas／儀表.base 由 diagrams.py 產生並補齊實際路徑；`legion docs` 同步 | ✅ 2026-11-15 | 全套 293 passed；mermaid 轉圖目視正常；Obsidian 顯示待 David 桌機確認 | `02_data/verify_20261114.md` 第 21 節 |
+| A17 | 手機文件庫互動頁：vault 報告、紀錄、待決事項匯出（遮蔽疑似機密）＋`03_docs/vault_page.html` | ✅ 2026-11-15 | 77 份文件、遮蔽 0 筆 | `02_data/verify_20261114.md` 第 21 節 |
 
 ## inbox_hold 分流建議（給 D7）
 

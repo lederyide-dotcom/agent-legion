@@ -1,0 +1,215 @@
+<title>Legion 文件庫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 版面：手機優先的單欄。清單（分類鈕＋搜尋＋卡片）↔ 閱讀頁（#d<n>），與 inbox 互動頁同一組色票 */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --fg:#1b2430; --muted:#5d6b7a; --line:#d9e0e7;
+  --accent:#2f5f8a; --accent-soft:#e3edf6; --code:#eef2f6;
+  --ok:#2e7d4f; --ok-soft:#e2f2e8; --wait:#a5620f; --wait-soft:#fbefdc; --no:#a33a3a; --no-soft:#f7e3e3;
+  --font-body:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ee; --muted:#93a1af; --line:#2c3743;
+  --accent:#7fb0dc; --accent-soft:#1f3245; --code:#202a35;
+  --ok:#6cc690; --ok-soft:#1c3326; --wait:#e2a656; --wait-soft:#3a2c17; --no:#e58a8a; --no-soft:#3b2121; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --surface:#1a2129; --fg:#e4e9ee; --muted:#93a1af; --line:#2c3743;
+  --accent:#7fb0dc; --accent-soft:#1f3245; --code:#202a35;
+  --ok:#6cc690; --ok-soft:#1c3326; --wait:#e2a656; --wait-soft:#3a2c17; --no:#e58a8a; --no-soft:#3b2121; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+h1{font-size:1.4rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;font-size:.85rem}
+.warn{background:var(--wait-soft);color:var(--wait);border-radius:8px;padding:10px 14px;font-size:.9rem}
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.cats button{flex:none;font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap}
+.cats button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.cats b{font-family:var(--font-mono);font-weight:600;margin-left:6px;font-variant-numeric:tabular-nums}
+#q{width:100%;box-sizing:border-box;font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+button:focus-visible,#q:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.list{display:grid;gap:10px}
+.card{display:grid;gap:6px;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;min-width:0}
+.card:hover{border-color:var(--accent)}
+.card h2{font-size:1rem;margin:0;line-height:1.45;text-wrap:balance;overflow-wrap:anywhere}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.78rem;color:var(--muted)}
+.pill{border-radius:999px;padding:1px 9px;font-size:.75rem;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.decide{background:var(--wait-soft);color:var(--wait)}
+.pill.halt{background:var(--no-soft);color:var(--no)}
+.pill.done{background:var(--ok-soft);color:var(--ok)}
+.mono{font-family:var(--font-mono);font-size:.75rem}
+.empty{color:var(--muted);text-align:center;padding:32px 0}
+/* 閱讀頁 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:8px;align-items:center;padding-block:8px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.top button{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:6px 12px;cursor:pointer}
+.top .spacer{flex:1}
+.doc{min-width:0}
+.doc h1{font-size:1.3rem;margin:4px 0 6px}
+.md{min-width:0;overflow-wrap:anywhere}
+.md h1{font-size:1.25rem}.md h2{font-size:1.12rem;margin-top:1.6em}.md h3{font-size:1rem;margin-top:1.3em}
+.md h1,.md h2,.md h3{text-wrap:balance;line-height:1.4}
+.md p,.md li{max-width:65ch}
+.md code{font-family:var(--font-mono);font-size:.84em;background:var(--code);border-radius:4px;padding:1px 4px;overflow-wrap:anywhere}
+.md pre{background:var(--code);border-radius:8px;padding:12px;overflow-x:auto;font-size:.82rem;line-height:1.5}
+.md pre code{background:none;padding:0;overflow-wrap:normal}
+.md blockquote{margin:0;padding:4px 14px;border-left:3px solid var(--line);color:var(--muted)}
+.tbl{overflow-x:auto;margin:12px 0}
+.md table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+.md th,.md td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.md th{background:var(--accent-soft)}
+.md hr{border:0;border-top:1px solid var(--line)}
+.md a{color:var(--accent)}
+.nav{display:flex;gap:10px;justify-content:space-between}
+.nav button{flex:1;min-width:0;font:inherit;font-size:.85rem;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:8px 12px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav button:last-child{text-align:right}
+.foot{color:var(--muted);font-size:.78rem;text-align:center}
+@media (prefers-reduced-motion: no-preference){.card{transition:border-color .15s}}
+</style>
+
+<div class="wrap" id="app">
+  <header>
+    <h1>Legion 文件庫</h1>
+    <p class="sub" id="sub">正在讀取 vault 匯出檔…</p>
+  </header>
+  <p class="empty" id="loading">載入中</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var app = document.getElementById("app");
+  var data = null, cat = "全部", query = "";
+  try { cat = localStorage.getItem("vault-cat") || "全部"; } catch (e) { /* 沒有儲存空間就用預設 */ }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function when(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return "";
+    return d.toLocaleString("zh-TW", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"});
+  }
+  function pillClass(d) {
+    var r = (d.meta.reason || "") + (d.meta.state || "");
+    if (d.category === "待你決定") return "pill decide";
+    if (/HALT/.test(r)) return "pill halt";
+    if (/DONE|approved/.test(r)) return "pill done";
+    return "pill";
+  }
+  function filtered() {
+    var q = query.trim().toLowerCase();
+    return data.docs.filter(function (d) {
+      if (cat !== "全部" && d.category !== cat) return false;
+      return !q || (d.title + "\n" + d.path + "\n" + d.text).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  function metaChips(d) {
+    var keys = ["task", "id", "state", "risk", "reason", "status"];
+    return keys.filter(function (k) { return d.meta[k]; }).map(function (k) {
+      return '<span class="mono">' + esc(k) + "=" + esc(d.meta[k]) + "</span>";
+    }).join("");
+  }
+
+  function renderList() {
+    document.title = "Legion 文件庫";
+    var counts = {"全部": data.docs.length};
+    data.docs.forEach(function (d) { counts[d.category] = (counts[d.category] || 0) + 1; });
+    var cats = ["全部"].concat(data.categories.filter(function (c) { return counts[c]; }));
+    if (cats.indexOf(cat) < 0) cat = "全部";
+    var items = filtered();
+    app.innerHTML =
+      '<header><h1>Legion 文件庫</h1><p class="sub">' + data.docs.length + " 份文件｜匯出於 " + esc(when(data.generated_at)) +
+      '｜sha <span class="mono">' + esc(data.sha256) + "</span>｜正本在桌機 Obsidian 的 vault</p></header>" +
+      (data.warnings.length ? '<div class="warn">匯出時遮蔽了疑似機密：' + data.warnings.map(esc).join("；") + "</div>" : "") +
+      '<nav class="cats" aria-label="分類">' + cats.map(function (c) {
+        return '<button type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === cat) + '">' + esc(c) + "<b>" + counts[c] + "</b></button>";
+      }).join("") + "</nav>" +
+      '<input id="q" type="search" placeholder="搜尋標題、路徑或內文" value="' + esc(query) + '" aria-label="搜尋">' +
+      '<div class="list">' + (items.length ? items.map(function (d) {
+        return '<button type="button" class="card" data-id="' + d.id + '"><div class="row"><span class="' + pillClass(d) + '">' + esc(d.category) +
+          "</span><span>" + esc(when(d.updated)) + "</span></div><h2>" + esc(d.title) + '</h2><div class="row"><span class="mono">' +
+          esc(d.path) + "</span>" + metaChips(d) + "</div></button>";
+      }).join("") : '<p class="empty">沒有符合的文件。換個分類或清掉搜尋字。</p>') + "</div>" +
+      '<p class="foot">agent-legion © 2026 DavidY-tw，保留所有權利｜原始出處 https://github.com/lederyide-dotcom/agent-legion</p>';
+    app.querySelectorAll("[data-cat]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        cat = b.getAttribute("data-cat");
+        try { localStorage.setItem("vault-cat", cat); } catch (e) { /* 略過 */ }
+        renderList();
+      });
+    });
+    var q = document.getElementById("q");
+    q.addEventListener("input", function () {
+      query = q.value;
+      var pos = q.selectionStart;
+      renderList();
+      var nq = document.getElementById("q");
+      nq.focus();
+      try { nq.setSelectionRange(pos, pos); } catch (e) { /* 略過 */ }
+    });
+    app.querySelectorAll(".card").forEach(function (b) {
+      b.addEventListener("click", function () { location.hash = b.getAttribute("data-id"); });
+    });
+  }
+
+  function renderMarkdown(text) {
+    var html = window.marked ? marked.parse(text, {gfm: true}) : "<pre>" + esc(text) + "</pre>";
+    html = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+    var box = document.createElement("div");
+    box.innerHTML = html;
+    box.querySelectorAll("table").forEach(function (t) {
+      var w = document.createElement("div"); w.className = "tbl";
+      t.parentNode.insertBefore(w, t); w.appendChild(t);
+    });
+    box.querySelectorAll("pre > code.language-mermaid").forEach(function (c) {
+      var p = document.createElement("pre"); p.className = "mermaid"; p.textContent = c.textContent;
+      c.parentNode.replaceWith(p);
+    });
+    box.querySelectorAll("a[href]").forEach(function (a) {
+      if (!/^https?:/.test(a.getAttribute("href"))) a.removeAttribute("href");
+      else { a.target = "_blank"; a.rel = "noopener"; }
+    });
+    return box.innerHTML;
+  }
+
+  function renderDoc(id) {
+    var d = data.docs.filter(function (x) { return x.id === id; })[0];
+    if (!d) { location.hash = ""; return; }
+    document.title = d.title + "｜Legion 文件庫";
+    var items = filtered(), i = items.indexOf(d);
+    var prev = i > 0 ? items[i - 1] : null, next = i >= 0 && i < items.length - 1 ? items[i + 1] : null;
+    app.innerHTML =
+      '<div class="top"><button type="button" id="back">← 清單</button><span class="spacer"></span><span class="' + pillClass(d) + '">' + esc(d.category) + "</span></div>" +
+      '<article class="doc"><div class="row"><span>' + esc(when(d.updated)) + '</span><span class="mono">' + esc(d.path) + "</span>" + metaChips(d) +
+      '</div><div class="md">' + renderMarkdown(d.text) + "</div></article>" +
+      '<div class="nav">' + (prev ? '<button type="button" data-id="' + prev.id + '">← ' + esc(prev.title) + "</button>" : "<span></span>") +
+      (next ? '<button type="button" data-id="' + next.id + '">' + esc(next.title) + " →</button>" : "<span></span>") + "</div>" +
+      '<p class="foot">正本：桌機 Obsidian 的 vault/' + esc(d.path) + "｜agent-legion © 2026 DavidY-tw</p>";
+    document.getElementById("back").addEventListener("click", function () { location.hash = ""; });
+    app.querySelectorAll(".nav [data-id]").forEach(function (b) {
+      b.addEventListener("click", function () { location.hash = b.getAttribute("data-id"); });
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function route() {
+    if (!data) return;
+    var id = location.hash.replace(/^#/, "");
+    if (/^d\d+$/.test(id)) renderDoc(id); else renderList();
+  }
+
+  fetch("vault.json").then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (j) {
+    data = j;
+    window.addEventListener("hashchange", route);
+    route();
+  }).catch(function (e) {
+    document.getElementById("sub").textContent = "讀不到 vault.json（" + e.message + "）。請在電腦上執行 legion vault-json 後重新發佈。";
+    document.getElementById("loading").hidden = true;
+  });
+})();
+</script>

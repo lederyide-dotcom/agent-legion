@@ -150,6 +150,10 @@ def build_parser() -> argparse.ArgumentParser:
     ib = sub.add_parser("inbox", help="把 03_docs/inbox.md 的表格轉成 JSON（給互動頁讀；不花額度）")
     ib.add_argument("--file", help="inbox 檔案路徑（預設 03_docs/inbox.md）")
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
+    vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON（給手機互動頁讀；不花額度）")
+    vj.add_argument("--out", required=True, help="寫入這個檔案（UTF-8、無 BOM）")
+    dc = sub.add_parser("docs", help="從 diagrams.py 同步 README 的流程圖與儀表說明（不花額度）")
+    dc.add_argument("--check", action="store_true", help="只檢查，README 過期時回傳 1")
     return ap
 
 
@@ -177,6 +181,43 @@ def main(argv: list[str] | None = None) -> int:
                                       "cost_yesterday", "cost_today")}
 
         print(json.dumps(asyncio.run(_with_store(s, make)), ensure_ascii=False, indent=2))
+        return 0
+
+    if args.cmd == "vault-json":
+        from pathlib import Path
+
+        from .mobile import export_vault
+
+        data = export_vault(s.vault)
+        try:
+            Path(args.out).write_text(data.model_dump_json() + "\n", encoding="utf-8")  # 無 BOM
+        except OSError as e:
+            print(f"寫入失敗：{e}", file=sys.stderr)
+            return 1
+        print(f"已寫入 {args.out}（{len(data.docs)} 份文件，遮蔽警告 {len(data.warnings)} 筆，sha {data.sha256}）")
+        for w in data.warnings:
+            print(f"  ⚠ {w}")
+        return 0
+
+    if args.cmd == "docs":
+        from .config import PROJECT_ROOT
+        from .diagrams import sync_readme
+
+        readme = PROJECT_ROOT / "README.md"
+        old = readme.read_text(encoding="utf-8")
+        try:
+            new = sync_readme(old)
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            return 1
+        if new == old:
+            print("README 已是最新")
+            return 0
+        if args.check:
+            print("README 的流程圖或儀表說明過期：請執行 legion docs", file=sys.stderr)
+            return 1
+        readme.write_bytes(new.encode("utf-8"))
+        print("已更新 README 的流程圖與儀表說明")
         return 0
 
     if args.cmd == "inbox":

@@ -1,4 +1,4 @@
-"""Obsidian Vault：骨架、任務筆記匯出、儀表.base、流程.canvas、週報。"""
+"""Obsidian Vault：骨架、任務筆記匯出、儀表.base、流程.md／流程.canvas（定義在 diagrams.py）、週報。"""
 from __future__ import annotations
 
 import hashlib
@@ -10,115 +10,16 @@ from typing import Any
 
 import yaml
 
+from . import diagrams
 from .config import PROJECT_ROOT, Settings
 from .db import Store
 from .models import Task
 
 AI_SUBDIRS = ("tasks", "specs", "handoffs", "lessons", "questions", "reports", "records")
 
-BASE_YAML = """\
-filters:
-  and:
-    - 'file.inFolder("AI/tasks")'
-    - 'file.ext == "md"'
-formulas:
-  cost_label: 'if(cost_usd, "$" + cost_usd.toFixed(4), "")'
-properties:
-  state:
-    displayName: "狀態"
-  risk:
-    displayName: "風險"
-  cost_usd:
-    displayName: "成本 USD"
-  human_touches:
-    displayName: "人工介入"
-  verdict:
-    displayName: "審查結論"
-  formula.cost_label:
-    displayName: "成本"
-views:
-  - type: table
-    name: "依狀態"
-    groupBy:
-      property: state
-      direction: ASC
-    order:
-      - file.name
-      - title
-      - state
-      - risk
-      - formula.cost_label
-      - human_touches
-      - verdict
-    summaries:
-      cost_usd: Sum
-      human_touches: Sum
-  - type: table
-    name: "依風險"
-    groupBy:
-      property: risk
-      direction: DESC
-    order:
-      - file.name
-      - title
-      - risk
-      - state
-      - cost_usd
-    summaries:
-      cost_usd: Sum
-  - type: table
-    name: "等待使用者"
-    filters:
-      or:
-        - 'state == "WAIT_HUMAN"'
-        - 'state == "HALT"'
-    order:
-      - file.name
-      - title
-      - state
-      - wait_reason
-      - halt_reason
-"""
-
-# 節點間距留給連線標籤（原本 40px 間距會讓標籤壓在節點上）；顏色：5＝Claude 角色、3＝runner 程式、1＝停下等人或熔斷
-_COL, _ROW = 380, 300
-_FLOW = [
-    ("INBOX", "INBOX\n使用者丟想法", 0, 0, "6"),
-    ("PLAN", "PLAN\n指揮官規劃", _COL, 0, "5"),
-    ("SPEC_REVIEW", "SPEC_REVIEW\n規格審查者（全新 session）", _COL * 2, 0, "5"),
-    ("GATE", "GATE\nRunner 依風險分級", _COL * 3, 0, "3"),
-    ("WAIT_HUMAN", "WAIT_HUMAN\n寫 questions/ 等使用者", _COL * 4 + 320, 0, "1"),
-    ("LEARN", "LEARN\n書記官：教訓、交接、後續想法", 0, _ROW, "5"),
-    ("REVIEW", "REVIEW\n交付審查者（全新 session）", _COL, _ROW, "5"),
-    ("VERIFY", "VERIFY\nRunner 親自執行驗收指令", _COL * 2, _ROW, "3"),
-    ("EXEC", "EXEC\n指揮官在 worktree 執行", _COL * 3, _ROW, "5"),
-    ("HALT", "HALT\n超預算／超重試／逾時／STOP\n（任一狀態皆可能進入）", _COL * 4 + 320, _ROW, "1"),
-    ("DONE", "DONE", 0, _ROW * 2, "4"),
-]
-# (起點, 終點, 標籤, 起點邊, 終點邊)：雙向連線走不同邊，避免重疊
-_EDGES = [
-    ("INBOX", "PLAN", "", "right", "left"),
-    ("PLAN", "SPEC_REVIEW", "", "right", "left"),
-    ("SPEC_REVIEW", "PLAN", "revise 退回", "top", "top"),
-    ("SPEC_REVIEW", "GATE", "pass", "right", "left"),
-    ("GATE", "WAIT_HUMAN", "high", "right", "left"),
-    ("GATE", "EXEC", "low／mid", "bottom", "top"),
-    ("WAIT_HUMAN", "EXEC", "使用者核准", "left", "top"),
-    ("WAIT_HUMAN", "HALT", "使用者拒絕", "bottom", "top"),
-    ("EXEC", "VERIFY", "", "left", "right"),
-    ("VERIFY", "EXEC", "失敗，重試≤3", "bottom", "bottom"),
-    ("VERIFY", "REVIEW", "通過", "left", "right"),
-    ("REVIEW", "EXEC", "fail 退回", "top", "top"),
-    ("REVIEW", "LEARN", "pass", "left", "right"),
-    ("LEARN", "DONE", "", "bottom", "top"),
-    ("LEARN", "INBOX", "後續想法 → inbox_hold\n使用者放行才領取", "top", "bottom"),
-    ("EXEC", "HALT", "熔斷", "right", "left"),
-]
+BASE_YAML = diagrams.base_yaml()
 
 
-# 狀態 → 負責的 Claude 角色（GATE、VERIFY 由 runner 程式負責，不用模型）
-_STATE_ROLE = {"PLAN": "planner", "SPEC_REVIEW": "spec_reviewer", "EXEC": "executor", "REVIEW": "reviewer",
-               "LEARN": "scribe"}
 _ROLE_LABEL = {"planner": "指揮官（規劃）", "spec_reviewer": "規格審查者", "executor": "指揮官（執行）",
                "reviewer": "交付審查者", "scribe": "書記官", "advisor": "軍師（卡住時才請示）",
                "strategist": "參謀（戰役中決定下一步）"}
@@ -149,25 +50,15 @@ def _role_assignment(settings: Settings, role: str) -> tuple[str, str | None, st
 
 
 def canvas_json(settings: Settings | None = None) -> dict[str, Any]:
-    """閉環流程畫布。傳入 settings 時，在 Claude 角色節點上標註實際分配的模型。"""
-    nodes = []
-    for sid, text, x, y, color in _FLOW:
-        role = _STATE_ROLE.get(sid)
-        if settings is not None and role:
-            m, e, m2, e2 = _role_assignment(settings, role)
-            text += f"\n模型：{_fmt(m, e)}" + (f"\n重做時：{_fmt(m2, e2)}" if m2 else "")
-        elif settings is not None and sid in {"GATE", "VERIFY"}:
-            text += "\n不用模型（程式判斷）"
-        nodes.append({"id": f"n-{sid.lower()}", "type": "text", "text": text, "x": x, "y": y, "width": 260,
-                      "height": 140, "color": color})
-    edges = []
-    for i, (a, b, label, from_side, to_side) in enumerate(_EDGES):
-        e: dict[str, Any] = {"id": f"e-{i:02d}", "fromNode": f"n-{a.lower()}", "toNode": f"n-{b.lower()}",
-                             "fromSide": from_side, "toSide": to_side, "toEnd": "arrow"}
-        if label:
-            e["label"] = label
-        edges.append(e)
-    return {"nodes": nodes, "edges": edges}
+    """閉環流程畫布（定義在 diagrams.py）。傳入 settings 時，在 Claude 角色節點上標註實際分配的模型。"""
+    if settings is None:
+        return diagrams.canvas_json()
+    models: dict[str, list[str]] = {}
+    for n in diagrams.NODES:
+        if n.role:
+            m, e, m2, e2 = _role_assignment(settings, n.role)
+            models[n.role] = [f"模型：{_fmt(m, e)}"] + ([f"重做時：{_fmt(m2, e2)}"] if m2 else [])
+    return diagrams.canvas_json(models)
 
 
 def models_canvas_json(settings: Settings) -> dict[str, Any]:
@@ -212,6 +103,10 @@ def models_canvas_json(settings: Settings) -> dict[str, Any]:
             text = f"## {name}" + (f"\n官方單價 {price}\n（每百萬 token 輸入／輸出）" if price else "")
             nodes.append({"id": mid, "type": "text", "text": text, "x": 1000, "y": sum(ys) // len(ys) - 20,
                           "width": 300, "height": 160, "color": color})
+    # 兩個模型的「平均列」可能剛好相同（例如 Opus 用在頭尾、Sonnet 用在中間）→ 依序往下推開，避免疊在一起
+    placed = sorted((n for n in nodes if n["id"].startswith("m-")), key=lambda n: n["y"])
+    for prev, cur in zip(placed, placed[1:]):
+        cur["y"] = max(cur["y"], prev["y"] + prev["height"] + 40)
     for nid, model, label, kind in pending:
         if kind:
             continue
@@ -241,6 +136,7 @@ def init_vault(settings: Settings) -> None:
         if not k.exists():
             k.write_text("", encoding="utf-8")
     (settings.ai_dir / "儀表.base").write_text(BASE_YAML, encoding="utf-8")
+    (settings.ai_dir / "流程.md").write_text(diagrams.flow_markdown(), encoding="utf-8")
     (settings.ai_dir / "流程.canvas").write_text(
         json.dumps(canvas_json(settings), ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -253,7 +149,7 @@ def init_vault(settings: Settings) -> None:
             "# Agent Legion Vault\n\n"
             "- `INBOX/`：一個 .md 一個想法（可選 frontmatter：title、kind、repo、subdir）。\n"
             "- `STOP`：**建立這個檔案（內容不限）即全系統停止**，所有進行中任務進入 HALT。\n"
-            "- `AI/`：agent 與 runner 可寫區；`AI/儀表.base` 是儀表，`AI/流程.canvas` 是閉環流程圖。\n",
+            "- `AI/`：agent 與 runner 可寫區；`AI/儀表.base` 是儀表，`AI/流程.md` 是閉環流程圖（與 GitHub README 同一張），`AI/流程.canvas` 是可拖曳並標註模型的版本。\n",
             encoding="utf-8",
         )
 

@@ -3,112 +3,151 @@
     {
       "id": "n-inbox",
       "type": "text",
-      "text": "INBOX\n使用者丟想法",
+      "text": "**INBOX**\n使用者丟想法",
       "x": 0,
       "y": 0,
-      "width": 260,
-      "height": 140,
-      "color": "6"
+      "width": 250,
+      "height": 86,
+      "color": "#9aa0a6"
     },
     {
       "id": "n-plan",
       "type": "text",
-      "text": "PLAN\n指揮官規劃\n模型：Sonnet 5.5 / medium",
-      "x": 380,
+      "text": "**PLAN**\n指揮官規劃\n模型：Opus 5.5 / medium",
+      "x": 340,
       "y": 0,
-      "width": 260,
-      "height": 140,
-      "color": "5"
+      "width": 250,
+      "height": 112,
+      "color": "#4a6cf7"
     },
     {
       "id": "n-spec_review",
       "type": "text",
-      "text": "SPEC_REVIEW\n規格審查者（全新 session）\n模型：Sonnet 5.5 / medium",
-      "x": 760,
+      "text": "**SPEC_REVIEW**\n規格審查者\n模型：Opus 5.5 / medium",
+      "x": 680,
       "y": 0,
-      "width": 260,
-      "height": 140,
-      "color": "5"
+      "width": 250,
+      "height": 112,
+      "color": "#4a6cf7"
     },
     {
       "id": "n-gate",
       "type": "text",
-      "text": "GATE\nRunner 依風險分級\n不用模型（程式判斷）",
-      "x": 1140,
+      "text": "**GATE**\n依規則判定風險\n不用模型（程式判斷）",
+      "x": 1020,
       "y": 0,
-      "width": 260,
-      "height": 140,
-      "color": "3"
+      "width": 250,
+      "height": 112,
+      "color": "#e8a317"
     },
     {
       "id": "n-wait_human",
       "type": "text",
-      "text": "WAIT_HUMAN\n寫 questions/ 等使用者",
-      "x": 1840,
+      "text": "**WAIT_HUMAN**\n等使用者決定（錦囊閒置可自動決議）",
+      "x": 1360,
       "y": 0,
-      "width": 260,
-      "height": 140,
-      "color": "1"
-    },
-    {
-      "id": "n-learn",
-      "type": "text",
-      "text": "LEARN\n書記官：教訓、交接、後續想法\n模型：Haiku 5.5",
-      "x": 0,
-      "y": 300,
-      "width": 260,
-      "height": 140,
-      "color": "5"
-    },
-    {
-      "id": "n-review",
-      "type": "text",
-      "text": "REVIEW\n交付審查者（全新 session）\n模型：Sonnet 5.5 / high\n重做時：Opus 5.5 / high",
-      "x": 380,
-      "y": 300,
-      "width": 260,
-      "height": 140,
-      "color": "5"
-    },
-    {
-      "id": "n-verify",
-      "type": "text",
-      "text": "VERIFY\nRunner 親自執行驗收指令\n不用模型（程式判斷）",
-      "x": 760,
-      "y": 300,
-      "width": 260,
-      "height": 140,
-      "color": "3"
+      "width": 250,
+      "height": 86,
+      "color": "#d93025"
     },
     {
       "id": "n-exec",
       "type": "text",
-      "text": "EXEC\n指揮官在 worktree 執行\n模型：Sonnet 5.5\n重做時：Opus 5.5 / high",
-      "x": 1140,
-      "y": 300,
-      "width": 260,
-      "height": 140,
-      "color": "5"
+      "text": "**EXEC**\n指揮官在 worktree 執行\n模型：Sonnet 5.5\n重做時：Opus 5.5 / high",
+      "x": 1020,
+      "y": 230,
+      "width": 250,
+      "height": 138,
+      "color": "#4a6cf7"
     },
     {
-      "id": "n-halt",
+      "id": "n-verify",
       "type": "text",
-      "text": "HALT\n超預算／超重試／逾時／STOP\n（任一狀態皆可能進入）",
-      "x": 1840,
-      "y": 300,
-      "width": 260,
-      "height": 140,
-      "color": "1"
+      "text": "**VERIFY**\nrunner 親自跑驗收指令\n不用模型（程式判斷）",
+      "x": 680,
+      "y": 230,
+      "width": 250,
+      "height": 112,
+      "color": "#e8a317"
+    },
+    {
+      "id": "n-review",
+      "type": "text",
+      "text": "**REVIEW**\n交付審查者\n模型：Sonnet 5.5 / high\n重做時：Opus 5.5 / high",
+      "x": 340,
+      "y": 230,
+      "width": 250,
+      "height": 138,
+      "color": "#4a6cf7"
+    },
+    {
+      "id": "n-learn",
+      "type": "text",
+      "text": "**LEARN**\n書記官紀錄\n模型：Haiku 5.5",
+      "x": 0,
+      "y": 230,
+      "width": 250,
+      "height": 112,
+      "color": "#4a6cf7"
     },
     {
       "id": "n-done",
       "type": "text",
-      "text": "DONE",
+      "text": "**DONE**",
       "x": 0,
-      "y": 600,
-      "width": 260,
-      "height": 140,
-      "color": "4"
+      "y": 460,
+      "width": 250,
+      "height": 60,
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "n-hold",
+      "type": "text",
+      "text": "**inbox_hold**",
+      "x": -340,
+      "y": 115,
+      "width": 250,
+      "height": 60,
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "n-advisor",
+      "type": "text",
+      "text": "**ADVISOR**\n軍師診斷＋錦囊\n模型：Opus 5.5 / high",
+      "x": 680,
+      "y": 460,
+      "width": 250,
+      "height": 112,
+      "color": "#4a6cf7"
+    },
+    {
+      "id": "n-halt",
+      "type": "text",
+      "text": "**HALT**",
+      "x": 1360,
+      "y": 230,
+      "width": 250,
+      "height": 60,
+      "color": "#d93025"
+    },
+    {
+      "id": "n-any",
+      "type": "text",
+      "text": "**任一狀態**",
+      "x": 1360,
+      "y": 460,
+      "width": 250,
+      "height": 60,
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "n-legend",
+      "type": "text",
+      "x": -340,
+      "y": 460,
+      "width": 310,
+      "height": 200,
+      "text": "**圖例**\n- 藍色＝Claude 擔任的角色\n- 橘色＝runner 以程式判斷（不經 LLM）\n- 紅色＝停下來等人或熔斷\n- 灰色＝起點、終點與暫存\n- 灰線＝例外或補救路徑\n\n與 README、[[流程]] 同一份定義"
     }
   ],
   "edges": [
@@ -157,30 +196,30 @@
     },
     {
       "id": "e-05",
-      "fromNode": "n-gate",
+      "fromNode": "n-wait_human",
       "toNode": "n-exec",
       "fromSide": "bottom",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "low／mid"
+      "label": "核准 / 錦囊：帶指引重試"
     },
     {
       "id": "e-06",
-      "fromNode": "n-wait_human",
-      "toNode": "n-exec",
-      "fromSide": "left",
-      "toSide": "top",
-      "toEnd": "arrow",
-      "label": "使用者核准"
-    },
-    {
-      "id": "e-07",
       "fromNode": "n-wait_human",
       "toNode": "n-halt",
       "fromSide": "bottom",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "使用者拒絕"
+      "label": "拒絕 / 錦囊：拆分、放棄"
+    },
+    {
+      "id": "e-07",
+      "fromNode": "n-gate",
+      "toNode": "n-exec",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "low / mid"
     },
     {
       "id": "e-08",
@@ -192,15 +231,24 @@
     },
     {
       "id": "e-09",
+      "fromNode": "n-exec",
+      "toNode": "n-wait_human",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "要安裝套件"
+    },
+    {
+      "id": "e-10",
       "fromNode": "n-verify",
       "toNode": "n-exec",
       "fromSide": "bottom",
       "toSide": "bottom",
       "toEnd": "arrow",
-      "label": "失敗，重試≤3"
+      "label": "失敗，重試 ≤ 3"
     },
     {
-      "id": "e-10",
+      "id": "e-11",
       "fromNode": "n-verify",
       "toNode": "n-review",
       "fromSide": "left",
@@ -209,7 +257,26 @@
       "label": "通過"
     },
     {
-      "id": "e-11",
+      "id": "e-12",
+      "fromNode": "n-verify",
+      "toNode": "n-wait_human",
+      "fromSide": "top",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "diff 判為 high / 範圍外檔案"
+    },
+    {
+      "id": "e-13",
+      "fromNode": "n-wait_human",
+      "toNode": "n-verify",
+      "fromSide": "left",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "核准後重驗",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-14",
       "fromNode": "n-review",
       "toNode": "n-exec",
       "fromSide": "top",
@@ -218,7 +285,7 @@
       "label": "fail 退回"
     },
     {
-      "id": "e-12",
+      "id": "e-15",
       "fromNode": "n-review",
       "toNode": "n-learn",
       "fromSide": "left",
@@ -227,7 +294,7 @@
       "label": "pass"
     },
     {
-      "id": "e-13",
+      "id": "e-16",
       "fromNode": "n-learn",
       "toNode": "n-done",
       "fromSide": "bottom",
@@ -235,22 +302,101 @@
       "toEnd": "arrow"
     },
     {
-      "id": "e-14",
+      "id": "e-17",
       "fromNode": "n-learn",
-      "toNode": "n-inbox",
-      "fromSide": "top",
+      "toNode": "n-hold",
+      "fromSide": "left",
       "toSide": "bottom",
       "toEnd": "arrow",
-      "label": "後續想法 → inbox_hold\n使用者放行才領取"
+      "label": "後續想法",
+      "color": "#9aa0a6"
     },
     {
-      "id": "e-15",
-      "fromNode": "n-exec",
+      "id": "e-18",
+      "fromNode": "n-hold",
+      "toNode": "n-inbox",
+      "fromSide": "top",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "使用者放行",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-19",
+      "fromNode": "n-verify",
+      "toNode": "n-advisor",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "同一錯誤反覆 / 超重試"
+    },
+    {
+      "id": "e-20",
+      "fromNode": "n-spec_review",
+      "toNode": "n-advisor",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "退回超過上限",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-21",
+      "fromNode": "n-review",
+      "toNode": "n-advisor",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "退回超過上限",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-22",
+      "fromNode": "n-advisor",
+      "toNode": "n-wait_human",
+      "fromSide": "right",
+      "toSide": "right",
+      "toEnd": "arrow",
+      "label": "至少 3 個錦囊"
+    },
+    {
+      "id": "e-23",
+      "fromNode": "n-advisor",
       "toNode": "n-halt",
       "fromSide": "right",
       "toSide": "left",
       "toEnd": "arrow",
-      "label": "熔斷"
+      "label": "呼叫失敗 / 預算不足 / 錦囊不足",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-24",
+      "fromNode": "n-wait_human",
+      "toNode": "n-plan",
+      "fromSide": "top",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "錦囊：改寫規格"
+    },
+    {
+      "id": "e-25",
+      "fromNode": "n-any",
+      "toNode": "n-halt",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "超預算 / 逾時 / STOP / 軍師關閉或問滿",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-26",
+      "fromNode": "n-halt",
+      "toNode": "n-any",
+      "fromSide": "right",
+      "toSide": "right",
+      "toEnd": "arrow",
+      "label": "legion resume 回原狀態",
+      "color": "#9aa0a6"
     }
   ]
 }
