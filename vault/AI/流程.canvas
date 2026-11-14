@@ -13,7 +13,7 @@
     {
       "id": "n-plan",
       "type": "text",
-      "text": "PLAN\n指揮官規劃\n模型：Opus 5.5 / medium",
+      "text": "PLAN\n指揮官規劃\n模型：Sonnet 5.5 / medium",
       "x": 380,
       "y": 0,
       "width": 260,
@@ -23,7 +23,7 @@
     {
       "id": "n-spec_review",
       "type": "text",
-      "text": "SPEC_REVIEW\n規格審查者（全新 session）\n模型：Opus 5.5 / medium",
+      "text": "SPEC_REVIEW\n規格審查者（全新 session）\n模型：Sonnet 5.5 / medium",
       "x": 760,
       "y": 0,
       "width": 260,

@@ -16,6 +16,7 @@
 | D1 | 水利計算函式庫戰役的範圍：哪些公式或規範、放哪個 repo（2026-11-14 David：之後再說） | 先做曼寧公式＋管渠滿管／非滿管水力，以教科書例題當驗收 | 回覆後 Claude Code 寫戰役任務檔 |
 | D8 | 手機有沒有收到推播；要不要加 Telegram 第 2 層（2026-11-14 David：之後再說） | 桌面 app 開著時推播會被壓下；離開電腦時再測一次 | — |
 | D10 | fu-T-0016-1 人工抽查 T-0016 報告的機密處理（2026-11-14 David：之後再說） | 人做 | `vault/AI/inbox_hold/fu-T-0016-1.md` |
+| D11 | 核准 T-0022 的驗收指令：sonnet 規劃的 `python -m pytest -q "tests/test_safe_workspace_path.py::test_rejected[NUL .log]" …`（指定參數化案例的節點 id，含空白與方括號）不在白名單，任務升為 high 停在閘門 | 核准：只是跑指定測試、唯讀；白名單本身不改 | `vault/AI/questions/T-0022.md` |
 
 ## 已決定（2026-11-14 David 從互動頁回覆）
 
@@ -44,7 +45,7 @@
 | A9 | 範圍驗收自動化：runner 產生「變更範圍」證據（相對起點 commit、含已 commit 與未追蹤新檔）；驗收後才出現的範圍外檔案停下等核准，核准以路徑為單位；規劃者提示不必再寫範圍指令 | ✅ 2026-11-14 | 5 項測試；code-reviewer 必修 1 項已修；相關 6 個想法檔已封存到 `vault/AI/inbox_done/resolved-A9__*` | `tests/test_scope_check.py`、`02_data/verify_20261114.md` 第 11 節 |
 | A10 | progress.md 交接段落 | ✅ 2026-11-14 | 新 session 只讀 progress.md 即可接手 | `03_docs/progress.md` 最後一段 |
 | A11 | 收件匣互動頁：`legion inbox` 把本檔表格轉 JSON，頁面讀它顯示；改本檔後重產並重新發布（連結不變） | ✅ 2026-11-14 | 12 項測試；code-reviewer 必修 2 項已修；本機實測頁面 27 列與本檔一致 | `tests/test_inbox.py`、`03_docs/inbox_page.html`、`02_data/verify_20261114.md` 第 12 節 |
-| A12 | 依 D2＋D7 跑 fu-T-0018-1：target-repo-b 的 safe_workspace_path 補邊界測試，規劃與規格審查改用 sonnet（D2 第 1 個試跑） | ⏳ | 任務 DONE、target-repo-b 測試通過、花費記入帳本並與 Opus 規劃的同類任務比較 | — |
+| A12 | 依 D2＋D7 跑 fu-T-0018-1（T-0022）：target-repo-b 的 safe_workspace_path 補邊界測試，規劃與規格審查改用 sonnet（D2 第 1 個試跑） | ⛔ 等 D11 | 任務 DONE、target-repo-b 測試通過、花費記入帳本並與 Opus 規劃的同類任務比較 | 規劃＋審查 2 輪共 $0.18；`vault/AI/questions/T-0022.md` |
 
 ## inbox_hold 分流建議（給 D7）
 

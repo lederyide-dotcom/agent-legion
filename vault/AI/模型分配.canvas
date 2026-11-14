@@ -8,7 +8,7 @@
       "y": 0,
       "width": 300,
       "height": 120,
-      "color": "6"
+      "color": "5"
     },
     {
       "id": "r-spec_review",
@@ -18,7 +18,7 @@
       "y": 170,
       "width": 300,
       "height": 120,
-      "color": "6"
+      "color": "5"
     },
     {
       "id": "r-gate",
@@ -93,22 +93,22 @@
     {
       "id": "m-0",
       "type": "text",
-      "text": "## Opus 5.5\n官方單價 $4／$20\n（每百萬 token 輸入／輸出）",
+      "text": "## Sonnet 5.5\n官方單價 $2／$10\n（每百萬 token 輸入／輸出）",
       "x": 1000,
-      "y": 660,
+      "y": 362,
       "width": 300,
       "height": 160,
-      "color": "6"
+      "color": "5"
     },
     {
       "id": "m-1",
       "type": "text",
-      "text": "## Sonnet 5.5\n官方單價 $2／$10\n（每百萬 token 輸入／輸出）",
+      "text": "## Opus 5.5\n官方單價 $4／$20\n（每百萬 token 輸入／輸出）",
       "x": 1000,
-      "y": 660,
+      "y": 1255,
       "width": 300,
       "height": 160,
-      "color": "5"
+      "color": "6"
     },
     {
       "id": "m-2",
@@ -153,7 +153,7 @@
       "id": "e-02",
       "fromNode": "r-exec",
       "fromSide": "right",
-      "toNode": "m-1",
+      "toNode": "m-0",
       "toSide": "left",
       "toEnd": "arrow",
       "label": "第 1 次｜預設"
@@ -162,7 +162,7 @@
       "id": "e-03",
       "fromNode": "r-review",
       "fromSide": "right",
-      "toNode": "m-1",
+      "toNode": "m-0",
       "toSide": "left",
       "toEnd": "arrow",
       "label": "第 1 次｜high"
@@ -180,7 +180,7 @@
       "id": "e-05",
       "fromNode": "r-advisor",
       "fromSide": "right",
-      "toNode": "m-0",
+      "toNode": "m-1",
       "toSide": "left",
       "toEnd": "arrow",
       "label": "第 1 次｜high"
@@ -189,16 +189,16 @@
       "id": "e-06",
       "fromNode": "r-mission",
       "fromSide": "right",
-      "toNode": "m-0",
+      "toNode": "m-1",
       "toSide": "left",
       "toEnd": "arrow",
       "label": "第 1 次｜medium"
     },
     {
       "id": "e-07",
-      "fromNode": "m-1",
+      "fromNode": "m-0",
       "fromSide": "bottom",
-      "toNode": "m-0",
+      "toNode": "m-1",
       "toSide": "top",
       "toEnd": "arrow",
       "color": "1",
