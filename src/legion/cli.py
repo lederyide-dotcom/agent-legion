@@ -91,13 +91,8 @@ async def _with_store(s: Settings, fn: Callable[[Store], Awaitable[Any]]) -> Any
         await store.close()
 
 
-def main(argv: list[str] | None = None) -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-        except (AttributeError, ValueError):
-            pass
-    _windows_loop()
+def build_parser() -> argparse.ArgumentParser:
+    """建立 legion 的命令列解析器（測試也用它列出所有子命令）。"""
     ap = argparse.ArgumentParser(prog="legion", formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--schema", default=os.environ.get("LEGION_SCHEMA", "legion"))
     ap.add_argument("--version", action="version",
@@ -155,6 +150,17 @@ def main(argv: list[str] | None = None) -> int:
     ib = sub.add_parser("inbox", help="把 03_docs/inbox.md 的表格轉成 JSON（給互動頁讀；不花額度）")
     ib.add_argument("--file", help="inbox 檔案路徑（預設 03_docs/inbox.md）")
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+        except (AttributeError, ValueError):
+            pass
+    _windows_loop()
+    ap = build_parser()
     args = ap.parse_args(argv)
 
     s = Settings(schema_name=args.schema)

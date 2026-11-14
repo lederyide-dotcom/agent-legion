@@ -117,7 +117,7 @@ cd agent-legion
 scripts\start.bat
 ```
 
-`start.bat` 會依序：啟動 DB（compose 專案名稱固定取主 repo 資料夾名稱，所以在 git worktree 裡執行也會沿用同一個 DB；可用 `COMPOSE_PROJECT_NAME` 覆寫） → 建立 `.venv` 並安裝套件（第一次）→ 建表 → 建 vault 骨架 → 跑一次**零成本**的 mock demo（3 個任務＋1 個回灌，示範正常完成、高風險攔下、回灌）。完成後用 Obsidian 開啟 `vault/` 資料夾。
+`start.bat` 會依序：啟動 DB（compose 專案名稱固定取主 repo 資料夾名稱，所以在 git worktree 裡執行也會沿用同一個 DB；可用 `COMPOSE_PROJECT_NAME` 覆寫） → 建立 `.venv` 並安裝套件（第一次）→ 建表（`legion init-db`）→ 建 vault 骨架（`legion init-vault`）→ 跑一次**零成本**的 mock demo（3 個任務＋1 個回灌，示範正常完成、高風險攔下、回灌）。完成後用 Obsidian 開啟 `vault/` 資料夾。
 
 ## 設定
 
