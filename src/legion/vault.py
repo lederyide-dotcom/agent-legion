@@ -369,6 +369,30 @@ def write_advisor_question(settings: Settings, task: Task, adv: dict[str, Any]) 
     return path
 
 
+def write_clarify_question(settings: Settings, task: Task, questions: list[dict[str, Any]]) -> Path:
+    """需求釐清寫成問題檔：每題列選項（⭐ 為預設），附回答方式與閒置後採用預設的說明。"""
+    path = settings.ai_dir / "questions" / f"{task.id}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    blocks = []
+    for q in questions:
+        opts = "\n".join(f"- {'⭐ ' if o == q['default'] else ''}{'ABCD'[i]}. {o}" for i, o in enumerate(q["options"]))
+        why = f"\n  （為什麼問：{q['why']}）" if q.get("why") else ""
+        blocks.append(f"### {q['id']}. {q['question']}{why}\n{opts}\n")
+    example = " ".join(f"{q['id']}={'ABCD'[q['options'].index(q['default'])]}" for q in questions)
+    minutes = settings.clarify_idle_minutes
+    path.write_text(
+        f"---\ntask: {task.id}\nreason: 需求釐清待回答\nasked: {task.meta.get('clarify', {}).get('asked_at', '')}\n---\n"
+        f"# 需求釐清：{task.id} {task.title}\n\n規劃者覺得想法還有不清楚的地方，先問你 {len(questions)} 題。"
+        "⭐ 是預設答案，規格已照預設寫好。\n\n" + "\n".join(blocks) +
+        f"\n## 怎麼回答\n```\n.venv\\Scripts\\python.exe -m legion clarify {task.id} --defaults   # 全部採用預設\n"
+        f".venv\\Scripts\\python.exe -m legion clarify {task.id} {example}   # 逐題指定（沒寫的題目採用預設）\n```\n\n"
+        f"> [!info] {minutes:g} 分鐘內沒有回答，就採用預設答案繼續（之後仍有規格審查與守門）。"
+        "有任何答案不是預設，規劃者會照你的答案重寫規格。\n",
+        encoding="utf-8", newline="\n",
+    )
+    return path
+
+
 # ---------------------------------------------------------------- 週報
 async def weekly_report(settings: Settings, store: Store, day: date | None = None) -> Path:
     import csv

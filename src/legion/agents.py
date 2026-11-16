@@ -302,6 +302,8 @@ class MockAgent:
                 "installs": sc.get("installs", []),
                 "rationale": "mock 規劃",
             }
+            if sc.get("questions"):  # 需求釐清：mock 每次規劃都回同一組提問；已問過時由 runner 忽略
+                out["questions"] = sc["questions"]
         elif call.role == "spec_reviewer":
             v = self._pick(sc.get("spec_review", []), call.attempt, "pass")
             default_findings = [] if v == "pass" else ["mock：驗收指令不足"]

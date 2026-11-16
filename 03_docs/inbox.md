@@ -59,6 +59,7 @@
 | A18 | 動態流程與儀表：GitHub README 與 Obsidian 共用動態 SVG（連線流動＋重播 T-0022＋KPI 卡），`legion docs` 產生、晨報更新 KPI 卡 | ✅ 2026-11-15 | 瀏覽器實測動畫時間窗與實線流動；全套 301 passed；GitHub 與 Obsidian 實際播放待確認 | `02_data/verify_20261114.md` 第 22 節 |
 | A19 | 評測基準 `legion bench`：8 道固定題目驗證閉環控制邏輯（mock），儀表畫趨勢 | ✅ 2026-11-15 | 8/8；三個變異測試都會失敗（刪檔規則、執行後範圍檢查、守門放行 high） | `02_data/verify_20261115.md` 第 1 節；6963955 |
 | A20 | 改檔防護四層：.gitattributes LF、產生器寫 LF、Claude hook 寫檔當下檢查、git pre-commit；14 檔換行一次統一 | ✅ 2026-11-15 | 探測檔（CRLF、斷行字串）被 hook 與 pre-commit 都擋下 | `02_data/verify_20261115.md` 第 2 節；2ca4f0e、e3b4566 |
+| A21 | 想法入口 `legion idea`＋需求釐清（規劃者先問、附預設答案、閒置採用預設；`legion clarify`） | ✅ 2026-11-17 | 13 項測試；評測 9/9；全套 331 passed；真實 Claude 提問品質未驗證 | `02_data/verify_20261117.md` 第 1 節；`03_docs/spec_clarify.md` |
 
 ## inbox_hold 分流建議（給 D7）
 

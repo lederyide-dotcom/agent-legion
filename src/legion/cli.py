@@ -15,7 +15,7 @@ from .config import Settings
 from .db import Store
 from .installs import RecordingInstaller, ShellInstaller
 from .models import State
-from .runner import Runner
+from .runner import Runner, UserError
 from .vault import init_vault, weekly_report
 
 
@@ -126,6 +126,15 @@ def build_parser() -> argparse.ArgumentParser:
     ch.add_argument("task_id")
     ch.add_argument("option_id")
     ch.add_argument("--by", default=os.environ.get("USERNAME", "user"))
+    cl = sub.add_parser("clarify", help="回答需求釐清：--defaults 全部採用預設，或逐題 1=B 2=A")
+    cl.add_argument("task_id")
+    cl.add_argument("answers", nargs="*", help="題號=選項代號或原文，例如 1=B 2=A；沒寫的題目採用預設")
+    cl.add_argument("--defaults", action="store_true", help="全部採用預設答案")
+    cl.add_argument("--by", default=os.environ.get("USERNAME", "user"))
+    idea = sub.add_parser("idea", help="一句話丟想法：寫進 vault/INBOX，下一輪 tick 就會領取（不花額度）")
+    idea.add_argument("text", help="想法，一句話即可；不清楚的地方規劃者會先問你")
+    idea.add_argument("--repo", help="目標 repo（預設：LEGION_DEFAULT_REPO，再來是目前所在的 git repo）")
+    idea.add_argument("--kind", choices=["write", "readonly"], default="write")
     r = sub.add_parser("resume")
     r.add_argument("task_id")
     r.add_argument("--by", default=os.environ.get("USERNAME", "user"))
@@ -140,7 +149,7 @@ def build_parser() -> argparse.ArgumentParser:
     ex = sub.add_parser("export")
     ex.add_argument("task_id")
     ex.add_argument("--format", choices=["docx", "pdf"], required=True)
-    sub.add_parser("bench", help="評測基準：8 道固定題目驗證閉環控制邏輯（mock，不花額度），結果寫入 02_data/bench")
+    sub.add_parser("bench", help="評測基準：9 道固定題目驗證閉環控制邏輯（mock，不花額度），結果寫入 02_data/bench")
     dm = sub.add_parser("demo")
     dm.add_argument("--mock", action="store_true", required=True)
     sub.add_parser("status")
@@ -242,6 +251,24 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, psycopg.Error) as e:
             print(f"儀表 KPI 卡未更新（{type(e).__name__}，保留舊檔）：{e}", file=sys.stderr)
         return rc
+
+    if args.cmd == "idea":
+        from pathlib import Path
+
+        from .intake import resolve_repo, write_idea
+
+        try:
+            repo = resolve_repo(args.repo, s, Path.cwd())
+            if repo is None:
+                print("找不到目標 repo：請加 --repo <路徑>、設定 LEGION_DEFAULT_REPO，或在目標 repo 裡執行。",
+                      file=sys.stderr)
+                return 1
+            p = write_idea(s, args.text, repo, args.kind)
+        except (ValueError, OSError) as e:
+            print(f"idea 失敗：{e}", file=sys.stderr)
+            return 1
+        print(f"已收下想法 → {p}\n目標 repo：{repo}\n下一輪 `legion tick` 會領取；不清楚的地方規劃者會先問你。")
+        return 0
 
     if args.cmd == "inbox":
         from pathlib import Path
@@ -356,6 +383,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "choose":
             t = await runner.choose(args.task_id, args.option_id, args.by)
             return f"{t.id} 採用錦囊 {args.option_id} → {t.state.value}（human_touches={t.human_touches}）"
+        if args.cmd == "clarify":
+            t = await runner.clarify(args.task_id, clarify_answers, args.by)
+            return f"{t.id} 需求釐清已回答 → {t.state.value}"
         if args.cmd == "cancel":
             t = await runner.cancel(args.task_id, args.by, args.reason)
             return f"{t.id} → {t.state.value}（{t.halt_reason}）"
@@ -369,8 +399,38 @@ def main(argv: list[str] | None = None) -> int:
                              f"touch={t.human_touches}  {t.title}" for t in await st.list_tasks())
         raise ValueError(args.cmd)
 
-    print(asyncio.run(_with_store(s, act)))
+    clarify_answers: dict[str, str] | None = None
+    if args.cmd == "clarify":  # 先檢查格式再連 DB：格式錯就不碰任何 schema
+        try:
+            clarify_answers = parse_clarify_args(args.answers, args.defaults)
+        except UserError as e:
+            print(f"clarify 失敗：{e}", file=sys.stderr)
+            return 1
+    try:
+        print(asyncio.run(_with_store(s, act)))
+    except UserError as e:  # 使用者輸入或狀態不符：說明原因，不丟 traceback（程式錯誤照常顯示堆疊）
+        print(f"{args.cmd} 失敗：{e}", file=sys.stderr)
+        return 1
     return 0
+
+
+def parse_clarify_args(answers: list[str], defaults: bool) -> dict[str, str] | None:
+    """`legion clarify` 的答案：--defaults → None（全部預設）；否則 題號=選項，題號不可重複；兩者都沒給要報錯。"""
+    if defaults and answers:
+        raise UserError("--defaults 與逐題答案只能擇一")
+    if defaults:
+        return None
+    if not answers:
+        raise UserError("請給 --defaults（全部採用預設）或逐題答案，例如 1=B 2=A")
+    out: dict[str, str] = {}
+    for a in answers:
+        k, sep, v = a.partition("=")
+        if not sep or not k.strip() or not v.strip():
+            raise UserError(f"答案「{a}」格式不對：要寫 題號=選項，例如 1=B")
+        if k.strip() in out:
+            raise UserError(f"第 {k.strip()} 題回答了兩次")
+        out[k.strip()] = v.strip()
+    return out
 
 
 if __name__ == "__main__":

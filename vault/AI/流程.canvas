@@ -376,10 +376,30 @@
       "fromSide": "top",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "錦囊：改寫規格"
+      "label": "錦囊：改寫規格／非預設答案重新規劃"
     },
     {
       "id": "e-25",
+      "fromNode": "n-plan",
+      "toNode": "n-wait_human",
+      "fromSide": "right",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "想法不清楚：先提問（附預設答案）",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-26",
+      "fromNode": "n-wait_human",
+      "toNode": "n-spec_review",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "採用預設答案（閒置自動）",
+      "color": "#9aa0a6"
+    },
+    {
+      "id": "e-27",
       "fromNode": "n-any",
       "toNode": "n-halt",
       "fromSide": "top",
@@ -389,7 +409,7 @@
       "color": "#9aa0a6"
     },
     {
-      "id": "e-26",
+      "id": "e-28",
       "fromNode": "n-halt",
       "toNode": "n-any",
       "fromSide": "right",

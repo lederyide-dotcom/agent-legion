@@ -86,7 +86,9 @@ EDGES: tuple[Edge, ...] = (
     Edge("REVIEW", "ADVISOR", "退回超過上限", True, sides=("bottom", "left")),
     Edge("ADVISOR", "WAIT_HUMAN", "至少 3 個錦囊", sides=("right", "right")),
     Edge("ADVISOR", "HALT", "呼叫失敗 / 預算不足 / 錦囊不足", True, sides=("right", "left")),
-    Edge("WAIT_HUMAN", "PLAN", "錦囊：改寫規格", sides=("top", "top")),
+    Edge("WAIT_HUMAN", "PLAN", "錦囊：改寫規格／非預設答案重新規劃", sides=("top", "top")),
+    Edge("PLAN", "WAIT_HUMAN", "想法不清楚：先提問（附預設答案）", True, sides=("right", "top")),
+    Edge("WAIT_HUMAN", "SPEC_REVIEW", "採用預設答案（閒置自動）", True, sides=("left", "bottom")),
     Edge("ANY", "HALT", "超預算 / 逾時 / STOP / 軍師關閉或問滿", True, sides=("top", "bottom")),
     Edge("HALT", "ANY", "legion resume 回原狀態", True, sides=("right", "right")),
 )

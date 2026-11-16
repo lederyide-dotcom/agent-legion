@@ -113,6 +113,12 @@ class Settings(BaseModel):
     advisor_idle_minutes: float = Field(
         default_factory=lambda: float(os.environ.get("LEGION_ADVISOR_IDLE_MINUTES", "15")))  # 人閒置多久就自動決議
     advisor_budget_usd: float = Field(default=0.5, gt=0)  # 每次請示的上限（仍計入單任務與每日預算）
+    # 需求釐清：想法不清楚時規劃者先提問（附預設答案），人閒置多久就採用預設答案繼續
+    clarify_enabled: bool = Field(default_factory=lambda: os.environ.get("LEGION_CLARIFY", "1") != "0")
+    clarify_idle_minutes: float = Field(
+        default_factory=lambda: float(os.environ.get("LEGION_CLARIFY_IDLE_MINUTES", "15")))
+    # legion idea 沒給 --repo、也不在 git repo 裡時的預設目標 repo
+    default_repo: str | None = Field(default_factory=lambda: os.environ.get("LEGION_DEFAULT_REPO") or None)
     mission_min_call_usd: float = 0.05  # 戰役剩餘額度低於此值就不再呼叫 agent
     advisor_max_consults: int = 2  # 每個任務最多請示幾次，避免「失敗→請示→自動重試」無限循環
     call_timeout_s: int = 900

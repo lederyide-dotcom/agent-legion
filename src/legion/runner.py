@@ -80,6 +80,11 @@ def _mission_meta(fm: dict[str, Any], stem: str, title: str, body: str) -> dict[
 
 ADVISOR_TRIGGERS = ("same_error_", "retry_exceeded")  # 這兩種停下會先請示軍師
 ADVISOR_WAIT = "軍師錦囊待決定"  # wait_reason 前綴：只有這種等待才能選錦囊或自動決議
+CLARIFY_WAIT = "需求釐清待回答"  # 規劃者對模糊想法提問、等使用者回答（或閒置後採用預設）
+
+
+class UserError(ValueError):
+    """使用者輸入或任務狀態不符（題號不存在、任務不在等這件事）。CLI 只包裝這種錯誤，程式錯誤照常顯示堆疊。"""
 
 
 class Halt(Exception):
@@ -177,6 +182,7 @@ class Runner:
                 summary["auto_decided"] = await self._auto_decide()  # 人閒置超時的錦囊，由指揮官＋軍師決議
             except (ValueError, KeyError, TypeError) as exc:
                 summary["auto_decide_error"] = repr(exc)[:300]
+            summary["auto_clarified"] = await self._auto_clarify()  # 需求釐清閒置超時，採用預設答案
             active = [t for t in await self.store.list_tasks()
                       if t.state not in TERMINAL_STATES and t.state not in PAUSED_STATES]
             for task in active:
@@ -454,8 +460,11 @@ class Runner:
         prev = (task.meta.get("reviews", {}).get("spec_review") or [{}])[-1]
         prior = ([str(f) for f in prev.get("findings", []) or []]
                  if prev and prev.get("verdict") != "pass" else [])  # 與 _spec_review 一致：非 pass 即退回
+        # 需求釐清只在第一次規劃時問一次：已問過、已有答案、被規格審查退回或依軍師錦囊重新規劃時都不再問
+        may_ask = (self.s.clarify_enabled and "clarify" not in task.meta and not task.meta.get("clarify_answers")
+                   and not prior and "advisor" not in task.meta)
         out = await self._agent(task, "planner", prompts.planner_prompt(
-            task, self.s.commander_preamble, desc, self._report_path(task), prior), wd)
+            task, self.s.commander_preamble, desc, self._report_path(task), prior, may_ask=may_ask), wd)
         # agent 輸出一律視為不可信：型別不符就以保守值處理
         accept = [str(c).replace("\\", "/") for c in (out.get("accept_cmds") or []) if isinstance(c, str)]
         proposed = out.get("risk_proposed")
@@ -499,7 +508,40 @@ class Runner:
         task = await self.store.get_task(task.id)
         if not accept:
             raise Halt("plan_invalid: 沒有驗收指令")
+        questions = self._clean_questions(out.get("questions")) if may_ask else []
+        if questions:  # 想法不清楚：先停下來問（規格已依預設答案寫好，採用預設就不必重新規劃）
+            meta = dict(task.meta)
+            meta["clarify"] = {"questions": questions, "asked_at": utcnow().isoformat(), "decided": False}
+            task = await self.store.update_task(task.id, meta=meta)
+            vault.write_clarify_question(self.s, task, questions)
+            return await self._go(task, State.WAIT_HUMAN, {"reason": "clarify", "questions": len(questions)},
+                                  wait_reason=CLARIFY_WAIT, return_state=State.SPEC_REVIEW)
         return await self._go(task, State.SPEC_REVIEW, {"risk": risk})
+
+    @staticmethod
+    def _clean_questions(raw: Any) -> list[dict[str, Any]]:
+        """規劃者的提問一律視為不可信：只留格式正確的（題目是字串、options 是 2～4 個不重複的字串、預設必須是選項之一），
+        最多 4 題。空白與換行壓成一格（避免在問題筆記插入假標題或假清單），並限制長度。"""
+        def flat(v: Any, limit: int) -> str:
+            if not isinstance(v, str):
+                return ""
+            s = re.sub(r"\s+", " ", v).strip()
+            return s if len(s) <= limit else s[: limit - 1] + "…"
+
+        out: list[dict[str, Any]] = []
+        for q in raw if isinstance(raw, list) else []:
+            if not isinstance(q, dict) or not isinstance(q.get("options"), list):
+                continue
+            question = flat(q.get("question"), 200)
+            opts = list(dict.fromkeys(o for o in (flat(x, 80) for x in q["options"]) if o))[:4]
+            default = flat(q.get("default"), 80)
+            if not question or len(opts) < 2 or default not in opts:
+                continue
+            out.append({"id": str(len(out) + 1), "question": question, "options": opts,
+                        "default": default, "why": flat(q.get("why"), 200)})
+            if len(out) >= prompts.MAX_CLARIFY_QUESTIONS:
+                break
+        return out
 
     # ------------------------------------------------------------ SPEC_REVIEW
     async def _bump_retry(self, task: Task, why: str) -> Task:
@@ -1034,6 +1076,8 @@ class Runner:
         adv = self._advisor_pending(task)
         if adv is not None and approve:  # 因軍師而等待時 approve＝採用推薦；其他等待（diff、安裝）照原本核准流程
             return await self.choose(task_id, str(adv.get("recommended")), by)
+        if self._clarify_pending(task) is not None and approve:  # 需求釐清時 approve＝全部採用預設答案
+            return await self.clarify(task_id, None, by)
         task = await self.store.human_touch(task_id, "answer", {"approve": approve, "by": by, "note": note})
         if not approve:
             return await self._halt(task, f"human_rejected: {note}")
@@ -1046,6 +1090,77 @@ class Runner:
             meta["approved_oos_paths"] = sorted({*meta.get("approved_oos_paths", []), *meta.pop("pending_oos")})
         task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state or State.EXEC, {"approved_by": by}, wait_reason=None)
+
+    # ------------------------------------------------------------ 需求釐清
+    @staticmethod
+    def _clarify_pending(task: Task) -> dict[str, Any] | None:
+        c = task.meta.get("clarify")
+        if task.state == State.WAIT_HUMAN and task.wait_reason == CLARIFY_WAIT and c and not c.get("decided"):
+            return dict(c)
+        return None
+
+    @staticmethod
+    def _parse_answer(q: dict[str, Any], raw: str) -> str:
+        """答案可以是選項代號（A、B…，不分大小寫）或選項原文。"""
+        raw = raw.strip()
+        letters = "ABCD"
+        if len(raw) == 1 and raw.upper() in letters and letters.index(raw.upper()) < len(q["options"]):
+            return str(q["options"][letters.index(raw.upper())])
+        if raw in q["options"]:
+            return raw
+        raise UserError(f"第 {q['id']} 題沒有選項「{raw}」（可用 {letters[:len(q['options'])]} 或選項原文）")
+
+    async def clarify(self, task_id: str, answers: dict[str, str] | None, by: str, auto: bool = False) -> Task:
+        """回答需求釐清。answers=None 或沒答的題目＝採用預設。全部是預設 → 沿用已寫好的規格進規格審查；
+        有任何非預設答案 → 帶著答案回到規劃重寫（不會再提問）。格式錯誤時拋 UserError，狀態不變。"""
+        task = await self.store.get_task(task_id)
+        c = self._clarify_pending(task)
+        if c is None:
+            raise UserError(f"{task_id} 不是在等需求釐清（目前 {task.state.value}，{task.wait_reason or '-'}）")
+        qs: list[dict[str, Any]] = c["questions"]
+        by_id = {q["id"]: q for q in qs}
+        answers = answers or {}
+        unknown = [k for k in answers if k not in by_id]
+        if unknown:
+            raise UserError(f"沒有這些題號：{'、'.join(unknown)}（題號 1～{len(qs)}）")
+        picked = {q["id"]: self._parse_answer(q, answers[q["id"]]) if q["id"] in answers else q["default"]
+                  for q in qs}
+        answered = [{"id": q["id"], "question": q["question"], "answer": picked[q["id"]],
+                     "default": picked[q["id"]] == q["default"]} for q in qs]
+        all_default = all(a["default"] for a in answered)
+        if not auto:
+            task = await self.store.human_touch(task_id, "clarify", {"by": by, "answers": picked})
+        meta = dict(task.meta)
+        meta["clarify"] = {**c, "decided": True, "by": by, "auto": auto, "answers": answered}
+        meta["clarify_answers"] = answered
+        await self.store.add_event(task_id, "clarify_answered", {
+            "message": ("閒置超時，自動採用預設答案" if auto else f"{by} 回答需求釐清")
+            + ("（全部預設，沿用規格）" if all_default else "（有非預設答案，重新規劃）"), "answers": picked})
+        to = State.SPEC_REVIEW if all_default else State.PLAN
+        return await self._go(task, to, {"clarify": "defaults" if all_default else "replan", "auto": auto},
+                              wait_reason=None, meta=meta)
+
+    async def _auto_clarify(self) -> list[str]:
+        """使用者閒置超過 clarify_idle_minutes：採用預設答案繼續（之後仍有規格審查與守門）。"""
+        done: list[str] = []
+        now = utcnow()
+        for t in await self.store.list_tasks([State.WAIT_HUMAN]):
+            c = self._clarify_pending(t)
+            if c is None:
+                continue
+            try:
+                asked = datetime.fromisoformat(str(c.get("asked_at")))
+                if asked.tzinfo is None:
+                    asked = asked.replace(tzinfo=now.tzinfo)
+                if (now - asked).total_seconds() < self.s.clarify_idle_minutes * 60:
+                    continue
+                await self.clarify(t.id, None, "指揮官（使用者閒置，採用預設答案）", auto=True)
+                done.append(t.id)
+            except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+                raise
+            except Exception as exc:  # noqa: BLE001  一張出錯不影響其他任務
+                await self.store.add_event(t.id, "clarify_auto_error", {"message": f"{exc!r}"[:400]})
+        return done
 
     # ------------------------------------------------------------ 軍師
     async def _halt_or_consult(self, task_id: str, reason: str) -> Task:
@@ -1247,6 +1362,11 @@ class Runner:
         if meta.get("failure_sigs"):
             meta["failure_sigs_archived"] = [*meta.get("failure_sigs_archived", []), *meta["failure_sigs"]]
             meta["failure_sigs"] = []
+            task = await self.store.update_task(task.id, meta=meta)
+        c = task.meta.get("clarify")
+        if c and not c.get("decided"):  # 續跑回到需求釐清：閒置計時重新起算，不會一續跑就被自動採用預設
+            meta = dict(task.meta)
+            meta["clarify"] = {**c, "asked_at": utcnow().isoformat()}
             task = await self.store.update_task(task.id, meta=meta)
         return await self._go(task, task.return_state, {"resumed_by": by}, halt_reason=None, retries=0)
 

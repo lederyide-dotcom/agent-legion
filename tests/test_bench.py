@@ -1,4 +1,4 @@
-"""評測基準：8 道固定題目全部符合預期；結果存檔、寫 metrics、儀表看得到趨勢。"""
+"""評測基準：9 道固定題目全部符合預期；結果存檔、寫 metrics、儀表看得到趨勢。"""
 from __future__ import annotations
 
 import asyncio
@@ -16,7 +16,7 @@ def test_bench_all_cases_match_expectations(tmp_path: Path) -> None:
     res = asyncio.run(run_bench(Settings(), tmp=tmp_path / "bench"))
     bad = {r["key"]: r["problems"] for r in res["rows"] if not r["ok"]}
     assert not bad, bad
-    assert res["passed"] == res["cases"] == len(CASES) == 8 and res["match_rate"] == 1.0
+    assert res["passed"] == res["cases"] == len(CASES) == 9 and res["match_rate"] == 1.0
     # 涵蓋三種結局：完成、停下等人、（軍師）等人選錦囊
     assert {c.state for c in CASES} == {State.DONE, State.WAIT_HUMAN}
     assert any(c.key == "advisor" for c in CASES)

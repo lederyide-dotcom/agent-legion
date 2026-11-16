@@ -601,3 +601,9 @@ date,commit,metric,value,command
 2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.match_rate,1.0,legion bench
 2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.agent_calls,41,legion bench
 2026-11-15T02:01:33+08:00,b978be6（未提交工作目錄）,bench.mock.wall_s,24.86,legion bench
+2026-11-16T23:56:25+08:00,aa8ff57（未提交工作目錄）,bench.mock.match_rate,1.0,legion bench
+2026-11-16T23:56:25+08:00,aa8ff57（未提交工作目錄）,bench.mock.agent_calls,42,legion bench
+2026-11-16T23:56:25+08:00,aa8ff57（未提交工作目錄）,bench.mock.wall_s,23.33,legion bench
+2026-11-17T00:10:32+08:00,aa8ff57（未提交工作目錄）,bench.mock.match_rate,1.0,legion bench
+2026-11-17T00:10:32+08:00,aa8ff57（未提交工作目錄）,bench.mock.agent_calls,42,legion bench
+2026-11-17T00:10:32+08:00,aa8ff57（未提交工作目錄）,bench.mock.wall_s,23.89,legion bench

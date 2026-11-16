@@ -25,6 +25,14 @@ SCHEMAS: dict[str, dict[str, Any]] = {
                 },
             },
             "installs": {"type": "array", "items": {"type": "object"}},
+            "questions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {"question": _S, "options": _SL, "default": _S, "why": _S},
+                    "required": ["question", "options", "default"],
+                },
+            },
             "rationale": _S,
         },
         "required": ["spec_md", "risk_proposed", "accept_cmds", "actions", "rationale"],
@@ -249,8 +257,28 @@ def _prior_findings(findings: list[str] | None) -> str:
             "請修正所有「必修」項；「建議」項視成本取捨即可。規格保持精簡，不要因為退回而越寫越長。\n")
 
 
+MAX_CLARIFY_QUESTIONS = 4
+
+
+def clarify_block(task: Task, may_ask: bool) -> str:
+    """需求釐清：已回答 → 列出答案（不得再問）；可以問 → 說明何時、怎麼問；關閉 → 空字串。"""
+    answered = task.meta.get("clarify_answers")
+    if answered:
+        rows = "\n".join(f"- {a['question']} → **{a['answer']}**" for a in answered)
+        return f"\n## 使用者對需求釐清的回答（照這些答案規劃，不要再提問）\n{rows}\n"
+    if not may_ask:
+        return ""
+    return f"""
+## 需求釐清（選填 questions）
+想法若缺少會讓規格走錯方向的關鍵資訊（目標、範圍、驗收方式、目標檔案不明），可以回傳 questions，
+最多 {MAX_CLARIFY_QUESTIONS} 題：每題 2～4 個 options（短句），default 必須是其中一個選項，why 寫一句為什麼要問。
+資訊足夠就不要問。即使提問，spec_md、accept_cmds、actions 仍須照「每題都選 default」的假設完整寫出：
+使用者可能直接採用預設，那時會沿用你這份規格。
+"""
+
+
 def planner_prompt(task: Task, preamble: str, workdir_desc: str, report_path: str = "",
-                   prior_findings: list[str] | None = None) -> str:
+                   prior_findings: list[str] | None = None, may_ask: bool = False) -> str:
     return f"""{preamble}
 你是指揮官，負責規劃。任務編號 {task.id}，類型 {task.kind}（readonly＝只能讀；write＝只能改工作目錄內）。
 工作目錄：{workdir_desc}
@@ -259,7 +287,7 @@ def planner_prompt(task: Task, preamble: str, workdir_desc: str, report_path: st
 {task.title}
 
 {task.body}
-{readonly_note(task, report_path)}{write_scope_note(task)}{_prior_findings(prior_findings)}{advisor_guidance_block(task)}
+{readonly_note(task, report_path)}{write_scope_note(task)}{_prior_findings(prior_findings)}{advisor_guidance_block(task)}{clarify_block(task, may_ask)}
 請先閱讀工作目錄了解現況，產出：
 - spec_md：精簡規格（目標、範圍、驗收標準）。
 - accept_cmds：1～3 條可在工作目錄自動執行、exit 0 代表通過的驗收指令。

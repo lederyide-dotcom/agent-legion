@@ -41,7 +41,9 @@ flowchart TD
     REVIEW -. 退回超過上限 .-> ADV
     ADV -- 至少 3 個錦囊 --> WH
     ADV -. 呼叫失敗 / 預算不足 / 錦囊不足 .-> HALT
-    WH -- 錦囊：改寫規格 --> PLAN
+    WH -- 錦囊：改寫規格／非預設答案重新規劃 --> PLAN
+    PLAN -. 想法不清楚：先提問（附預設答案） .-> WH
+    WH -. 採用預設答案（閒置自動） .-> SR
     ANY[任一狀態] -. 超預算 / 逾時 / STOP / 軍師關閉或問滿 .-> HALT
     HALT -. legion resume 回原狀態 .-> ANY
 
@@ -153,6 +155,8 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `LEGION_MODEL` | 不設定 | 設定後**所有角色**統一用這個模型、不升級（等同 `tick --model`）；平常不設定，改用下方的角色表 |
 | `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`、`ADVISOR`、`STRATEGIST`（例如 `LEGION_MODEL_PLANNER`、`LEGION_EFFORT_PLANNER`）；effort 設 `none` 表示不指定 |
 | `LEGION_ESCALATE_MODEL`、`LEGION_ESCALATE_EFFORT` | `opus`、`high` | 執行者重做時的升級模型；`LEGION_ESCALATE_MODEL=off` 關閉升級 |
+| `LEGION_CLARIFY`、`LEGION_CLARIFY_IDLE_MINUTES` | `1`、`15` | 想法不清楚時先提問（`0` 關閉）；人閒置幾分鐘後採用預設答案，見下方「它停下來等你時」 |
+| `LEGION_DEFAULT_REPO` | 不設定 | `legion idea` 沒給 `--repo`、也不在 git repo 裡時的目標 repo |
 | `LEGION_ADVISOR`、`LEGION_ADVISOR_IDLE_MINUTES` | `1`、`15` | 卡住時請示軍師（`0` 關閉）；人閒置幾分鐘後自動決議：優先採用推薦錦囊，限安全種類、非 high 風險、預算內，見下方「軍師」 |
 | `LEGION_SOFFICE`、`LEGION_BROWSER` | 自動偵測 | 外部工具位置 |
 | `LEGION_RENDER_MERMAID`、`LEGION_MERMAID_CLI` | `1`、`tools\mermaid` 內的 mmdc | 是否把 mermaid 轉成圖片，以及 mmdc 位置（git worktree 裡沒有 node_modules 時指回主目錄） |
@@ -241,7 +245,15 @@ mission:
 
 ### 1. 丟一個任務
 
-在 `vault/INBOX/` 新增一個 `.md`，一個檔案一個任務：
+最簡單：一句話就好，不清楚的地方規劃者會先問你（見下方「需求釐清」）。
+
+```bat
+.venv\Scripts\python.exe -m legion idea "幫 downloader 加上失敗重試" --repo ..\my-project
+```
+
+目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
+
+要精確控制時，也可以自己在 `vault/INBOX/` 新增一個 `.md`，一個檔案一個任務：
 
 ```markdown
 ---
@@ -269,8 +281,10 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
-| 評測基準（8 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
+| 評測基準（9 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
 | 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
+| 一句話丟想法（寫進 vault/INBOX；不花額度） | `legion idea "想法" [--repo 路徑] [--kind readonly]` |
+| 回答需求釐清 | `legion clarify <任務編號> --defaults` 或 `legion clarify <任務編號> 1=B 2=A` |
 | 看狀態 | `legion status` |
 | 看版本、作者與原始出處 | `legion --version` |
 | 定時自動跑（每 10 分鐘） | `powershell -ExecutionPolicy Bypass -File scripts\register_schedule.ps1`（加 `-Unregister` 移除） |
@@ -283,6 +297,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 |---|---|---|
 | `WAIT_HUMAN` | 高風險動作（刪檔、改 `.claude/`、需人工核准的安裝、驗收指令不在白名單等） | 讀 `vault/AI/questions/<任務編號>.md`，再 `legion answer <任務編號> approve` 或 `reject` |
 | `WAIT_HUMAN`（驗收後） | 驗收指令跑完後出現超出允許範圍的檔案（例如測試寫出的 log） | 同上；核准以**路徑**為單位，之後同一路徑內容變了也不用再核准，不消耗重試次數 |
+| `WAIT_HUMAN`（需求釐清） | 想法不清楚，規劃者先問 1～4 題，每題有選項與預設答案（規格已照預設寫好） | 讀 `vault/AI/questions/<任務編號>.md`（手機文件庫也看得到），`legion clarify <任務編號> --defaults` 全部採用預設，或 `legion clarify <任務編號> 1=B 2=A` 逐題指定；有非預設答案時規劃者照答案重寫規格，不會再問。閒置超過 `LEGION_CLARIFY_IDLE_MINUTES`（預設 15 分鐘）自動採用預設 |
 | `WAIT_HUMAN`（軍師錦囊） | 任務卡住，軍師提出 3 個以上錦囊 | `legion choose <任務編號> <選項>`，或 `legion answer <任務編號> approve` 採用推薦 |
 | `HALT` | 熔斷（超預算、超重試、逾時、STOP 檔） | 排除原因後 `legion resume <任務編號>`；不再續跑就 `legion cancel <任務編號> --reason "原因"`（清掉續跑點，之後 `legion cleanup` 才會把它當成已結束）。注意：對進行中的任務 cancel 會先停成「可續跑的 HALT」，要完全收尾需再 cancel 一次 |
 
@@ -338,7 +353,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 
 pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 
-`legion bench` 是評測基準：8 道固定題目（一次就過、驗收失敗重試、規格退回、交付審查退回、刪檔判高風險、範圍外檔案、同一錯誤請示軍師、後續想法暫存），在獨立的 schema、vault、worktree 裡用 mock 跑，約 25 秒、不花額度。每題都有預期結局，任何一題不符就代表閉環的控制邏輯被改壞了（例如拿掉「刪檔判高風險」規則，`high-risk` 那題會失敗）。結果存到 `02_data/bench/`、追加到 `metrics.csv`，儀表 KPI 卡會畫出最近幾次的趨勢。
+`legion bench` 是評測基準：9 道固定題目（一次就過、驗收失敗重試、規格退回、交付審查退回、刪檔判高風險、範圍外檔案、同一錯誤請示軍師、想法模糊先提問、後續想法暫存），在獨立的 schema、vault、worktree 裡用 mock 跑，約 25 秒、不花額度。每題都有預期結局，任何一題不符就代表閉環的控制邏輯被改壞了（例如拿掉「刪檔判高風險」規則，`high-risk` 那題會失敗）。結果存到 `02_data/bench/`、追加到 `metrics.csv`，儀表 KPI 卡會畫出最近幾次的趨勢。
 
 ### 6. 改檔防護（換行與語法）
 

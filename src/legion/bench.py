@@ -1,4 +1,4 @@
-"""評測基準（legion bench）：固定 8 道題目，量測閉環在各種情境下是否照預期走，並留下可比較的數字。
+"""評測基準（legion bench）：固定 9 道題目，量測閉環在各種情境下是否照預期走，並留下可比較的數字。
 
 目前只有 mock 模式：agent 的行為由題目腳本決定，所以量的是 runner 的控制邏輯（守門、驗收、重試、審查退回、
 範圍檢查、軍師、後續想法）——任何一題結果跟預期不同，就是流程被改壞了。零成本，每次改完都可以跑。
@@ -73,6 +73,9 @@ CASES: tuple[Case, ...] = (
          reason_contains="變更超出允許範圍：extra.py", fm={"allowed_paths": ["calc.py", "test_*.py"]}),
     Case("advisor", "新增 multiply（一直沒改檔）", "同一錯誤反覆出現 → 請示軍師提出錦囊，停下等人選",
          _m(exec=[NOOP, NOOP, NOOP, NOOP]), State.WAIT_HUMAN, execs=3),
+    Case("clarify", "幫 calc 加個功能（想法很模糊）", "想法不清楚 → 規劃者先提問、停下等人回答，執行者一次都不能被呼叫",
+         _m(questions=[{"question": "要加哪個功能？", "options": ["multiply", "power"], "default": "multiply"}]),
+         State.WAIT_HUMAN, execs=0, wait_reason="需求釐清待回答"),
     Case("followup", "補 docstring（提出後續想法）", "結案時書記官提出後續想法，暫存 inbox_hold 等人放行（不自動領取）",
          _m(exec=[{"claim": "passed", "write_files": {"calc.py": CALC_V2}}],
             followups=[{"title": "bench：新增 power 函式", "body": "為 calc 加上 power(a, b)。"}]),
@@ -88,6 +91,7 @@ def _settings(base: Settings, tmp: Path) -> Settings:
         "schema_name": "bench", "task_prefix": "B", "agent_backend": "mock",
         "vault": tmp / "vault", "worktrees_dir": tmp / "worktrees",
         "advisor_enabled": True, "advisor_idle_minutes": 10_000.0, "followup_auto_ingest": False,
+        "clarify_enabled": True, "clarify_idle_minutes": 10_000.0,
     })
 
 
