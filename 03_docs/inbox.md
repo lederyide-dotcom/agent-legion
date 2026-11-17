@@ -34,7 +34,7 @@
 | D10 | T-0016 報告機密處理抽查：Claude 代查後結案（選項窗） | ✅ 3.4 無機密片段，22 處引用以當時版本核對相符；hold 檔移到 `vault/AI/inbox_done/D10__fu-T-0016-1.md` | `02_data/verify_20261114.md` 第 19 節 |
 | D15 | 作者名統一為 DavidY-tw、不放本名；legion＋water-bim 都改（選項窗） | ✅ legion 全改並加防呆測試；water-bim 268 檔改完推到 `win/author-davidy-tw`（ef92c4a，485 項測試 OK）。剩：`tests.yml` 第 1 行「DavidY」→「DavidY-tw」需 David 網頁改；分支合進 main 依 water-bim 流程 | `02_data/verify_20261114.md` 第 20 節 |
 | D17 | 手機丟想法：每小時 08–23 同步、同步後自動 `legion run`、白名單 sandbox＋legion；手機來源改 legion 自己的 write 任務風險維持 mid（選項窗 A／A／A，後續 B） | ✅ 2026-11-17 已實作（d2a913e）；mid＝守門只通知、成果留分支不自動合併 | `02_data/verify_20261117.md` 第 4 節 |
-| D18 | `legion scout`：找有價值的 GitHub repo，不只看星數（David 選 A）。待確認：某類整類沒資料時（目前「動能」因 GitHub 不給 stargazers 清單而全部量不到），該類權重按比例分給其他類，而不是記 0 分 | ⏳ 已照「分給其他類」實作，等 David 確認 | `02_data/verify_20261117.md` 第 5 節 |
+| D18 | `legion scout`：找有價值的 GitHub repo，不只看星數（David 選 A）。待確認：某類整類沒資料時（目前「動能」因 GitHub 不給 stargazers 清單而全部量不到），該類權重按比例分給其他類，而不是記 0 分 | ✅ 2026-11-18 David 選 A（分給其他類），維持現行實作（97b1093） | `02_data/verify_20261117.md` 第 5 節 |
 | D16 | 「頂尖作法提案」做成技能（選項：A 做） | ✅ 2026-11-15 David 已上傳到 claude.ai（帳號技能 frontier-proposal-tw）；本 session 的技能清單要新開 session 才會出現 | `03_docs/skills/frontier-proposal-tw/SKILL.md` |
 
 ## Claude Code 可自主做
