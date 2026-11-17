@@ -617,3 +617,6 @@ date,commit,metric,value,command
 2026-11-17T14:00:00+08:00,db20134（未提交工作目錄）,tests.passed,368,pytest -q (PowerShell)
 2026-11-17T20:00:00+08:00,17906d5（未提交工作目錄）,tests.passed,379,pytest -q (PowerShell)
 2026-11-17T20:00:00+08:00,17906d5（未提交工作目錄）,phone.e2e.T-0024.cost_usd,0.3509,02_data/cost_ledger.csv 中 T-0024 共 5 次呼叫加總
+2026-11-18T00:15:00+08:00,beef026（未提交工作目錄）,scout.api_calls,310,legion scout "agent orchestration" --lang python
+2026-11-18T00:15:00+08:00,beef026（未提交工作目錄）,scout.wall_s,58.1,legion scout "agent orchestration" --lang python
+2026-11-18T00:15:00+08:00,beef026（未提交工作目錄）,tests.passed,392,pytest -q (PowerShell)

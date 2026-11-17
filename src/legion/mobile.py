@@ -18,6 +18,7 @@ SOURCES: tuple[tuple[str, str], ...] = (
     ("questions/*.md", "待你決定"),
     ("inbox_hold/*.md", "待你決定"),
     ("reports/*.md", "報告"),
+    ("scout/*.md", "找 repo"),
     ("records/*/record.md", "開發紀錄"),
     ("missions/*.md", "戰役"),
     ("handoffs/*.md", "交接"),

@@ -1,0 +1,1503 @@
+{
+  "query": "agent orchestration language:python",
+  "weights": {
+    "activity": 0.2,
+    "maintenance": 0.2,
+    "people": 0.15,
+    "adoption": 0.15,
+    "momentum": 0.1,
+    "maturity": 0.2
+  },
+  "created": "2026-11-17T15:58:59+00:00",
+  "candidates": 38,
+  "stars_available": false,
+  "api_calls": 310,
+  "wall_s": 58.1,
+  "ranked": [
+    {
+      "metrics": {
+        "full_name": "deepset-ai/haystack",
+        "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, m",
+        "url": "https://github.com/deepset-ai/haystack",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 27030,
+        "forks": 3479,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 39,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.48,
+        "issue_median_close_days": 1.7,
+        "pr_merged_ratio": 0.88,
+        "top_contributor_share": 0.142,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": 9.4,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 86.7,
+        "people": 100.0,
+        "adoption": 95.0,
+        "momentum": null,
+        "maturity": 98.5
+      },
+      "total": 95.9,
+      "rank": 1
+    },
+    {
+      "metrics": {
+        "full_name": "dataelement/bisheng",
+        "description": "BISHENG is an open-source enterprise Agent platform for building, deploying, and managing AI applications. It combines AI agents, workflows, RAG and knowledge management, desktop agent integration, an",
+        "url": "https://github.com/dataelement/bisheng",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 12346,
+        "forks": 2049,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 9,
+        "releases_365d": 8,
+        "issue_closed_ratio": 0.667,
+        "issue_median_close_days": 6.9,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.408,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 94.5,
+        "people": 100.0,
+        "adoption": 88.3,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 95.0,
+      "rank": 2
+    },
+    {
+      "metrics": {
+        "full_name": "rocketride-org/rocketride-server",
+        "description": "High-performance AI pipeline engine with a C++ core and 50+ Python-extensible nodes. Build, debug, and scale LLM workflows with 13+ model providers, 8+ vector databases, and agent orchestration, all f",
+        "url": "https://github.com/rocketride-org/rocketride-server",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 20019,
+        "forks": 8691,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 14,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.42,
+        "issue_median_close_days": 1.5,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.128,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 84.2,
+        "people": 100.0,
+        "adoption": 95.8,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 94.8,
+      "rank": 3
+    },
+    {
+      "metrics": {
+        "full_name": "crewAIInc/crewAI",
+        "description": "Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks.",
+        "url": "https://github.com/crewAIInc/crewAI",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 61031,
+        "forks": 9211,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 23,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.24,
+        "issue_median_close_days": 0.8,
+        "pr_merged_ratio": 0.78,
+        "top_contributor_share": 0.281,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 76.7,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 93.0,
+      "rank": 4
+    },
+    {
+      "metrics": {
+        "full_name": "ascending-llc/jarvis-registry",
+        "description": "Connect any AI copilot or autonomous agent to your enterprise tools — through a single, secure MCP/Agent gateway with built-in identity, access control, and full observability.",
+        "url": "https://github.com/ascending-llc/jarvis-registry",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 4023,
+        "forks": 606,
+        "pushed_days": 0.2,
+        "commits_90d": 100,
+        "authors_90d": 8,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.667,
+        "issue_median_close_days": 1.8,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.263,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 94.5,
+        "people": 100.0,
+        "adoption": 76.0,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 92.9,
+      "rank": 5
+    },
+    {
+      "metrics": {
+        "full_name": "VRSEN/agency-swarm",
+        "description": "Reliable Multi-Agent Orchestration Framework",
+        "url": "https://github.com/VRSEN/agency-swarm",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 4638,
+        "forks": 1063,
+        "pushed_days": 1.6,
+        "commits_90d": 100,
+        "authors_90d": 7,
+        "releases_365d": 22,
+        "issue_closed_ratio": 0.977,
+        "issue_median_close_days": 22.4,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.612,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 97.0,
+        "people": 88.8,
+        "adoption": 79.9,
+        "momentum": null,
+        "maturity": 90.3
+      },
+      "total": 92.0,
+      "rank": 6
+    },
+    {
+      "metrics": {
+        "full_name": "dynamiq-ai/dynamiq",
+        "description": "Dynamiq is an orchestration framework for agentic AI and LLM applications",
+        "url": "https://github.com/dynamiq-ai/dynamiq",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1073,
+        "forks": 157,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 18,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.812,
+        "issue_median_close_days": 3.4,
+        "pr_merged_ratio": 0.84,
+        "top_contributor_share": 0.174,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 100.0,
+        "people": 100.0,
+        "adoption": 62.0,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 91.8,
+      "rank": 7
+    },
+    {
+      "metrics": {
+        "full_name": "TracecatHQ/tracecat",
+        "description": "Open-source security automation platform for teams and AI agents",
+        "url": "https://github.com/TracecatHQ/tracecat",
+        "language": "Python",
+        "license": "AGPL-3.0",
+        "archived": false,
+        "stars": 3908,
+        "forks": 449,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 5,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.375,
+        "issue_median_close_days": 0.5,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.485,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 82.3,
+        "people": 100.0,
+        "adoption": 74.1,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 91.7,
+      "rank": 8
+    },
+    {
+      "metrics": {
+        "full_name": "microsoft/agent-framework",
+        "description": "A framework for building, orchestrating and deploying AI agents and multi-agent workflows with support for Python and .NET.",
+        "url": "https://github.com/microsoft/agent-framework",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 14722,
+        "forks": 2641,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 32,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.1,
+        "issue_median_close_days": 0.6,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.137,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 70.8,
+        "people": 100.0,
+        "adoption": 90.6,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 91.0,
+      "rank": 9
+    },
+    {
+      "metrics": {
+        "full_name": "awslabs/cli-agent-orchestrator",
+        "description": "Multi-agent orchestration for AI coding CLIs — Claude Code, Kiro, Codex, and more, coordinated in isolated tmux sessions",
+        "url": "https://github.com/awslabs/cli-agent-orchestrator",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1569,
+        "forks": 325,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 20,
+        "releases_365d": 18,
+        "issue_closed_ratio": 0.44,
+        "issue_median_close_days": 0.7,
+        "pr_merged_ratio": 0.82,
+        "top_contributor_share": 0.213,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 85.0,
+        "people": 100.0,
+        "adoption": 68.0,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 90.4,
+      "rank": 10
+    },
+    {
+      "metrics": {
+        "full_name": "ModelEngine-Group/nexent",
+        "description": "Nexent is a zero-code platform for auto-generating production-grade AI agents using Harness Engineering principles — unified tools, skills, memory, and orchestration with built-in constraints, feedbac",
+        "url": "https://github.com/ModelEngine-Group/nexent",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 6215,
+        "forks": 784,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 19,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.154,
+        "issue_median_close_days": 0.0,
+        "pr_merged_ratio": 0.88,
+        "top_contributor_share": 0.215,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 73.1,
+        "people": 100.0,
+        "adoption": 79.5,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 89.6,
+      "rank": 11
+    },
+    {
+      "metrics": {
+        "full_name": "pixeltable/pixeltable",
+        "description": "The backend agents build with - Multimodal database, orchestration, and serving in one file",
+        "url": "https://github.com/pixeltable/pixeltable",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1664,
+        "forks": 245,
+        "pushed_days": 0.7,
+        "commits_90d": 100,
+        "authors_90d": 11,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.444,
+        "issue_median_close_days": 5.2,
+        "pr_merged_ratio": 0.76,
+        "top_contributor_share": 0.388,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 85.2,
+        "people": 100.0,
+        "adoption": 66.6,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 89.3,
+      "rank": 12
+    },
+    {
+      "metrics": {
+        "full_name": "omnigent-ai/omnigent",
+        "description": "Omnigent is an open-source AI agent framework and meta-harness: orchestrate Claude Code, Codex, Cursor, Pi, and custom agents — swap harnesses without rewriting, enforce policies and sandboxing, and c",
+        "url": "https://github.com/omnigent-ai/omnigent",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 11400,
+        "forks": 1910,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 18,
+        "releases_365d": 25,
+        "issue_closed_ratio": 0.06,
+        "issue_median_close_days": 0.7,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.155,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 69.2,
+        "people": 100.0,
+        "adoption": 87.5,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 89.2,
+      "rank": 13
+    },
+    {
+      "metrics": {
+        "full_name": "HKUDS/DeepCode",
+        "description": "\"DeepCode: Open Agentic Coding (Agent Harness & Loop Engineering & Multi-Agent Orchestration)\"",
+        "url": "https://github.com/HKUDS/DeepCode",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 16849,
+        "forks": 2193,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 6,
+        "releases_365d": 12,
+        "issue_closed_ratio": 0.82,
+        "issue_median_close_days": 63.8,
+        "pr_merged_ratio": 0.78,
+        "top_contributor_share": 0.808,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 89.1,
+        "people": 69.2,
+        "adoption": 90.1,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 88.9,
+      "rank": 14
+    },
+    {
+      "metrics": {
+        "full_name": "dapr/dapr-agents",
+        "description": "Build durable, autonomous, resilient and observable AI agents with built-in workflow orchestration, security, statefulness and telemetry.",
+        "url": "https://github.com/dapr/dapr-agents",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 777,
+        "forks": 166,
+        "pushed_days": 5.5,
+        "commits_90d": 100,
+        "authors_90d": 16,
+        "releases_365d": 23,
+        "issue_closed_ratio": 0.62,
+        "issue_median_close_days": 15.0,
+        "pr_merged_ratio": 0.86,
+        "top_contributor_share": 0.384,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": 6.1,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 91.0,
+        "people": 100.0,
+        "adoption": 60.8,
+        "momentum": null,
+        "maturity": 84.0
+      },
+      "total": 87.9,
+      "rank": 15
+    },
+    {
+      "metrics": {
+        "full_name": "Zyrexnn/Cybermes",
+        "description": "Autonomous Offensive Security, Bug Bounty & Red Teaming Agent Framework powered by Hermes Agent, specialized reasoning skills, and multi-model LLM orchestration.",
+        "url": "https://github.com/Zyrexnn/Cybermes",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1037,
+        "forks": 177,
+        "pushed_days": 1.1,
+        "commits_90d": 100,
+        "authors_90d": 5,
+        "releases_365d": 18,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.72,
+        "top_contributor_share": 0.858,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 100.0,
+        "people": 64.2,
+        "adoption": 62.5,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 87.8,
+      "rank": 16
+    },
+    {
+      "metrics": {
+        "full_name": "kyegomez/swarms",
+        "description": "The Enterprise-Grade Multi-Agent Orchestration Framework. Website: https://swarms.ai",
+        "url": "https://github.com/kyegomez/swarms",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 7386,
+        "forks": 1074,
+        "pushed_days": 0.6,
+        "commits_90d": 100,
+        "authors_90d": 9,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.44,
+        "issue_median_close_days": 0.5,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.481,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.7,
+        "maintenance": 85.0,
+        "people": 100.0,
+        "adoption": 82.2,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 86.3,
+      "rank": 17
+    },
+    {
+      "metrics": {
+        "full_name": "yzhao062/pyod",
+        "description": "A Python library for anomaly detection across tabular, time series, graph, text, image, and audio data. 60+ detectors, benchmark-backed ADEngine orchestration, and an agentic workflow for AI agents.",
+        "url": "https://github.com/yzhao062/pyod",
+        "language": "Python",
+        "license": "BSD-2-Clause",
+        "archived": false,
+        "stars": 10088,
+        "forks": 1525,
+        "pushed_days": 4.8,
+        "commits_90d": 56,
+        "authors_90d": 15,
+        "releases_365d": 22,
+        "issue_closed_ratio": 0.64,
+        "issue_median_close_days": 36.8,
+        "pr_merged_ratio": 0.82,
+        "top_contributor_share": 0.774,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": 5.4,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 95.9,
+        "maintenance": 87.6,
+        "people": 72.6,
+        "adoption": 85.7,
+        "momentum": null,
+        "maturity": 84.8
+      },
+      "total": 86.0,
+      "rank": 18
+    },
+    {
+      "metrics": {
+        "full_name": "IBM/AssetOpsBench",
+        "description": "AssetOpsBench - Industry 4.0: A unified benchmark and framework for building, orchestrating, and evaluating domain-specific AI agents for Industry 4.0 asset operations and maintenance, with 460+ scena",
+        "url": "https://github.com/IBM/AssetOpsBench",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 2437,
+        "forks": 360,
+        "pushed_days": 0.7,
+        "commits_90d": 99,
+        "authors_90d": 4,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.84,
+        "issue_median_close_days": 37.5,
+        "pr_merged_ratio": 0.56,
+        "top_contributor_share": 0.432,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.6,
+        "maintenance": 87.5,
+        "people": 87.5,
+        "adoption": 70.6,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 81.0,
+      "rank": 19
+    },
+    {
+      "metrics": {
+        "full_name": "foryourhealth111-pixel/Vibe-Skills",
+        "description": "Intelligent Skill routing and workflow orchestration for AI agents — +21.12 pp reward, −29.6% tokens on SkillsBench with DeepSeekV4Flash-VE.",
+        "url": "https://github.com/foryourhealth111-pixel/Vibe-Skills",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 3827,
+        "forks": 344,
+        "pushed_days": 8.4,
+        "commits_90d": 94,
+        "authors_90d": 3,
+        "releases_365d": 18,
+        "issue_closed_ratio": 0.46,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.96,
+        "top_contributor_share": 0.845,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 99.6,
+        "maintenance": 85.8,
+        "people": 40.5,
+        "adoption": 72.4,
+        "momentum": null,
+        "maturity": 85.7
+      },
+      "total": 79.1,
+      "rank": 20
+    },
+    {
+      "metrics": {
+        "full_name": "DemonDamon/AgenticX",
+        "description": "AgenticX is a unified, production-ready multi-agent platform — Python SDK + CLI (agx) + Studio server + Machi desktop app. Features Meta-Agent orchestration, 15+ LLM providers, MCP Hub, hierarchical m",
+        "url": "https://github.com/DemonDamon/AgenticX",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1113,
+        "forks": 109,
+        "pushed_days": 2.0,
+        "commits_90d": 100,
+        "authors_90d": 2,
+        "releases_365d": 13,
+        "issue_closed_ratio": 0.75,
+        "issue_median_close_days": 11.1,
+        "pr_merged_ratio": 0.62,
+        "top_contributor_share": 0.977,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 93.3,
+        "people": 14.8,
+        "adoption": 60.0,
+        "momentum": null,
+        "maturity": 90.3
+      },
+      "total": 75.5,
+      "rank": 21
+    },
+    {
+      "metrics": {
+        "full_name": "clearml/clearml-agent",
+        "description": "ClearML Agent - MLOps/LLMOps made easy. MLOps/LLMOps scheduler & orchestration solution",
+        "url": "https://github.com/clearml/clearml-agent",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 316,
+        "forks": 122,
+        "pushed_days": 6.7,
+        "commits_90d": 38,
+        "authors_90d": 0,
+        "releases_365d": 6,
+        "issue_closed_ratio": 0.26,
+        "issue_median_close_days": 12.8,
+        "pr_merged_ratio": 0.78,
+        "top_contributor_share": 0.318,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 93.1,
+        "maintenance": 76.4,
+        "people": 50.0,
+        "adoption": 54.9,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 73.7,
+      "rank": 22
+    },
+    {
+      "metrics": {
+        "full_name": "gadievron/raptor",
+        "description": "Raptor turns Claude Code into a general-purpose AI offensive/defensive security agent. By using Claude.md and creating rules, sub-agents, and skills, and orchestrating security tool usage, we configur",
+        "url": "https://github.com/gadievron/raptor",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 4032,
+        "forks": 613,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 4,
+        "releases_365d": 2,
+        "issue_closed_ratio": 0.414,
+        "issue_median_close_days": 2.5,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.966,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 83.9,
+        "people": 40.9,
+        "adoption": 76.1,
+        "momentum": null,
+        "maturity": 57.0
+      },
+      "total": 73.0,
+      "rank": 23
+    },
+    {
+      "metrics": {
+        "full_name": "AhmadHassan-BTed/AutoSwarm-Shadow-Adapter",
+        "description": "Zero-modification Human-in-the-Loop adapter for OpenOPC's agentic DAG runtime.",
+        "url": "https://github.com/AhmadHassan-BTed/AutoSwarm-Shadow-Adapter",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 5179,
+        "forks": 3,
+        "pushed_days": 8.3,
+        "commits_90d": 6,
+        "authors_90d": 2,
+        "releases_365d": 1,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 0.984,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 80.7,
+        "maintenance": 100.0,
+        "people": 14.1,
+        "adoption": 47.6,
+        "momentum": null,
+        "maturity": 85.7
+      },
+      "total": 69.5,
+      "rank": 24
+    },
+    {
+      "metrics": {
+        "full_name": "Josh-XT/AGiXT",
+        "description": "AGiXT is a dynamic AI Agent Automation Platform that seamlessly orchestrates instruction management and complex task execution across diverse AI providers. Combining adaptive memory, smart features, a",
+        "url": "https://github.com/Josh-XT/AGiXT",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 3217,
+        "forks": 443,
+        "pushed_days": 112.4,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 6,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 0.0,
+        "pr_merged_ratio": 0.62,
+        "top_contributor_share": 0.96,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 58.5,
+        "maintenance": 96.2,
+        "people": 4.0,
+        "adoption": 73.1,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 69.4,
+      "rank": 25
+    },
+    {
+      "metrics": {
+        "full_name": "cft0808/edict",
+        "description": "🏛️ 三省六部制 · OpenClaw Multi-Agent Orchestration System — 9 specialized AI agents with real-time dashboard, model config, and full audit trails",
+        "url": "https://github.com/cft0808/edict",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 17077,
+        "forks": 1771,
+        "pushed_days": 50.6,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.86,
+        "issue_median_close_days": 12.9,
+        "pr_merged_ratio": 0.4,
+        "top_contributor_share": 0.772,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 31.3,
+        "maintenance": 84.6,
+        "people": 22.8,
+        "adoption": 88.9,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 66.6,
+      "rank": 26
+    },
+    {
+      "metrics": {
+        "full_name": "ai-boost/awesome-harness-engineering",
+        "description": "Awesome list for AI agent harness engineering: tools, patterns, evals, memory, MCP, permissions, observability, and orchestration.",
+        "url": "https://github.com/ai-boost/awesome-harness-engineering",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 5180,
+        "forks": 789,
+        "pushed_days": 0.3,
+        "commits_90d": 100,
+        "authors_90d": 29,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.5,
+        "issue_median_close_days": 37.6,
+        "pr_merged_ratio": 0.38,
+        "top_contributor_share": 0.855,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.7,
+        "maintenance": 66.4,
+        "people": 64.5,
+        "adoption": 78.7,
+        "momentum": null,
+        "maturity": 19.0
+      },
+      "total": 57.7,
+      "rank": 27
+    },
+    {
+      "metrics": {
+        "full_name": "GammaLabTechnologies/harmonist",
+        "description": "Portable AI agent orchestration with mechanical protocol enforcement. 186 agents, zero runtime dependencies.",
+        "url": "https://github.com/GammaLabTechnologies/harmonist",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 2235,
+        "forks": 208,
+        "pushed_days": 160.7,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 4,
+        "issue_closed_ratio": 0.5,
+        "issue_median_close_days": 2.7,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 53.7,
+        "maintenance": 54.2,
+        "people": 0.0,
+        "adoption": 67.0,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 57.4,
+      "rank": 28
+    },
+    {
+      "metrics": {
+        "full_name": "agentenv/agentflow",
+        "description": "Orchestrate thousands of agents and harnesses as a graph programatically",
+        "url": "https://github.com/agentenv/agentflow",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 1426,
+        "forks": 291,
+        "pushed_days": 16.7,
+        "commits_90d": 7,
+        "authors_90d": 3,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.444,
+        "issue_median_close_days": 3.6,
+        "pr_merged_ratio": 0.926,
+        "top_contributor_share": 0.956,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 48.4,
+        "maintenance": 85.2,
+        "people": 29.4,
+        "adoption": 66.8,
+        "momentum": null,
+        "maturity": 45.7
+      },
+      "total": 55.9,
+      "rank": 29
+    },
+    {
+      "metrics": {
+        "full_name": "FireRedTeam/FireRed-OpenStoryline",
+        "description": "FireRed-OpenStoryline is an AI video editing agent that transforms manual editing into intention-driven directing through natural language interaction, LLM-powered planning, and precise tool orchestra",
+        "url": "https://github.com/FireRedTeam/FireRed-OpenStoryline",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 3702,
+        "forks": 436,
+        "pushed_days": 109.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.378,
+        "issue_median_close_days": 12.3,
+        "pr_merged_ratio": 0.76,
+        "top_contributor_share": 0.373,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 25.4,
+        "maintenance": 81.4,
+        "people": 50.0,
+        "adoption": 73.7,
+        "momentum": null,
+        "maturity": 45.7
+      },
+      "total": 54.5,
+      "rank": 30
+    },
+    {
+      "metrics": {
+        "full_name": "openai/swarm",
+        "description": "Educational framework exploring ergonomic, lightweight multi-agent orchestration. Managed by OpenAI Solution team.",
+        "url": "https://github.com/openai/swarm",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 22145,
+        "forks": 2356,
+        "pushed_days": 216.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.256,
+        "issue_median_close_days": 29.3,
+        "pr_merged_ratio": 0.64,
+        "top_contributor_share": 0.24,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 14.8,
+        "maintenance": 70.2,
+        "people": 50.0,
+        "adoption": 91.8,
+        "momentum": null,
+        "maturity": 50.0
+      },
+      "total": 53.6,
+      "rank": 31
+    },
+    {
+      "metrics": {
+        "full_name": "microsoft/agentic-factory-hack",
+        "description": "Build AI-powered predictive maintenance orchestration with Microsoft Foundry, multi-agent workflows, and MCP",
+        "url": "https://github.com/microsoft/agentic-factory-hack",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 90,
+        "forks": 463,
+        "pushed_days": 3.4,
+        "commits_90d": 6,
+        "authors_90d": 1,
+        "releases_365d": 0,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 2.2,
+        "pr_merged_ratio": 0.1,
+        "top_contributor_share": 0.833,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 47.4,
+        "maintenance": 71.4,
+        "people": 16.7,
+        "adoption": 56.9,
+        "momentum": null,
+        "maturity": 54.0
+      },
+      "total": 50.7,
+      "rank": 32
+    },
+    {
+      "metrics": {
+        "full_name": "parcadei/Continuous-Claude-v3",
+        "description": "Context management for Claude Code. Hooks maintain state via ledgers and handoffs. MCP execution without context pollution. Agent orchestration with isolated context windows.",
+        "url": "https://github.com/parcadei/Continuous-Claude-v3",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 3952,
+        "forks": 303,
+        "pushed_days": 1.2,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.36,
+        "issue_median_close_days": 0.2,
+        "pr_merged_ratio": 0.4,
+        "top_contributor_share": 0.795,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 33.3,
+        "maintenance": 67.4,
+        "people": 20.5,
+        "adoption": 71.8,
+        "momentum": null,
+        "maturity": 52.3
+      },
+      "total": 49.4,
+      "rank": 33
+    },
+    {
+      "metrics": {
+        "full_name": "affaan-m/claude-swarm",
+        "description": "Multi-agent orchestration for Claude Code — decompose tasks, coordinate agents, visualize everything in a rich terminal UI",
+        "url": "https://github.com/affaan-m/claude-swarm",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 475,
+        "forks": 120,
+        "pushed_days": 279.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 2,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 41.8,
+        "maintenance": null,
+        "people": 0.0,
+        "adoption": 56.6,
+        "momentum": null,
+        "maturity": 80.7
+      },
+      "total": 47.1,
+      "rank": 34
+    },
+    {
+      "metrics": {
+        "full_name": "RinDig/Interpretable-Context-Methodology",
+        "description": "Folder structure as agent architecture.  ICM replaces framework-level orchestration with filesystem structure.",
+        "url": "https://github.com/RinDig/Interpretable-Context-Methodology",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 1490,
+        "forks": 257,
+        "pushed_days": 42.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.333,
+        "top_contributor_share": 0.952,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 32.1,
+        "maintenance": 23.8,
+        "people": 4.8,
+        "adoption": 66.3,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 34.8,
+      "rank": 35
+    },
+    {
+      "metrics": {
+        "full_name": "NickTikhonov/shuo",
+        "description": "sub-500ms latency phone agent orchestration",
+        "url": "https://github.com/NickTikhonov/shuo",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 672,
+        "forks": 68,
+        "pushed_days": 256.3,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 0.2,
+        "pr_merged_ratio": 0.333,
+        "top_contributor_share": 0.968,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 10.8,
+        "maintenance": 82.5,
+        "people": 3.2,
+        "adoption": 55.0,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 32.5,
+      "rank": 36
+    },
+    {
+      "metrics": {
+        "full_name": "rcortx/kiwiq",
+        "description": "Production-grade multi-agent orchestration platform - JSON-defined agents, multi-tier memory, and built-in observability. Battle-tested on 200+ enterprise AI agents. Now fully open-sourced (prod at ht",
+        "url": "https://github.com/rcortx/kiwiq",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 2151,
+        "forks": 242,
+        "pushed_days": 217.9,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 14.6,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 67.7,
+        "momentum": null,
+        "maturity": 80.7
+      },
+      "total": 32.5,
+      "rank": 37
+    },
+    {
+      "metrics": {
+        "full_name": "win4r/team-tasks",
+        "description": "Multi-agent pipeline coordination: Linear, DAG, and Debate modes for AI agent orchestration",
+        "url": "https://github.com/win4r/team-tasks",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 448,
+        "forks": 80,
+        "pushed_days": 10.1,
+        "commits_90d": 4,
+        "authors_90d": 1,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 45.0,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 54.0,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 21.1,
+      "rank": 38
+    }
+  ],
+  "json_path": "D:\\202611_agent-legion\\02_data\\scout\\20261117-235859_agent-orchestration.json",
+  "md_path": "D:\\202611_agent-legion\\vault\\AI\\scout\\20261117-235859_agent-orchestration.md"
+}

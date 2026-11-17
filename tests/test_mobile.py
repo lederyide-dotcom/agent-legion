@@ -21,6 +21,8 @@ def _vault(tmp_path: Path) -> Path:
     (ai / "handoffs" / "h.md").write_text("沒有標題的交接", encoding="utf-8")
     (ai / "tasks" / "T-0001.md").write_text("# 任務筆記不匯出", encoding="utf-8")
     (ai / "流程.md").write_text("# 閉環流程\n```mermaid\nflowchart TD\n```", encoding="utf-8")
+    (ai / "scout").mkdir()
+    (ai / "scout" / "s.md").write_text("---\nquery: \"agent\"\n---\n# 找 repo：agent\n", encoding="utf-8")
     return tmp_path
 
 
@@ -30,7 +32,8 @@ def test_export_categories_titles_and_scope(tmp_path: Path) -> None:
     data = export_vault(v)
     by_path = {d.path: d for d in data.docs}
     assert set(by_path) == {"AI/questions/T-0001.md", "AI/reports/r.md", "AI/records/T-0001/record.md",
-                            "AI/handoffs/h.md", "AI/流程.md"}
+                            "AI/handoffs/h.md", "AI/流程.md", "AI/scout/s.md"}
+    assert by_path["AI/scout/s.md"].category == "找 repo" and by_path["AI/scout/s.md"].title == "找 repo：agent"
     assert by_path["AI/questions/T-0001.md"].category == "待你決定"
     assert by_path["AI/questions/T-0001.md"].meta == {"task": "T-0001", "reason": "high 風險"}
     assert by_path["AI/handoffs/h.md"].title == "h" and by_path["AI/流程.md"].title == "閉環流程"
@@ -83,4 +86,4 @@ def test_cli_writes_json_without_bom(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert main(["vault-json", "--out", str(out)]) == 0
     raw = out.read_bytes()
     assert not raw.startswith(b"\xef\xbb\xbf")
-    assert len(json.loads(raw.decode("utf-8"))["docs"]) == 5
+    assert len(json.loads(raw.decode("utf-8"))["docs"]) == 6  # _vault 的 6 份（含 scout）

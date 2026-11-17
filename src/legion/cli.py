@@ -165,6 +165,13 @@ def build_parser() -> argparse.ArgumentParser:
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
     vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON（給手機互動頁讀；不花額度）")
     vj.add_argument("--out", required=True, help="寫入這個檔案（UTF-8、無 BOM）")
+    sc = sub.add_parser("scout", help="找有價值的 GitHub repo：用 gh 抓活躍度、維護、人員、採用、動能、成熟度並打分（不用 AI）")
+    sc.add_argument("keywords", help="搜尋關鍵字（GitHub 搜尋語法）")
+    sc.add_argument("--lang", help="限定語言，例如 python")
+    sc.add_argument("--license", help="限定授權，多個用逗號，例如 mit,apache-2.0")
+    sc.add_argument("--per-query", type=int, default=25, help="每次搜尋取幾個候選（依星數、依相關度各一次；預設 25）")
+    sc.add_argument("--top", type=int, default=10, help="報告列前幾名（預設 10）")
+    sc.add_argument("--weights", help="覆寫權重，例如 activity=0.3,adoption=0.05（會自動正規化）")
     ps = sub.add_parser("phone-sync", help="手機互動頁的想法與答案 ↔ legion（讀 ArtifactData 匯出檔、產生寫回清單；不花額度）")
     ps.add_argument("--in", dest="in_dir", required=True, help="ArtifactData list 的 out_dir（含 versions.json）")
     ps.add_argument("--out", dest="out_dir", required=True, help="輸出資料夾：manifest.json 與要寫回的資料檔")
@@ -289,6 +296,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"已收下想法 → {p}\n目標 repo：{where}\n下一輪 `legion tick` 會領取；不清楚的地方規劃者會先問你。")
         return 0
 
+    if args.cmd == "scout":
+        from .scout import GhFetcher, parse_weights, scout
+
+        try:
+            w = parse_weights(args.weights)
+            lic = [x.strip() for x in (args.license or "").split(",") if x.strip()]
+            res = asyncio.run(scout(s, GhFetcher(), args.keywords, args.lang, lic, args.per_query, args.top, w))
+        except (ValueError, RuntimeError, OSError) as e:
+            print(f"scout 失敗：{e}", file=sys.stderr)
+            return 1
+        for x in res.ranked[: args.top]:
+            flag = "（已封存）" if x.metrics.archived else ""
+            print(f"{x.rank:>2}. {x.total:>5g}  {x.metrics.full_name}{flag}  ★{x.metrics.stars:,}")
+        print(f"候選 {res.candidates}｜API 呼叫 {res.api_calls}｜{res.wall_s} 秒\n報告：{res.md_path}\n數據：{res.json_path}")
+        return 0
     if args.cmd == "phone-sync":
         from pathlib import Path
 
