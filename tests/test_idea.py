@@ -66,6 +66,30 @@ def test_legion_itself_needs_explicit_repo_and_gets_risk_floor(env: Env) -> None
     assert "risk_floor" not in fm2
 
 
+def test_repo_subfolder_keeps_subdir(env: Env) -> None:
+    """--repo 指到 repo 裡的子資料夾：repo 取根目錄，subdir 記下子資料夾（不默默放大成整個 repo）。"""
+    import subprocess
+
+    from legion.intake import subdir_for
+
+    sub = env.repo / "pkg"
+    sub.mkdir(exist_ok=True)
+    (sub / "a.py").write_bytes(b"x = 1\n")
+    top = resolve_repo(str(sub), env.settings, env.repo)
+    assert top == env.repo.resolve()
+    with pytest.raises(ValueError, match="還沒進 git"):  # 沒進 git：worktree 看不到，提早報錯
+        subdir_for(str(sub), env.settings, top)
+    for cmd in (["add", "pkg"], ["commit", "-qm", "pkg"]):
+        subprocess.run(["git", *cmd], cwd=env.repo, check=True, capture_output=True)
+    assert subdir_for(str(sub), env.settings, top) == "pkg"
+    assert subdir_for(str(env.repo), env.settings, top) is None
+    assert subdir_for(None, env.settings, top) is None
+    s2 = env.settings.model_copy(update={"default_repo": str(sub)})  # 預設 repo 指子資料夾也一樣
+    assert resolve_repo(None, s2, Path.cwd()) == top and subdir_for(None, s2, top) == "pkg"
+    fm, _ = parse_md(write_idea(env.settings, "只改 pkg", top, subdir="pkg").read_text(encoding="utf-8"))
+    assert fm["subdir"] == "pkg"
+
+
 def test_cli_reports_missing_repo(env: Env, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
                                   capsys: pytest.CaptureFixture[str]) -> None:
     monkeypatch.setenv("LEGION_VAULT", str(env.settings.vault))

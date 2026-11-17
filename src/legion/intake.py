@@ -49,13 +49,32 @@ def resolve_repo(arg: str | None, settings: Settings, cwd: Path) -> Path | None:
     return top
 
 
+def subdir_for(arg: str | None, settings: Settings, top: Path) -> str | None:
+    """--repo（或 LEGION_DEFAULT_REPO）指到 repo 裡的子資料夾時，回傳相對路徑，讓任務只改那個子資料夾。
+    例：--repo sandbox_repo → repo 是 legion 根目錄、subdir 是 sandbox_repo（不會默默放大成整個 repo）。"""
+    cand = arg or settings.default_repo
+    if not cand:
+        return None
+    p = Path(cand).resolve()
+    if p == top or not p.is_relative_to(top):
+        return None
+    rel = p.relative_to(top).as_posix()
+    # write 任務的 worktree 從 HEAD 建立：資料夾沒進 git 的話，要到執行階段才失敗（規劃的錢已經花了）
+    out = subprocess.run(["git", "ls-tree", "-d", "HEAD", "--", rel], cwd=top, capture_output=True, text=True,
+                         encoding="utf-8", check=False)
+    if out.returncode != 0 or not out.stdout.strip():
+        raise ValueError(f"{rel} 還沒進 git（或被 .gitignore 排除）：任務的 worktree 從 HEAD 建立，看不到這個資料夾")
+    return rel
+
+
 def _title(text: str) -> str:
     first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
     first = re.sub(r"\s+", " ", first)
     return first if len(first) <= TITLE_MAX else first[: TITLE_MAX - 1] + "…"
 
 
-def write_idea(settings: Settings, text: str, repo: Path, kind: str = "write", now: datetime | None = None) -> Path:
+def write_idea(settings: Settings, text: str, repo: Path, kind: str = "write", now: datetime | None = None,
+               subdir: str | None = None) -> Path:
     text = text.strip()
     if not text:
         raise ValueError("想法是空的")
@@ -68,6 +87,8 @@ def write_idea(settings: Settings, text: str, repo: Path, kind: str = "write", n
         n += 1
         path = settings.inbox_dir / f"{base}-{n}.md"
     fm: dict[str, str] = {"title": _title(text), "kind": kind, "repo": repo.as_posix()}
+    if subdir:
+        fm["subdir"] = subdir
     if is_legion_itself(repo):
         fm["risk_floor"] = SELF_RISK_FLOOR  # 改 legion 本身：至少 mid（與後續想法涉及 legion 時的規則一致）
     path.write_text(f"---\n{yaml.safe_dump(fm, allow_unicode=True, sort_keys=False)}---\n{text}\n",

@@ -156,7 +156,7 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`、`ADVISOR`、`STRATEGIST`（例如 `LEGION_MODEL_PLANNER`、`LEGION_EFFORT_PLANNER`）；effort 設 `none` 表示不指定 |
 | `LEGION_ESCALATE_MODEL`、`LEGION_ESCALATE_EFFORT` | `opus`、`high` | 執行者重做時的升級模型；`LEGION_ESCALATE_MODEL=off` 關閉升級 |
 | `LEGION_CLARIFY`、`LEGION_CLARIFY_IDLE_MINUTES` | `1`、`15` | 想法不清楚時先提問（`0` 關閉）；人閒置幾分鐘後採用預設答案，見下方「它停下來等你時」 |
-| `LEGION_DEFAULT_REPO` | 不設定 | `legion idea` 沒給 `--repo`、也不在 git repo 裡時的目標 repo |
+| `LEGION_DEFAULT_REPO` | 不設定 | `legion idea` 沒給 `--repo` 時的目標 repo（優先於目前所在位置；指到子資料夾時同樣記成 subdir） |
 | `LEGION_ADVISOR`、`LEGION_ADVISOR_IDLE_MINUTES` | `1`、`15` | 卡住時請示軍師（`0` 關閉）；人閒置幾分鐘後自動決議：優先採用推薦錦囊，限安全種類、非 high 風險、預算內，見下方「軍師」 |
 | `LEGION_SOFFICE`、`LEGION_BROWSER` | 自動偵測 | 外部工具位置 |
 | `LEGION_RENDER_MERMAID`、`LEGION_MERMAID_CLI` | `1`、`tools\mermaid` 內的 mmdc | 是否把 mermaid 轉成圖片，以及 mmdc 位置（git worktree 裡沒有 node_modules 時指回主目錄） |
@@ -181,9 +181,18 @@ runner（總指揮）替每次 agent 呼叫依角色選模型與 effort，每個
 
 ```bat
 .venv\Scripts\python.exe -m legion models
+.venv\Scripts\python.exe -m legion models --usage
 ```
 
-可列出目前實際生效的分配（含環境變數覆寫）。在 Obsidian 開 `vault/AI/模型分配.canvas` 可看角色與模型的關係圖（含官方單價與升級路線），`AI/流程.canvas` 的每個角色節點也標註了所用模型；兩張畫布都依實際設定自動產生，每次 tick 會更新。依據是研究報告中 Anthropic 自測的成本與通過率（廠商數字，未經獨立驗證），建議用 `02_data/metrics.csv` 對照自己的任務再調整。各角色內部不再派生 Claude Code 子代理（工具清單不含 Agent），所以表上就是全部會用到的模型。
+第一行列出目前實際生效的分配（含環境變數覆寫）。加 `--usage` 會再列出派工成效：各角色 × 模型的真實呼叫次數、失敗、花費、每次平均花費與佔比，以及執行者依第一次所用模型分組的「一次過比例」與「有重做」數（`--all` 連 mock 一起算）。一次過＝只執行 1 次就 DONE，分母是已結束（DONE／HALT）的任務，HALT 包括預算熔斷與人工取消；有重做也包括逾時後重跑，不一定換了模型。用它判斷便宜的模型夠不夠好，再決定要不要用 `LEGION_MODEL_<角色>` 調整。
+
+Claude Code 對話本身（不經 legion）的模型用量，用 [scripts/session_usage.py](scripts/session_usage.py) 讀對話紀錄統計，依「主對話／子代理類型 × 模型」列出 token（只算 token，不換算金額）：
+
+```bat
+.venv\Scripts\python.exe scripts\session_usage.py "%USERPROFILE%\.claude\projects\<專案>\<對話>.jsonl"
+```
+
+在 Obsidian 開 `vault/AI/模型分配.canvas` 可看角色與模型的關係圖（含官方單價與升級路線），`AI/流程.canvas` 的每個角色節點也標註了所用模型；兩張畫布都依實際設定自動產生，每次 tick 會更新。依據是研究報告中 Anthropic 自測的成本與通過率（廠商數字，未經獨立驗證），建議用 `02_data/metrics.csv` 對照自己的任務再調整。各角色內部不再派生 Claude Code 子代理（工具清單不含 Agent），所以表上就是全部會用到的模型。
 
 ### 軍師：卡住時提出錦囊
 
@@ -251,7 +260,7 @@ mission:
 .venv\Scripts\python.exe -m legion idea "幫 downloader 加上失敗重試" --repo ..\my-project
 ```
 
-目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
+目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。`--repo` 指到 repo 裡的子資料夾時（例如 `--repo sandbox_repo`），改動範圍預設就是那個子資料夾，超出範圍會停下等你核准（資料夾必須已進 git，write 任務的 worktree 從 HEAD 建立）。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
 
 要精確控制時，也可以自己在 `vault/INBOX/` 新增一個 `.md`，一個檔案一個任務：
 
@@ -277,7 +286,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 |---|---|
 | 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見上方「模型分配」） |
 | 持續推進到沒事可做 | `legion run --backend claude`（可加 `--task-budget`、`--daily-budget`、`--max-ticks`） |
-| 看各角色用哪個模型 | `legion models` |
+| 看各角色用哪個模型（`--usage` 加看派工成效；不花額度） | `legion models [--usage] [--all]` |
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
 | 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
@@ -394,7 +403,7 @@ src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角�
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
 scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1、
-                 check_text_files.py（改檔檢查：換行與語法）
+                 check_text_files.py（改檔檢查：換行與語法）、session_usage.py（對話各模型 token 統計）
 .githooks/       pre-commit（提交前檢查）
 .claude/         settings.json（專案層級 Claude Code hook：改檔當下檢查）
 .gitattributes、.git-blame-ignore-revs   換行規則（LF）、blame 略過只改格式的 commit

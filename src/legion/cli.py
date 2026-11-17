@@ -153,7 +153,10 @@ def build_parser() -> argparse.ArgumentParser:
     dm = sub.add_parser("demo")
     dm.add_argument("--mock", action="store_true", required=True)
     sub.add_parser("status")
-    sub.add_parser("models", help="顯示各角色目前分配的模型與 effort（含環境變數覆寫）")
+    mo = sub.add_parser("models", help="顯示各角色目前分配的模型與 effort（含環境變數覆寫）；--usage 加看派工成效")
+    mo.add_argument("--usage", action="store_true",
+                    help="各角色 × 模型的次數、花費、失敗，與執行者一次過比例（只算真實呼叫；不花額度）")
+    mo.add_argument("--all", action="store_true", help="同 --usage，但連 mock 呼叫一起算")
     sub.add_parser("brief", help="每日晨報：等你處理的任務、停下的任務、待 merge 分支、戰役、花費（不花額度）")
     cl = sub.add_parser("cleanup", help="列出可清理的已併入分支與 worktree；加 --apply 才刪")
     cl.add_argument("--apply", action="store_true", help="真的刪除（只刪已併入 HEAD 且 worktree 乾淨的）")
@@ -181,6 +184,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "models":
         print(models_table(s))
+        if args.usage or args.all:
+            from .dispatch import executor_outcomes, render, usage_by_role_model
+
+            async def usage(st: Store) -> str:
+                runs, tasks = await st.runs(), await st.list_tasks()
+                backend = None if args.all else "claude"
+                return render(usage_by_role_model(runs, backend), executor_outcomes(runs, tasks, backend),
+                              ROLE_LABELS)
+
+            print("\n派工成效（schema " + s.schema_name + "）\n" + asyncio.run(_with_store(s, usage)))
         return 0
     if args.cmd == "brief":
         from .brief import build
@@ -255,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "idea":
         from pathlib import Path
 
-        from .intake import resolve_repo, write_idea
+        from .intake import resolve_repo, subdir_for, write_idea
 
         try:
             repo = resolve_repo(args.repo, s, Path.cwd())
@@ -263,11 +276,13 @@ def main(argv: list[str] | None = None) -> int:
                 print("找不到目標 repo：請加 --repo <路徑>、設定 LEGION_DEFAULT_REPO，或在目標 repo 裡執行。",
                       file=sys.stderr)
                 return 1
-            p = write_idea(s, args.text, repo, args.kind)
+            sub = subdir_for(args.repo, s, repo)
+            p = write_idea(s, args.text, repo, args.kind, subdir=sub)
         except (ValueError, OSError) as e:
             print(f"idea 失敗：{e}", file=sys.stderr)
             return 1
-        print(f"已收下想法 → {p}\n目標 repo：{repo}\n下一輪 `legion tick` 會領取；不清楚的地方規劃者會先問你。")
+        where = f"{repo}（只改子資料夾 {sub}）" if sub else str(repo)
+        print(f"已收下想法 → {p}\n目標 repo：{where}\n下一輪 `legion tick` 會領取；不清楚的地方規劃者會先問你。")
         return 0
 
     if args.cmd == "inbox":

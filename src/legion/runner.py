@@ -374,6 +374,7 @@ class Runner:
                          "timeout" if isinstance(exc, AgentTimeout) else "error", exc.cost_usd, effort)
             await self.store.record_run(AgentRun(
                 task_id=task.id, state=task.state.value, step=task.step, role=role, backend=backend.name,
+                model=model,  # 失敗也記下要求的模型，派工報表的失敗數才會算到正確的模型
                 session_id=exc.session_id or "(none)", cost_usd=exc.cost_usd, duration_s=exc.duration_s,
                 status="timeout" if isinstance(exc, AgentTimeout) else "error", output={"error": str(exc)[:500]},
                 started_at=started,
