@@ -29,6 +29,7 @@ from .config import Settings
 from .db import Store, utcnow
 from .evidence import EvidenceStore, render_mermaid, render_runs_chart, render_terminal, snapshot_hashes
 from .installs import Installer, RecordingInstaller, append_ledger, canonical_argv, classify
+from .intake import validate_subdir
 from .models import (
     DOC_APPROVED,
     PAUSED_STATES,
@@ -259,10 +260,15 @@ class Runner:
                 kind = fm.get("kind", "write")
                 if kind not in {"readonly", "write"}:
                     raise ValueError(f"kind 必須是 readonly 或 write：{kind!r}")
+                subdir = fm.get("subdir")
+                if subdir is not None:  # 入口擋一次，後面 _workdir／允許範圍都可以信任這個值
+                    if not fm.get("repo"):
+                        raise ValueError("有 subdir 就必須同時寫 repo")
+                    subdir = validate_subdir(fm["repo"], subdir, kind)
                 task = Task(
                     id="pending", title=title, body=body.strip(), kind=kind,
                     parent_id=fm.get("parent_id"), depth=int(fm.get("depth", 0)), repo=fm.get("repo"),
-                    subdir=fm.get("subdir"), source_path=str(path), source_sha=sha,
+                    subdir=subdir, source_path=str(path), source_sha=sha,
                     meta={**({"mock": fm["mock"]} if "mock" in fm else {}),
                           **({"risk_floor": fm["risk_floor"]} if fm.get("risk_floor") in RISK_ORDER else {}),
                           # 以下兩個欄位只能由人寫在想法檔：agent 無法替自己放寬

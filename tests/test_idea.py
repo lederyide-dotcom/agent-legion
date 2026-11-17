@@ -101,3 +101,87 @@ def test_cli_reports_missing_repo(env: Env, tmp_path: Path, monkeypatch: pytest.
     assert "--repo" in capsys.readouterr().err
     assert main(["idea", "有 repo 的想法", "--repo", str(env.repo)]) == 0
     assert len(list(env.settings.inbox_dir.glob("idea-*.md"))) == 1
+
+
+def _commit_pkg(env: Env) -> None:
+    import subprocess
+
+    (env.repo / "pkg").mkdir(exist_ok=True)
+    (env.repo / "pkg" / "a.py").write_bytes(b"x = 1\n")
+    for cmd in (["add", "pkg"], ["commit", "-qm", "pkg"]):
+        subprocess.run(["git", *cmd], cwd=env.repo, check=True, capture_output=True)
+
+
+@pytest.mark.parametrize("bad", ["../x", r"..\x", "pkg/../..", "/etc", r"\x", r"C:\Windows", "C:x",
+                                 r"\\host\share", "", "  ", ".", 5, None, ["pkg"], "nope",
+                                 ":(top)pkg", ":(literal)pkg", ":/", ".git", ".git/hooks"])
+def test_validate_subdir_rejects(env: Env, bad: object) -> None:
+    """白名單：相對路徑、解析後在 repo 內、不是 repo 本身、已進 git；其他一律拒收。"""
+    from legion.intake import validate_subdir
+
+    _commit_pkg(env)
+    with pytest.raises(ValueError):
+        validate_subdir(env.repo, bad)
+
+
+def test_validate_subdir_accepts_and_normalizes(env: Env) -> None:
+    from legion.intake import validate_subdir
+
+    _commit_pkg(env)
+    assert validate_subdir(env.repo, "pkg") == "pkg"
+    assert validate_subdir(env.repo, " pkg/ ") == "pkg"
+    assert validate_subdir(env.repo, "pkg/../pkg") == "pkg"
+    (env.repo / "local").mkdir()  # 沒進 git：write 拒收、readonly 可以（readonly 直接讀 repo，不建 worktree）
+    with pytest.raises(ValueError, match="還沒進 git"):
+        validate_subdir(env.repo, "local")
+    assert validate_subdir(env.repo, "local", "readonly") == "local"
+    with pytest.raises(ValueError, match=".git"):
+        validate_subdir(env.repo, ".git", "readonly")
+    with pytest.raises(ValueError, match="不是資料夾"):
+        validate_subdir(env.repo / "打錯的路徑", "pkg")
+
+
+def test_bad_repo_with_subdir_does_not_crash_tick(env: Env) -> None:
+    """審查抓到：repo 打錯又帶 subdir 時 OSError 讓整個 tick 崩潰，正常想法也不被領取。"""
+    from conftest import low_mock
+
+    from legion.runner import Runner
+
+    _commit_pkg(env)
+    env.idea("typo", "repo 打錯", low_mock(), repo=str(env.repo / "打錯的路徑"), subdir="pkg")
+    env.idea("ok", "正常想法", low_mock())
+
+    async def go() -> None:
+        st = await env.store()
+        try:
+            summary = await Runner(env.settings, st, env.agent).tick()
+            assert any(b.startswith("typo.md") for b in summary["bad_inbox"])
+            assert [t.title for t in await st.list_tasks()] == ["正常想法"]
+        finally:
+            await st.close()
+
+    run(go())
+
+
+def test_bad_subdir_in_inbox_file_is_rejected_with_reason(env: Env) -> None:
+    """手寫想法檔的 subdir 在領取時就檢查：不合格不建任務，原因列在 tick 摘要的 bad_inbox。"""
+    from conftest import low_mock
+
+    from legion.runner import Runner
+
+    _commit_pkg(env)
+    env.idea("bad", "跑出 repo", low_mock(), subdir="../outside")
+    env.idea("good", "只改 pkg", low_mock(), subdir="pkg/")
+
+    async def go() -> None:
+        st = await env.store()
+        try:
+            summary = await Runner(env.settings, st, env.agent).tick()
+            assert any(b.startswith("bad.md") and "repo 範圍" in b for b in summary["bad_inbox"]), summary
+            tasks = await st.list_tasks()
+            assert [t.title for t in tasks] == ["只改 pkg"] and tasks[0].subdir == "pkg"
+            assert (env.settings.inbox_dir / "bad.md").exists()  # 壞檔留在原地，改好就會被領取
+        finally:
+            await st.close()
+
+    run(go())

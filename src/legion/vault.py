@@ -155,7 +155,9 @@ def init_vault(settings: Settings) -> None:
     if not readme.exists():
         readme.write_text(
             "# Agent Legion Vault\n\n"
-            "- `INBOX/`：一個 .md 一個想法（可選 frontmatter：title、kind、repo、subdir）。\n"
+            "- `INBOX/`：一個 .md 一個想法（可選 frontmatter：title、kind、repo、subdir）。"
+            "subdir 必須是 repo 內已存在的相對路徑（write 任務還要已進 git），不合格的想法檔不會被領取，"
+            "原因列在 tick 摘要的 bad_inbox。\n"
             "- `STOP`：**建立這個檔案（內容不限）即全系統停止**，所有進行中任務進入 HALT。\n"
             "- `AI/`：agent 與 runner 可寫區；`AI/儀表.base` 是儀表，`AI/流程.md` 是閉環流程圖（與 GitHub README 同一張），`AI/流程.canvas` 是可拖曳並標註模型的版本。\n",
             encoding="utf-8", newline="\n",

@@ -276,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("找不到目標 repo：請加 --repo <路徑>、設定 LEGION_DEFAULT_REPO，或在目標 repo 裡執行。",
                       file=sys.stderr)
                 return 1
-            sub = subdir_for(args.repo, s, repo)
+            sub = subdir_for(args.repo, s, repo, args.kind)
             p = write_idea(s, args.text, repo, args.kind, subdir=sub)
         except (ValueError, OSError) as e:
             print(f"idea 失敗：{e}", file=sys.stderr)

@@ -269,7 +269,7 @@ mission:
 title: 為 downloader 加上重試
 kind: write            # write＝可改檔（只在 worktree 內）；readonly＝只產報告
 repo: ../my-project    # 目標 repo 的本機路徑（相對或絕對）
-subdir: src            # 選填：限縮在子目錄（同時成為預設的改動範圍）
+subdir: src            # 選填：限縮在子目錄（同時成為預設的改動範圍）；必須是 repo 內的相對路徑，write 任務還要已進 git，不合格的想法檔不會被領取（原因列在 tick 摘要的 bad_inbox）
 allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄），超出就停下等你核准
   - src/downloader.py
   - tests/**

@@ -614,3 +614,4 @@ date,commit,metric,value,command
 2026-11-17T12:45:00+08:00,2f757f0（未提交工作目錄）,dispatch.executor.sonnet55.first_pass_rate,0.60,legion models --usage
 2026-11-17T12:45:00+08:00,2f757f0（未提交工作目錄）,session.opus_output_share,0.90,scripts/session_usage.py
 2026-11-17T13:00:00+08:00,2f757f0（未提交工作目錄）,tests.passed,345,pytest -q (PowerShell)
+2026-11-17T14:00:00+08:00,db20134（未提交工作目錄）,tests.passed,368,pytest -q (PowerShell)

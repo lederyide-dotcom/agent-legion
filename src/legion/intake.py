@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 import subprocess
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import yaml
 
@@ -49,7 +49,47 @@ def resolve_repo(arg: str | None, settings: Settings, cwd: Path) -> Path | None:
     return top
 
 
-def subdir_for(arg: str | None, settings: Settings, top: Path) -> str | None:
+def validate_subdir(repo: str | Path, subdir: object, kind: str = "write") -> str:
+    """任務的 subdir 唯一的檢查（`legion idea` 與讀進想法檔共用）：白名單，不合格就拋 ValueError。
+
+    - 必須是非空字串、相對路徑（不能有磁碟代號、開頭的 / 或 \\、網路路徑）
+    - 解析後（含 ..、捷徑連結）仍在 repo 裡，而且不是 repo 本身
+    - write 任務：資料夾必須已進 git（worktree 從 HEAD 建立）；readonly：資料夾必須存在
+    回傳正規化後的相對路徑（/ 分隔）。
+    """
+    if not isinstance(subdir, str) or not subdir.strip():
+        raise ValueError(f"subdir 必須是非空字串：{subdir!r}")
+    raw = subdir.strip()
+    if PureWindowsPath(raw).anchor or PurePosixPath(raw).anchor:
+        raise ValueError(f"subdir 必須是相對路徑：{raw!r}")
+    top = Path(repo).resolve()
+    if not top.is_dir():  # 壞檔要變成 ValueError 進 bad_inbox，不能讓 OSError 讓整個 tick 崩潰
+        raise ValueError(f"repo 不是資料夾：{repo}")
+    p = (top / raw).resolve()
+    if p == top or not p.is_relative_to(top):
+        raise ValueError(f"subdir 跑出 repo 範圍：{raw!r}")
+    rel = p.relative_to(top).as_posix()
+    if ".git" in rel.split("/"):
+        raise ValueError(f"subdir 不能是 .git 內部：{rel}")
+    if not p.is_dir():
+        raise ValueError(f"subdir 資料夾不存在：{rel}")
+    if kind == "write":
+        def git(*a: str) -> subprocess.CompletedProcess[str]:
+            try:  # --literal-pathspecs：`:(top)` 這類 pathspec 語法一律當成字面路徑
+                return subprocess.run(["git", "--literal-pathspecs", *a], cwd=top, capture_output=True,
+                                      text=True, encoding="utf-8", check=False)
+            except OSError as exc:
+                raise ValueError(f"無法執行 git：{exc}") from exc
+
+        if git("rev-parse", "--verify", "-q", "HEAD").returncode != 0:
+            raise ValueError(f"{top} 不是 git repo，或還沒有任何 commit")
+        out = git("ls-tree", "-d", "HEAD", "--", rel)
+        if out.returncode != 0 or not out.stdout.strip():
+            raise ValueError(f"{rel} 還沒進 git（或被 .gitignore 排除）：任務的 worktree 從 HEAD 建立，看不到這個資料夾")
+    return rel
+
+
+def subdir_for(arg: str | None, settings: Settings, top: Path, kind: str = "write") -> str | None:
     """--repo（或 LEGION_DEFAULT_REPO）指到 repo 裡的子資料夾時，回傳相對路徑，讓任務只改那個子資料夾。
     例：--repo sandbox_repo → repo 是 legion 根目錄、subdir 是 sandbox_repo（不會默默放大成整個 repo）。"""
     cand = arg or settings.default_repo
@@ -58,13 +98,7 @@ def subdir_for(arg: str | None, settings: Settings, top: Path) -> str | None:
     p = Path(cand).resolve()
     if p == top or not p.is_relative_to(top):
         return None
-    rel = p.relative_to(top).as_posix()
-    # write 任務的 worktree 從 HEAD 建立：資料夾沒進 git 的話，要到執行階段才失敗（規劃的錢已經花了）
-    out = subprocess.run(["git", "ls-tree", "-d", "HEAD", "--", rel], cwd=top, capture_output=True, text=True,
-                         encoding="utf-8", check=False)
-    if out.returncode != 0 or not out.stdout.strip():
-        raise ValueError(f"{rel} 還沒進 git（或被 .gitignore 排除）：任務的 worktree 從 HEAD 建立，看不到這個資料夾")
-    return rel
+    return validate_subdir(top, p.relative_to(top).as_posix(), kind)
 
 
 def _title(text: str) -> str:
