@@ -1,17 +1,19 @@
-"""手機互動頁 ↔ legion 的橋接（`legion phone-sync`）：純本機、可測試，不呼叫 agent、不花額度。
+"""手機互動頁 ↔ legion 的橋接（`legion phone-sync`）：可測試，不呼叫 agent、不花 Claude 額度。
+找 repo 請求會用本機 gh 讀 GitHub 公開資料（`legion scout`，用 GitHub API 額度）；`--no-scout` 時不跑。
 
 互動頁的資料庫只有 Claude 的 ArtifactData 工具讀得到，所以排程 session 只負責搬檔：
-  1. ArtifactData list（ideas、answers、clarify，out_dir=<in>）→ 每份文件存成 <in>/<集合>/<id>.json
+  1. ArtifactData list（ideas、answers、clarify、scouts，out_dir=<in>）→ 每份文件存成 <in>/<集合>/<id>.json
   2. 把 list 結果裡每份文件的 version 寫成 <in>/versions.json：{"ideas/<id>": 3, ...}
   3. `legion phone-sync --in <in> --out <out>` → <out>/manifest.json（要寫回的 batch 清單）
   4. 照 manifest 呼叫 ArtifactData batch（每筆 file_path 指向 <out> 裡的資料檔）
 
-頁面寫進來的文字一律當資料：只會原樣交給 `legion idea`，不會被當成指令。
+頁面寫進來的文字一律當資料：只會原樣交給 `legion idea` 或 `legion scout`（GitHub 搜尋字串），不會被當成指令。
 """
 from __future__ import annotations
 
 import csv
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -23,8 +25,13 @@ from .db import Store
 from .intake import resolve_repo, subdir_for, write_idea
 from .models import State, Task
 from .runner import CLARIFY_WAIT, Runner, UserError
+from .scout import Fetcher, ScoutResult, scout
 
 TEXT_MAX = 500
+SCOUT_TEXT_MAX = 100
+SCOUT_PER_SYNC = 2  # 每輪最多跑幾個找 repo（一次約 300 次 GitHub API），其餘留到下輪
+SCOUT_TOP = 10
+LANG_RE = re.compile(r"[A-Za-z0-9+#.\-]{1,30}")
 LEDGER_FIELDS = ["time", "doc_id", "idea_file", "repo_key", "kind"]
 
 
@@ -44,6 +51,8 @@ class SyncResult(BaseModel):
     answer_rejected: list[str] = []
     clarify_published: list[str] = []
     clarify_removed: list[str] = []
+    scouted: list[str] = []
+    scout_rejected: list[str] = []
     warnings: list[str] = []
     writes: list[Write] = []
 
@@ -109,6 +118,36 @@ def _check_idea(v: dict[str, Any], repos: dict[str, Path]) -> tuple[str, str, st
     return text.strip(), key, kind
 
 
+def _check_scout(v: dict[str, Any]) -> tuple[str, str | None]:
+    text, lang = v.get("text"), v.get("lang") or None
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("關鍵字是空的")
+    if len(text) > SCOUT_TEXT_MAX:
+        raise ValueError(f"關鍵字超過 {SCOUT_TEXT_MAX} 字")
+    if lang is not None and (not isinstance(lang, str) or not LANG_RE.fullmatch(lang)):
+        raise ValueError(f"語言格式不對：{lang!r}（例：python、typescript）")
+    return " ".join(text.split()), lang
+
+
+def _scout_doc(res: Any, now: str) -> dict[str, Any]:
+    top = [{"rank": x.rank, "name": x.metrics.full_name, "url": x.metrics.url, "total": x.total,
+            "stars": x.metrics.stars, "archived": x.metrics.archived, "description": x.metrics.description[:140]}
+           for x in res.ranked[:SCOUT_TOP]]
+    report = Path(res.md_path).name
+    return {"status": "done", "report": f"AI/scout/{report}", "candidates": res.candidates, "top": top,
+            "note": f"候選 {res.candidates} 個" + ("" if res.stars_available else "；動能量不到，權重已分給其他類"),
+            "synced_at": now}
+
+
+def _redo_doc(settings: Settings, report: str, now: str) -> dict[str, Any]:
+    """寫回失敗後補寫：從 02_data/scout/<同名>.json 重建前 10 名；讀不到就只給報告路徑。"""
+    jp = settings.data_dir / "scout" / Path(report).with_suffix(".json").name
+    try:
+        return _scout_doc(ScoutResult.model_validate_json(jp.read_text(encoding="utf-8")), now)
+    except (OSError, ValueError):
+        return {"status": "done", "report": f"AI/scout/{report}", "note": "已完成（結果見報告）", "synced_at": now}
+
+
 def _task_for(tasks: list[Task], idea_file: str) -> Task | None:
     for t in tasks:
         if t.source_path and Path(t.source_path).name in (idea_file, f"{t.id}__{idea_file}"):
@@ -144,7 +183,7 @@ class _Out:
 
 
 async def sync(settings: Settings, store: Store, in_dir: Path, out_dir: Path, by: str = "phone",
-               repos_spec: str | None = None) -> SyncResult:
+               repos_spec: str | None = None, fetcher: Fetcher | None = None) -> SyncResult:
     repos = parse_repos(settings.phone_repos if repos_spec is None else repos_spec)
     versions_file = in_dir / "versions.json"
     versions: dict[str, int] = {}
@@ -153,7 +192,7 @@ async def sync(settings: Settings, store: Store, in_dir: Path, out_dir: Path, by
         if not isinstance(raw, dict):
             raise ValueError("versions.json 必須是物件")
         versions = {str(k): int(v) for k, v in raw.items() if isinstance(v, int) and not isinstance(v, bool)}
-    docs = {c: _docs(in_dir, c) for c in ("ideas", "answers", "clarify")}
+    docs = {c: _docs(in_dir, c) for c in ("ideas", "answers", "clarify", "scouts")}
     existing = {f"{c}/{d}" for c, ds in docs.items() for d in ds}
     out, res = _Out(out_dir, versions, existing), SyncResult()
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -229,7 +268,50 @@ async def sync(settings: Settings, store: Store, in_dir: Path, out_dir: Path, by
             out.put("update", "answers", task_id, {"status": "rejected", "note": str(exc)[:200], "synced_at": now})
             res.answer_rejected.append(task_id)
 
-    # 3. 待答題目 → 互動頁（答完或不再等待的就移除）
+    # 3. 找 repo → legion scout（不用 AI；用本機 gh），前 10 名寫回頁面，完整報告在 vault/AI/scout
+    ran = 0
+    for doc_id, v in sorted(docs["scouts"].items(), key=lambda kv: str(kv[1].get("created_at", ""))):
+        if v.get("status") != "new":
+            continue
+        key = f"scouts/{doc_id}"
+        if key in seen:  # 上次已跑但寫回失敗：不重跑，從當時的 JSON 重建前 10 名
+            out.put("update", "scouts", doc_id, _redo_doc(settings, seen[key], now))
+            res.scouted.append(doc_id)
+            continue
+        if key in out.existing and key not in out.versions:  # 跑完也寫不回：先不跑，免得白花 API
+            res.warnings.append(f"versions.json 缺 {key}：這輪不找")
+            continue
+        try:
+            text, lang = _check_scout(v)
+        except ValueError as exc:
+            out.put("update", "scouts", doc_id, {"status": "rejected", "note": str(exc)[:200], "synced_at": now})
+            res.scout_rejected.append(doc_id)
+            continue
+        if fetcher is None:  # --no-scout（排程第二次同步）：留在 new，下一輪第一次同步再跑；不算警告
+            continue
+        if ran >= SCOUT_PER_SYNC:
+            res.warnings.append(f"找 repo 每輪最多 {SCOUT_PER_SYNC} 個：{doc_id} 留到下輪")
+            continue
+        ran += 1
+        try:
+            r = await scout(settings, fetcher, text, lang=lang, top=SCOUT_TOP)
+        except Exception as exc:  # noqa: BLE001 —— 單一請求出錯只拒收這一筆並回報，不能卡住整輪寫回
+            out.put("update", "scouts", doc_id, {"status": "rejected",
+                                                 "note": f"執行失敗：{type(exc).__name__}: {exc}"[:200],
+                                                 "synced_at": now})
+            res.scout_rejected.append(doc_id)
+            continue
+        if r.candidates == 0:  # 關鍵字太窄，或 gh 未登入／額度用完：不記帳本，下次可重送
+            out.put("update", "scouts", doc_id, {"status": "rejected", "synced_at": now,
+                                                 "note": "沒有候選：關鍵字太窄，或電腦端 gh 未登入／GitHub API 額度用完"})
+            res.scout_rejected.append(doc_id)
+            res.warnings.append(f"找 repo {doc_id} 沒有候選（若持續發生，檢查 gh auth status）")
+            continue
+        _record(settings, key, Path(r.md_path).name, "", "scout")
+        out.put("update", "scouts", doc_id, _scout_doc(r, now))
+        res.scouted.append(doc_id)
+
+    # 4. 待答題目 → 互動頁（答完或不再等待的就移除）
     tasks = await store.list_tasks([State.WAIT_HUMAN])
     pending = {t.id: (t, c) for t in tasks if (c := Runner._clarify_pending(t)) is not None
                and t.wait_reason == CLARIFY_WAIT}

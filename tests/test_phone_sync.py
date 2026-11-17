@@ -201,3 +201,86 @@ def test_subfolder_target_and_legion_itself(env: Env, tmp_path: Path) -> None:
                                          for p in env.settings.inbox_dir.glob("idea-*.md"))}
     assert fms["只改 pkg"]["subdir"] == "pkg" and "risk_floor" not in fms["只改 pkg"]
     assert fms["改 legion"]["risk_floor"] == "mid"
+
+
+def test_scout_requests_run_capped_and_written_back(env: Env, tmp_path: Path) -> None:
+    from test_scout import REPOS, FakeFetcher
+
+    i, o = tmp_path / "in", tmp_path / "out"
+    f = FakeFetcher(REPOS, {"stars": ["big/popular-stale", "mid/ok"], None: ["small/active"]}, stars_ok=False)
+    _write(i, "scouts", "s1", {"text": " agent  orchestration ", "lang": "python", "status": "new",
+                               "created_at": "2026-11-18T01:00:00Z"})
+    _write(i, "scouts", "s2", {"text": "x", "lang": "py thon; rm", "status": "new", "created_at": "2026-11-18T01:01:00Z"})
+    _write(i, "scouts", "s3", {"text": "", "status": "new", "created_at": "2026-11-18T01:02:00Z"})
+    _write(i, "scouts", "s4", {"text": "rag", "status": "new", "created_at": "2026-11-18T01:03:00Z"})
+    _write(i, "scouts", "s5", {"text": "llm", "status": "new", "created_at": "2026-11-18T01:02:30Z"})  # 比 s4 早
+    _write(i, "scouts", "s0", {"text": "old", "status": "done", "created_at": "2026-11-18T00:00:00Z"})
+
+    async def go(fetcher: Any) -> Any:
+        st = await env.store()
+        try:
+            return await sync(_settings(env), st, i, o, fetcher=fetcher)
+        finally:
+            await st.close()
+
+    # 沒有抓取器（--no-scout）：不跑、不拒收、不算警告，留到下輪
+    res = run(go(None))
+    assert res.scouted == [] and sorted(res.scout_rejected) == ["s2", "s3"] and res.warnings == []
+
+    res = run(go(f))
+    # 每輪最多 2 個，依建立時間先後（s5 比 s4 早送）
+    assert res.scouted == ["s1", "s5"] and any("s4" in w and "下輪" in w for w in res.warnings)
+    m = _manifest(o)
+    d = m[("scouts", "s1")]["data"]
+    assert d["status"] == "done" and d["top"][0]["name"] == "small/active" and d["candidates"] == 3
+    assert d["report"].startswith("AI/scout/") and "動能量不到" in d["note"]
+    assert (env.settings.vault / d["report"]).exists()
+    assert ("scouts", "s0") not in m and m[("scouts", "s1")]["if_version"] == 1
+
+    # s1 寫回失敗（頁面仍是 new）：下輪不重跑，從當時的 JSON 重建前 10 名
+    def searches() -> int:
+        return sum(1 for p, _ in f.paths if p == "search/repositories")
+
+    before = searches()
+    for sid in ("s5", "s2", "s3"):
+        (i / "scouts" / f"{sid}.json").unlink()
+    res = run(go(f))
+    redo = _manifest(o)[("scouts", "s1")]["data"]
+    assert res.scouted == ["s1", "s4"] and redo["status"] == "done" and redo["top"] == d["top"]
+    assert searches() - before == 2  # 一次 scout 搜兩次：只有 s4 真的跑，s1 沒重跑
+
+
+def test_scout_failures_do_not_block_sync(env: Env, tmp_path: Path) -> None:
+    from test_scout import REPOS, FakeFetcher
+
+    class Boom(FakeFetcher):
+        async def get(self, path: str, params: dict[str, str] | None = None, accept: str | None = None) -> Any:
+            if path == "search/repositories" and (params or {}).get("q") == "boom":
+                raise ZeroDivisionError("壞掉")
+            return await super().get(path, params, accept)
+
+    i, o = tmp_path / "in", tmp_path / "out"
+    f = Boom(REPOS, {"stars": [], None: []})
+    _write(i, "scouts", "a", {"text": "boom", "status": "new", "created_at": "1"})
+    _write(i, "scouts", "b", {"text": "nothing", "status": "new", "created_at": "2"})
+    _write(i, "ideas", "i1", {"text": "幫 calc 加乘法", "repo_key": "t", "status": "new"})
+    # c 已在頁面上卻沒有版本：跑完也寫不回，所以不跑
+    (i / "scouts").mkdir(exist_ok=True)
+    (i / "scouts" / "c.json").write_bytes(json.dumps({"text": "x", "status": "new", "created_at": "3"}).encode())
+
+    async def go() -> Any:
+        st = await env.store()
+        try:
+            return await sync(_settings(env), st, i, o, fetcher=f)
+        finally:
+            await st.close()
+
+    res = run(go())
+    m = _manifest(o)
+    assert res.queued == ["i1"]  # 想法照常排入、manifest 照常寫出
+    assert sorted(res.scout_rejected) == ["a", "b"] and res.scouted == []
+    assert "ZeroDivisionError" in m[("scouts", "a")]["data"]["note"]
+    assert "沒有候選" in m[("scouts", "b")]["data"]["note"]
+    assert ("scouts", "c") not in m and any("scouts/c" in w for w in res.warnings)
+    ledger = (env.settings.data_dir / "phone_sync.csv").read_text(encoding="utf-8")
+    assert "scouts/b" not in ledger  # 沒候選不記帳本，之後可以重送

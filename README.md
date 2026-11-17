@@ -246,7 +246,7 @@ mission:
 |---|---|---|
 | 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/儀表.md` 的 KPI 卡） |
 | 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
-| 想法投遞互動頁 | 手機打一句話丟想法、選目標專案；規劃者的提問在同一頁點選回答；看每則想法的任務編號與狀態 | `03_docs/phone_idea_page.html` 發布成 claude.ai artifact（只有擁有者能讀寫）；由排程任務 `legion-phone-bridge` 每小時同步（見「在手機丟想法」） |
+| 想法投遞互動頁 | 手機打一句話丟想法、選目標專案；規劃者的提問在同一頁點選回答；看每則想法的任務編號與狀態；找 repo（關鍵字＋語言 → 前 10 名） | `03_docs/phone_idea_page.html` 發布成 claude.ai artifact（只有擁有者能讀寫）；由排程任務 `legion-phone-bridge` 每小時同步（見「在手機丟想法」） |
 | 文件庫互動頁 | vault 的待你決定、報告、找 repo 報告（`legion scout`）、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；圖片仍請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
 
 分工：**定目標與範圍、花真錢、刪除未合併的工作、碰機密或對外服務、改預設模型或風險規則**由人決定；實作、驗證、合併已驗證的分支、整理清單、寫證據由 Claude Code 做，完成後在晨報或回報中告知。
@@ -265,7 +265,9 @@ mission:
 
 目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。`--repo` 指到 repo 裡的子資料夾時（例如 `--repo sandbox_repo`），改動範圍預設就是那個子資料夾，超出範圍會停下等你核准（資料夾必須已進 git，write 任務的 worktree 從 HEAD 建立）。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
 
-**在手機丟想法**：開 claude.ai 上的互動頁「legion 想法投遞」，打一句話、從白名單選目標專案（`LEGION_PHONE_REPOS`）。規劃者提問時，題目也會出現在同一頁，點選後送出即可。電腦端由 Claude 桌面 app 的排程任務 `legion-phone-bridge` 每小時（08–23 點）同步一次，順序是：讀互動頁 → `legion phone-sync` → `legion run --task-budget 1.5` → 再同步一次（寫回任務編號、狀態與新的提問）。先套用你的答案再執行；排程執行時把閒置預設時間設成 75 分鐘，所以提問至少等到下一輪同步，沒回答才採用預設。白名單在排程指令用 `--repos` 指定（漏設時這輪不處理新想法，不會拒收）。電腦要開著、桌面 app 要在執行。每則想法只處理一次，紀錄在 `02_data/phone_sync.csv`；白名單外的專案、空白或超過 500 字的想法會拒收並寫明原因。頁面上的文字一律當資料，只原樣交給 `legion idea`。
+**在手機丟想法**：開 claude.ai 上的互動頁「legion 想法投遞」，打一句話、從白名單選目標專案（`LEGION_PHONE_REPOS`）。規劃者提問時，題目也會出現在同一頁，點選後送出即可。電腦端由 Claude 桌面 app 的排程任務 `legion-phone-bridge` 每小時（08–23 點）同步一次，順序是：讀互動頁 → `legion phone-sync` → `legion run --task-budget 1.5` → 再同步一次（寫回任務編號、狀態與新的提問；找 repo 只在第一次同步跑）。先套用你的答案再執行；排程執行時把閒置預設時間設成 75 分鐘，所以提問至少等到下一輪同步，沒回答才採用預設。白名單在排程指令用 `--repos` 指定（漏設時這輪不處理新想法，不會拒收）。電腦要開著、桌面 app 要在執行。每則想法只處理一次，紀錄在 `02_data/phone_sync.csv`；白名單外的專案、空白或超過 500 字的想法會拒收並寫明原因。頁面上的文字一律當資料，只原樣交給 `legion idea` 或 `legion scout`（當成 GitHub 搜尋字串）。
+
+同一頁也能**找 repo**：打英文關鍵字、選語言，下一輪同步時電腦用 `legion scout` 打分，前 10 名（分數、星數、GitHub 連結）寫回同一頁，完整報告在文件庫的「找 repo」分類。每小時最多 2 個（一次約 300 次 GitHub API、1 分鐘；排程的第二次同步帶 `--no-scout`），其餘留到下輪；同一個請求只跑一次（紀錄在 `02_data/phone_sync.csv`）。沒有任何候選時（關鍵字太窄，或電腦端 gh 未登入、額度用完）會標「沒有執行」並說明，可以改關鍵字重送。
 
 要精確控制時，也可以自己在 `vault/INBOX/` 新增一個 `.md`，一個檔案一個任務：
 
@@ -298,7 +300,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 評測基準（9 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
 | 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
 | 找有價值的 GitHub repo（不只看星數：活躍度、維護、人員、採用、動能、成熟度六類打分，每個分數附原始數字；用本機已登入的 `gh`，不用 AI、不花額度；一次約 300 次 API、1 分鐘內） | `legion scout "關鍵字" [--lang python] [--license mit] [--top 10] [--weights activity=0.3]`，報告寫到 `vault/AI/scout/`，數據寫到 `02_data/scout/` |
-| 手機互動頁的想法與答案同步（排程用；不花額度） | `legion phone-sync --in <匯出資料夾> --out <輸出資料夾>` |
+| 手機互動頁的想法、答案與找 repo 同步（排程用；不花 Claude 額度，找 repo 用 GitHub API） | `legion phone-sync --in <匯出資料夾> --out <輸出資料夾> [--no-scout]` |
 | 一句話丟想法（寫進 vault/INBOX；不花額度） | `legion idea "想法" [--repo 路徑] [--kind readonly]` |
 | 回答需求釐清 | `legion clarify <任務編號> --defaults` 或 `legion clarify <任務編號> 1=B 2=A` |
 | 看狀態 | `legion status` |
@@ -431,7 +433,7 @@ reports/         研究報告
 
 - 排程只測過「使用者登入時執行」模式；電腦關機或 Claude 未登入時不會動。
 - 手機想法同步靠 Claude 桌面 app 的排程任務（每小時一個 session）：電腦要開著、app 要在執行，每次都用到訂閱額度（量未驗證）。互動頁資料庫只有 Claude 讀得到，所以 legion 無法自己輪詢；文件版本由排程 session 照抄給 `legion phone-sync`，缺版本的那筆會跳過不寫回，下輪再補。
-- `legion scout` 的「動能」（近 90 天新增星數）目前量不到：GitHub 的 stargazers 清單 REST 回 404、GraphQL 回 0 筆（2026-11-17 實測），這類顯示「—」並把權重分給其他類；OpenSSF Scorecard 只涵蓋部分 repo；「被多少專案依賴」沒有 API，未涵蓋。分數是客觀活動數據，不代表程式碼品質，挑選前仍要人看過。
+- `legion scout` 的「動能」（近 90 天新增星數）目前量不到：GitHub 的 stargazers 清單 REST 回 404、GraphQL 回 0 筆（2026-11-17 實測），這類顯示「—」並把權重分給其他類；OpenSSF Scorecard 只涵蓋部分 repo；「被多少專案依賴」沒有 API，未涵蓋。分數是客觀活動數據，不代表程式碼品質，挑選前仍要人看過。手機找 repo 要電腦端 `gh` 已登入，用的是你帳號的 GitHub API 額度（每小時 5,000 次，一次查詢約 300 次）。
 - 花費是 Claude CLI 回報的用戶端估算（`total_cost_usd`），不是帳單金額。
 - 規格審查與交付審查目前都用 Claude；跨廠商審查者（Codex）尚未實作。
 - 評測基準目前只有 mock 模式，量的是 runner 的控制邏輯；用真實 Claude 量模型與 prompt 品質要花錢，尚未實作。

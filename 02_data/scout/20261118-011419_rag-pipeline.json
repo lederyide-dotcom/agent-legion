@@ -1,0 +1,1435 @@
+{
+  "query": "rag pipeline language:python",
+  "weights": {
+    "activity": 0.2,
+    "maintenance": 0.2,
+    "people": 0.15,
+    "adoption": 0.15,
+    "momentum": 0.1,
+    "maturity": 0.2
+  },
+  "created": "2026-11-17T17:14:19+00:00",
+  "candidates": 36,
+  "stars_available": false,
+  "api_calls": 272,
+  "wall_s": 46.4,
+  "ranked": [
+    {
+      "metrics": {
+        "full_name": "deepset-ai/haystack",
+        "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, m",
+        "url": "https://github.com/deepset-ai/haystack",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 27031,
+        "forks": 3478,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 39,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.46,
+        "issue_median_close_days": 1.8,
+        "pr_merged_ratio": 0.88,
+        "top_contributor_share": 0.142,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": 9.4,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 85.8,
+        "people": 100.0,
+        "adoption": 95.0,
+        "momentum": null,
+        "maturity": 98.5
+      },
+      "total": 95.7,
+      "rank": 1
+    },
+    {
+      "metrics": {
+        "full_name": "OpenBMB/UltraRAG",
+        "description": "A Low-Code MCP Framework for Building Complex and Innovative RAG Pipelines",
+        "url": "https://github.com/OpenBMB/UltraRAG",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 5744,
+        "forks": 461,
+        "pushed_days": 1.3,
+        "commits_90d": 75,
+        "authors_90d": 14,
+        "releases_365d": 6,
+        "issue_closed_ratio": 0.737,
+        "issue_median_close_days": 2.6,
+        "pr_merged_ratio": 0.44,
+        "top_contributor_share": 0.288,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 97.9,
+        "maintenance": 85.0,
+        "people": 100.0,
+        "adoption": 76.0,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 91.2,
+      "rank": 2
+    },
+    {
+      "metrics": {
+        "full_name": "doobidoo/mcp-memory-service",
+        "description": "Open-source persistent memory for AI agent pipelines (LangGraph, CrewAI, AutoGen) and Claude. REST API + knowledge graph + autonomous consolidation.",
+        "url": "https://github.com/doobidoo/mcp-memory-service",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 2135,
+        "forks": 427,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 32,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.62,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.772,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 92.5,
+        "people": 72.8,
+        "adoption": 71.0,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 89.0,
+      "rank": 3
+    },
+    {
+      "metrics": {
+        "full_name": "langgenius/dify",
+        "description": "Build Agentic workflows, RAG pipelines, with rich AI model and tool support on one collaborative workspace. Deploy on cloud, VPC, or self-hosted, so teams move from prototype to production without reb",
+        "url": "https://github.com/langgenius/dify",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 161366,
+        "forks": 25516,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 29,
+        "releases_365d": 25,
+        "issue_closed_ratio": 0.26,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.86,
+        "top_contributor_share": 0.108,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 77.5,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 66.7
+      },
+      "total": 87.6,
+      "rank": 4
+    },
+    {
+      "metrics": {
+        "full_name": "pathwaycom/pathway",
+        "description": "Python ETL framework for stream processing, real-time analytics, LLM pipelines, and RAG.",
+        "url": "https://github.com/pathwaycom/pathway",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 61989,
+        "forks": 1706,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 6,
+        "releases_365d": 9,
+        "issue_closed_ratio": 0.72,
+        "issue_median_close_days": 13.7,
+        "pr_merged_ratio": 0.44,
+        "top_contributor_share": 0.387,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 83.0,
+        "people": 100.0,
+        "adoption": 93.7,
+        "momentum": null,
+        "maturity": 62.3
+      },
+      "total": 86.8,
+      "rank": 5
+    },
+    {
+      "metrics": {
+        "full_name": "feyninc/chonkie",
+        "description": "🦛 CHONK docs with Chonkie ✨ — The lightweight ingestion library for fast, efficient and robust RAG pipelines",
+        "url": "https://github.com/feyninc/chonkie",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 4834,
+        "forks": 373,
+        "pushed_days": 0.4,
+        "commits_90d": 12,
+        "authors_90d": 2,
+        "releases_365d": 17,
+        "issue_closed_ratio": 0.93,
+        "issue_median_close_days": 78.2,
+        "pr_merged_ratio": 0.18,
+        "top_contributor_share": 0.483,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 85.2,
+        "maintenance": 61.5,
+        "people": 62.5,
+        "adoption": 74.0,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 75.7,
+      "rank": 6
+    },
+    {
+      "metrics": {
+        "full_name": "EmbeddedLLM/JamAIBase",
+        "description": "The collaborative spreadsheet for AI. Chain cells into powerful pipelines, experiment with prompts and models, and evaluate LLM responses in real-time. Work together seamlessly to build and iterate on",
+        "url": "https://github.com/EmbeddedLLM/JamAIBase",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1104,
+        "forks": 48,
+        "pushed_days": 26.5,
+        "commits_90d": 8,
+        "authors_90d": 3,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.889,
+        "issue_median_close_days": 15.7,
+        "pr_merged_ratio": 0.862,
+        "top_contributor_share": 0.355,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 49.2,
+        "maintenance": 98.3,
+        "people": 75.0,
+        "adoption": 55.2,
+        "momentum": null,
+        "maturity": 87.3
+      },
+      "total": 73.9,
+      "rank": 7
+    },
+    {
+      "metrics": {
+        "full_name": "llmware-ai/llmware",
+        "description": "Unified framework for building enterprise RAG pipelines with small, specialized models",
+        "url": "https://github.com/llmware-ai/llmware",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 14819,
+        "forks": 2922,
+        "pushed_days": 47.0,
+        "commits_90d": 10,
+        "authors_90d": 1,
+        "releases_365d": 4,
+        "issue_closed_ratio": 0.22,
+        "issue_median_close_days": 2.0,
+        "pr_merged_ratio": 0.96,
+        "top_contributor_share": 0.668,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 82.3,
+        "maintenance": 75.8,
+        "people": 33.2,
+        "adoption": 91.2,
+        "momentum": null,
+        "maturity": 79.0
+      },
+      "total": 73.4,
+      "rank": 8
+    },
+    {
+      "metrics": {
+        "full_name": "sherwinvishesh/SurrogateShield",
+        "description": "A privacy-first guardrail for LLMs and RAG pipelines. SurrogateShield detects, redacts, and reconstructs sensitive PII data on the fly while defending against adversarial attacks.",
+        "url": "https://github.com/sherwinvishesh/SurrogateShield",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1055,
+        "forks": 2,
+        "pushed_days": 32.6,
+        "commits_90d": 100,
+        "authors_90d": 1,
+        "releases_365d": 2,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 99.7,
+        "maintenance": 100.0,
+        "people": 0.0,
+        "adoption": 38.6,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 73.0,
+      "rank": 9
+    },
+    {
+      "metrics": {
+        "full_name": "llama-farm/llamafarm",
+        "description": "Deploy any AI model, agent, database, RAG, and pipeline locally or remotely in minutes",
+        "url": "https://github.com/llama-farm/llamafarm",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 838,
+        "forks": 59,
+        "pushed_days": 160.3,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 21,
+        "issue_closed_ratio": 0.56,
+        "issue_median_close_days": 9.1,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.373,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 53.7,
+        "maintenance": 89.6,
+        "people": 50.0,
+        "adoption": 55.2,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 70.6,
+      "rank": 10
+    },
+    {
+      "metrics": {
+        "full_name": "Socialpranker/deepdive",
+        "description": "Deepdive skill for Claude Code — 12-phase research pipeline: plan-review gate, parallel sub-agent search, claims-ledger triangulation with dissent protection, relevance × authority evidence filter, mu",
+        "url": "https://github.com/Socialpranker/deepdive",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 373,
+        "forks": 5,
+        "pushed_days": 0.5,
+        "commits_90d": 32,
+        "authors_90d": 2,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.909,
+        "top_contributor_share": 0.968,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 58.6,
+        "maintenance": 100.0,
+        "people": 15.7,
+        "adoption": 37.9,
+        "momentum": null,
+        "maturity": 95.0
+      },
+      "total": 65.3,
+      "rank": 11
+    },
+    {
+      "metrics": {
+        "full_name": "param20h/PDF-Assistant-RAG",
+        "description": "PDF-Assistant-RAG is a complete, production-ready AI document assistant that lets users upload complex PDFs, financial reports, legal contracts, and research papers — then chat with an AI that provide",
+        "url": "https://github.com/param20h/PDF-Assistant-RAG",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 59,
+        "forks": 113,
+        "pushed_days": 90.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.34,
+        "issue_median_close_days": 0.3,
+        "pr_merged_ratio": 0.44,
+        "top_contributor_share": 0.445,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 27.3,
+        "maintenance": 68.5,
+        "people": 50.0,
+        "adoption": 46.7,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 59.6,
+      "rank": 12
+    },
+    {
+      "metrics": {
+        "full_name": "InternLM/HuixiangDou",
+        "description": "HuixiangDou: Overcoming Group Chat Scenarios with LLM-based Technical Assistance",
+        "url": "https://github.com/InternLM/HuixiangDou",
+        "language": "Python",
+        "license": "BSD-3-Clause",
+        "archived": false,
+        "stars": 2500,
+        "forks": 178,
+        "pushed_days": 358.2,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.293,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": 0.98,
+        "top_contributor_share": 0.645,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.7,
+        "maintenance": 78.9,
+        "people": 35.5,
+        "adoption": 66.6,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 53.2,
+      "rank": 13
+    },
+    {
+      "metrics": {
+        "full_name": "luyilong2015/open-webui-pipeline-for-ragflow",
+        "description": "使用open-webui中的pipelines技术在open-webui中调用ragflow的agent实现基于知识库的智能对话，并拥有美观的界面。",
+        "url": "https://github.com/luyilong2015/open-webui-pipeline-for-ragflow",
+        "language": "Python",
+        "license": "Unlicense",
+        "archived": false,
+        "stars": 176,
+        "forks": 26,
+        "pushed_days": 20.2,
+        "commits_90d": 1,
+        "authors_90d": 1,
+        "releases_365d": 1,
+        "issue_closed_ratio": 0.688,
+        "issue_median_close_days": 30.3,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 71.7,
+        "maintenance": 86.2,
+        "people": 0.0,
+        "adoption": 43.2,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 52.8,
+      "rank": 14
+    },
+    {
+      "metrics": {
+        "full_name": "superagent-ai/super-rag",
+        "description": "Super performant RAG pipelines for AI apps. Summarization, Retrieve/Rerank and Code Interpreters in one simple API.",
+        "url": "https://github.com/superagent-ai/super-rag",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 392,
+        "forks": 61,
+        "pushed_days": 931.3,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.612,
+        "issue_median_close_days": 1.0,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.747,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 92.2,
+        "people": 25.3,
+        "adoption": 51.9,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 51.9,
+      "rank": 15
+    },
+    {
+      "metrics": {
+        "full_name": "Emissary-Tech/legit-rag",
+        "description": "A real production-worthy RAG Pipeline.",
+        "url": "https://github.com/Emissary-Tech/legit-rag",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 281,
+        "forks": 36,
+        "pushed_days": 631.8,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 0.0,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 0.571,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 100.0,
+        "people": 42.9,
+        "adoption": 47.2,
+        "momentum": null,
+        "maturity": 50.0
+      },
+      "total": 48.3,
+      "rank": 16
+    },
+    {
+      "metrics": {
+        "full_name": "PrithivirajDamodaran/FlashRank",
+        "description": "Lite & Super-fast re-ranking for your search & retrieval pipelines.  Supports SoTA Listwise and Pairwise reranking based on LLMs and  cross-encoders and more.  Created by Prithivi Da, open for PRs & C",
+        "url": "https://github.com/PrithivirajDamodaran/FlashRank",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1016,
+        "forks": 75,
+        "pushed_days": 129.4,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.742,
+        "issue_median_close_days": 2.8,
+        "pr_merged_ratio": 0.429,
+        "top_contributor_share": 0.794,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 23.4,
+        "maintenance": 84.7,
+        "people": 20.6,
+        "adoption": 57.4,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 47.5,
+      "rank": 17
+    },
+    {
+      "metrics": {
+        "full_name": "NeumTry/NeumAI",
+        "description": "Neum AI is a best-in-class framework to manage the creation and synchronization of vector embeddings at large scale.",
+        "url": "https://github.com/NeumTry/NeumAI",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 869,
+        "forks": 50,
+        "pushed_days": 1036.8,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.4,
+        "issue_median_close_days": 7.7,
+        "pr_merged_ratio": 0.898,
+        "top_contributor_share": 0.659,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 83.2,
+        "people": 34.1,
+        "adoption": 54.4,
+        "momentum": null,
+        "maturity": 54.0
+      },
+      "total": 45.2,
+      "rank": 18
+    },
+    {
+      "metrics": {
+        "full_name": "AnswerDotAI/RAGatouille",
+        "description": "Easily use and train state of the art late-interaction retrieval methods (ColBERT) in any RAG pipeline. Designed for modularity and ease-of-use, backed by research.",
+        "url": "https://github.com/AnswerDotAI/RAGatouille",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 3977,
+        "forks": 278,
+        "pushed_days": 549.2,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.28,
+        "issue_median_close_days": 3.3,
+        "pr_merged_ratio": 0.8,
+        "top_contributor_share": 0.694,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 78.3,
+        "people": 30.6,
+        "adoption": 71.3,
+        "momentum": null,
+        "maturity": 45.7
+      },
+      "total": 44.5,
+      "rank": 19
+    },
+    {
+      "metrics": {
+        "full_name": "pchunduri6/rag-demystified",
+        "description": "An LLM-powered advanced RAG pipeline built from scratch",
+        "url": "https://github.com/pchunduri6/rag-demystified",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 856,
+        "forks": 56,
+        "pushed_days": 1026.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.833,
+        "issue_median_close_days": 5.1,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 0.885,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 100.0,
+        "people": 11.5,
+        "adoption": 55.0,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 43.8,
+      "rank": 20
+    },
+    {
+      "metrics": {
+        "full_name": "Lyra-stellAI/BYO-LLM-WIKI",
+        "description": "Build your own LLM-native WIKI (knowledge library). Search, extract, summarize, Q&A with contextual RAG, layered knowledge graph, and reinforced memory. Importantly use selected context to automatical",
+        "url": "https://github.com/Lyra-stellAI/BYO-LLM-WIKI",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 276,
+        "forks": 4,
+        "pushed_days": 111.4,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.96,
+        "top_contributor_share": 0.536,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 25.2,
+        "maintenance": 100.0,
+        "people": 46.4,
+        "adoption": 35.5,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 43.5,
+      "rank": 21
+    },
+    {
+      "metrics": {
+        "full_name": "harvard-lil/warc-gpt",
+        "description": "WARC + AI - Experimental Retrieval Augmented Generation Pipeline for Web Archive Collections.",
+        "url": "https://github.com/harvard-lil/warc-gpt",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 281,
+        "forks": 28,
+        "pushed_days": 644.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.333,
+        "issue_median_close_days": 64.0,
+        "pr_merged_ratio": 0.44,
+        "top_contributor_share": 0.442,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 57.2,
+        "people": 50.0,
+        "adoption": 45.8,
+        "momentum": null,
+        "maturity": 45.7
+      },
+      "total": 38.8,
+      "rank": 22
+    },
+    {
+      "metrics": {
+        "full_name": "darrencxl0301/StageRAG",
+        "description": "A blueprint for building production-ready RAG systems that minimize hallucination, featuring switchable 3-step (Speed) and 4-step (Precision) pipelines.",
+        "url": "https://github.com/darrencxl0301/StageRAG",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 1036,
+        "forks": 90,
+        "pushed_days": 400.6,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.333,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 70.8,
+        "people": 0.0,
+        "adoption": 58.6,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 36.0,
+      "rank": 23
+    },
+    {
+      "metrics": {
+        "full_name": "AnkitNayak-dev/EpsteinFiles-RAG",
+        "description": "A RAG pipeline implementation built on the 'Epstein Files 20K' dataset from Hugging Face (Teyler).",
+        "url": "https://github.com/AnkitNayak-dev/EpsteinFiles-RAG",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 386,
+        "forks": 62,
+        "pushed_days": 276.4,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.125,
+        "issue_median_close_days": 0.6,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 8.8,
+        "maintenance": 57.8,
+        "people": 0.0,
+        "adoption": 51.9,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 34.0,
+      "rank": 24
+    },
+    {
+      "metrics": {
+        "full_name": "premAI-io/premsql",
+        "description": "End-to-End Local-First Text-to-SQL Pipelines",
+        "url": "https://github.com/premAI-io/premsql",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 462,
+        "forks": 44,
+        "pushed_days": 641.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.679,
+        "issue_median_close_days": 32.6,
+        "pr_merged_ratio": 0.75,
+        "top_contributor_share": 0.996,
+        "stars_90d": null,
+        "health_pct": 25,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 90.0,
+        "people": 0.4,
+        "adoption": 50.7,
+        "momentum": null,
+        "maturity": 8.3
+      },
+      "total": 30.4,
+      "rank": 25
+    },
+    {
+      "metrics": {
+        "full_name": "AymenKallala/RAG_Maestro",
+        "description": "Building a chatbot powered with a RAG pipeline to read,summarize and quote the most relevant papers related to the user query.",
+        "url": "https://github.com/AymenKallala/RAG_Maestro",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 162,
+        "forks": 23,
+        "pushed_days": 935.1,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 37.7,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 91.2,
+        "people": 0.0,
+        "adoption": 42.2,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 29.4,
+      "rank": 26
+    },
+    {
+      "metrics": {
+        "full_name": "PromtEngineer/localGPT-Vision",
+        "description": "Chat with your documents using Vision Language Models. This repo implements an End to End RAG pipeline with both local and proprietary VLMs",
+        "url": "https://github.com/PromtEngineer/localGPT-Vision",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 641,
+        "forks": 127,
+        "pushed_days": 479.4,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.067,
+        "issue_median_close_days": 0.2,
+        "pr_merged_ratio": 0.667,
+        "top_contributor_share": 0.917,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 67.9,
+        "people": 8.3,
+        "adoption": 58.4,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 28.3,
+      "rank": 27
+    },
+    {
+      "metrics": {
+        "full_name": "FareedKhan-dev/scalable-rag-pipeline",
+        "description": "A scalable RAG platform combining LangGraph agents, hybrid retrieval (Vector+Graph), and Ray orchestration on Kubernetes.",
+        "url": "https://github.com/FareedKhan-dev/scalable-rag-pipeline",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 168,
+        "forks": 67,
+        "pushed_days": 325.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 1,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 37.3,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 48.5,
+        "momentum": null,
+        "maturity": 52.3
+      },
+      "total": 28.0,
+      "rank": 28
+    },
+    {
+      "metrics": {
+        "full_name": "misbahsy/RAGTune",
+        "description": "Tuning and Evaluation of RAG pipeline. (Automated optimization to be added soon)",
+        "url": "https://github.com/misbahsy/RAGTune",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 261,
+        "forks": 22,
+        "pushed_days": 972.9,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 44.1,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 17.9,
+      "rank": 29
+    },
+    {
+      "metrics": {
+        "full_name": "YuhangWuAI/tablerag",
+        "description": "made RAG pipeline better in table data",
+        "url": "https://github.com/YuhangWuAI/tablerag",
+        "language": "Python",
+        "license": "GPL-3.0",
+        "archived": false,
+        "stars": 134,
+        "forks": 14,
+        "pushed_days": 761.8,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 38.5,
+        "momentum": null,
+        "maturity": 47.3
+      },
+      "total": 16.9,
+      "rank": 30
+    },
+    {
+      "metrics": {
+        "full_name": "NVIDIA-AI-Blueprints/rag",
+        "description": "This NVIDIA RAG blueprint serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline.",
+        "url": "https://github.com/NVIDIA-AI-Blueprints/rag",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": true,
+        "stars": 823,
+        "forks": 351,
+        "pushed_days": 13.9,
+        "commits_90d": 4,
+        "authors_90d": 3,
+        "releases_365d": 7,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.82,
+        "top_contributor_share": 0.17,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 78.3,
+        "maintenance": 50.0,
+        "people": 75.0,
+        "adoption": 65.5,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 14.5,
+      "rank": 31
+    },
+    {
+      "metrics": {
+        "full_name": "VinUni-AI20k/K3-Day08-RAG-Pipeline",
+        "description": "",
+        "url": "https://github.com/VinUni-AI20k/K3-Day08-RAG-Pipeline",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 1,
+        "forks": 205,
+        "pushed_days": 105.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 25,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 25.8,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 34.5,
+        "momentum": null,
+        "maturity": 8.3
+      },
+      "total": 13.3,
+      "rank": 32
+    },
+    {
+      "metrics": {
+        "full_name": "vietnh1009/RAG-pipeline-visualizer",
+        "description": "",
+        "url": "https://github.com/vietnh1009/RAG-pipeline-visualizer",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 40,
+        "forks": 17,
+        "pushed_days": 100.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.0,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 14,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "pr_merged_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 26.3,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 34.1,
+        "momentum": null,
+        "maturity": 4.7
+      },
+      "total": 12.6,
+      "rank": 33
+    },
+    {
+      "metrics": {
+        "full_name": "vannguyen198/Day08_RAG_pipeline_cohort2",
+        "description": "",
+        "url": "https://github.com/vannguyen198/Day08_RAG_pipeline_cohort2",
+        "language": null,
+        "license": null,
+        "archived": false,
+        "stars": 0,
+        "forks": 272,
+        "pushed_days": 163.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": null,
+        "top_contributor_share": 1.0,
+        "stars_90d": 0,
+        "health_pct": 14,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "pr_merged_ratio",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 20.1,
+        "maintenance": null,
+        "people": 0.0,
+        "adoption": 33.0,
+        "momentum": 0.0,
+        "maturity": 4.7
+      },
+      "total": 12.4,
+      "rank": 34
+    },
+    {
+      "metrics": {
+        "full_name": "VinUni-AI20k/K4-Day08-RAG-Pipeline",
+        "description": "",
+        "url": "https://github.com/VinUni-AI20k/K4-Day08-RAG-Pipeline",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 0,
+        "forks": 236,
+        "pushed_days": 105.5,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": 0,
+        "health_pct": 25,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 25.8,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 32.1,
+        "momentum": 0.0,
+        "maturity": 8.3
+      },
+      "total": 11.6,
+      "rank": 35
+    },
+    {
+      "metrics": {
+        "full_name": "pixegami/simple-rag-pipeline",
+        "description": "A simple RAG pipeline that you can use as a starting point for learning about RAG (retrieval augmented generation).",
+        "url": "https://github.com/pixegami/simple-rag-pipeline",
+        "language": "Python",
+        "license": null,
+        "archived": false,
+        "stars": 79,
+        "forks": 55,
+        "pushed_days": 560.1,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.0,
+        "top_contributor_share": 1.0,
+        "stars_90d": null,
+        "health_pct": 28,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 0.0,
+        "people": 0.0,
+        "adoption": 43.9,
+        "momentum": null,
+        "maturity": 9.3
+      },
+      "total": 9.4,
+      "rank": 36
+    }
+  ],
+  "json_path": "D:\\202611_agent-legion\\02_data\\scout\\20261118-011419_rag-pipeline.json",
+  "md_path": "D:\\202611_agent-legion\\vault\\AI\\scout\\20261118-011419_rag-pipeline.md"
+}

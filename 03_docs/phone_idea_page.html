@@ -10,7 +10,7 @@ h1{font-size:1.35rem;margin:0 0 2px;text-wrap:balance}
 .sub{color:var(--mute);font-size:.85rem;margin:0 0 18px}
 h2{font-size:1rem;margin:26px 0 10px;letter-spacing:.02em}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;min-width:0}
-textarea,select{width:100%;box-sizing:border-box;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea,select,input{width:100%;box-sizing:border-box;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
 textarea{min-height:96px;resize:vertical}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .row>*{flex:1 1 140px;min-width:0}
@@ -31,6 +31,10 @@ button:disabled{opacity:.5;cursor:default}
 .opt input{margin-top:4px}
 .empty{color:var(--mute);font-size:.9rem}
 .note{font-size:.8rem;color:var(--mute);margin-top:24px;line-height:1.6}
+ol.top{margin:8px 0 0;padding-left:1.4em}
+ol.top li{margin:0 0 8px;word-break:break-word}
+ol.top a{color:var(--accent);font-weight:600;text-decoration:none}
+.score{font-variant-numeric:tabular-nums;font-weight:600;margin-right:6px}
 </style>
 
 <div class="wrap">
@@ -49,6 +53,19 @@ button:disabled{opacity:.5;cursor:default}
     <div class="msg" id="sendMsg">連線中…</div>
   </div>
 
+  <h2>找 repo</h2>
+  <div class="card">
+    <label class="small" for="kw">關鍵字（用英文效果最好，例：agent orchestration、rag pipeline）</label>
+    <input id="kw" maxlength="100" placeholder="agent orchestration">
+    <div class="row">
+      <div><label class="small" for="lang">語言</label>
+        <select id="lang"><option value="">不限</option><option>python</option><option>typescript</option><option>javascript</option><option>go</option><option>rust</option><option>java</option><option value="csharp">C#</option><option value="cpp">C++</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button id="scoutSend" disabled>開始找</button></div>
+    </div>
+    <div class="msg" id="scoutMsg"></div>
+  </div>
+  <div id="scouts"></div>
+
   <h2>待回答的提問</h2>
   <div id="clarify"><p class="empty">目前沒有。</p></div>
 
@@ -56,6 +73,7 @@ button:disabled{opacity:.5;cursor:default}
   <div id="ideas"><p class="empty">還沒有想法。</p></div>
 
   <p class="note">送出後狀態：<b>等待同步</b> → <b>已排入</b>（附任務編號與目前狀態）或 <b>拒收</b>（附原因）。想法只會被處理一次。目標專案只能從清單選（白名單在電腦端設定）。這一頁只有你自己能寫。</p>
+  <p class="note">找 repo：電腦端用 GitHub 的客觀數據打分（活躍度、維護、人員、採用、成熟度），不只看星數，也不用 AI。每輪最多處理 2 個，其餘下輪。分數是活動數據，不代表程式碼品質，挑選前仍要點進去看。完整報告（每個 repo 的原始數字）在文件庫的「找 repo」分類。</p>
 </div>
 
 <script>
@@ -92,6 +110,56 @@ function renderIdeas(docs) {
     box.appendChild(card);
   }
 }
+
+const SCOUT_STATUS = {new: ["等待同步", ""], done: ["完成", "ok"], rejected: ["沒有執行", "warn"]};
+function safeGithub(url) { return typeof url === "string" && /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(url) ? url : null; }
+
+function renderScouts(docs) {
+  const box = $("scouts"); box.textContent = "";
+  for (const d of docs) {
+    const v = d.data() || {};
+    const card = document.createElement("div"); card.className = "card";
+    const [label, cls] = SCOUT_STATUS[v.status] || [String(v.status || "?"), ""];
+    card.appendChild(chip(label, cls));
+    if (v.lang) card.appendChild(chip(String(v.lang)));
+    const t = document.createElement("p"); t.className = "idea-text"; t.textContent = String(v.text || ""); card.appendChild(t);
+    const top = Array.isArray(v.top) ? v.top : [];
+    if (top.length) {
+      const ol = document.createElement("ol"); ol.className = "top";
+      for (const r of top) {
+        const li = document.createElement("li");
+        const sc = document.createElement("span"); sc.className = "score"; sc.textContent = String(r.total ?? ""); li.appendChild(sc);
+        const url = safeGithub(r.url);
+        const name = document.createElement(url ? "a" : "span"); name.textContent = String(r.name || "");
+        if (url) { name.href = url; name.target = "_blank"; name.rel = "noopener noreferrer"; }
+        li.appendChild(name);
+        const meta = document.createElement("div"); meta.className = "meta";
+        meta.textContent = ["★" + Number(r.stars || 0).toLocaleString("zh-TW"), r.archived ? "已封存" : "", String(r.description || "")].filter(Boolean).join("　·　");
+        li.appendChild(meta); ol.appendChild(li);
+      }
+      card.appendChild(ol);
+    }
+    const m = document.createElement("div"); m.className = "meta";
+    m.textContent = [fmt(v.created_at), v.note, v.report ? "報告：" + v.report : ""].filter(Boolean).join("　·　");
+    card.appendChild(m);
+    box.appendChild(card);
+  }
+}
+
+$("scoutSend").onclick = async () => {
+  const text = $("kw").value.trim(), msg = $("scoutMsg");
+  if (!text) { msg.className = "msg err"; msg.textContent = "請先寫關鍵字。"; return; }
+  $("scoutSend").disabled = true; msg.className = "msg"; msg.textContent = "送出中…";
+  try {
+    const id = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await db.collection("scouts").doc(id).set({text, lang: $("lang").value, status: "new", created_at: new Date().toISOString()});
+    $("kw").value = ""; msg.textContent = "已送出，下次同步時開始找（約 1 分鐘）。";
+  } catch (e) {
+    msg.className = "msg err";
+    msg.textContent = e && e.code === "invalid_argument" ? "這個帳號不能寫入（只有擁有者能用）。" : "送出失敗：" + (e && e.code || e);
+    if (e && e.code === "invalid_argument") writable = false;
+  } finally { $("scoutSend").disabled = !writable; }
+};
 
 function renderClarify(docs, answered, rejectedNotes) {
   const box = $("clarify"); box.textContent = "";
@@ -167,10 +235,11 @@ $("send").onclick = async () => {
   const redraw = () => renderClarify(clarifyDocs, answered, rejectedNotes);
   const fail = (e) => { clearTimeout(timer); msg.className = "msg err"; msg.textContent = "讀取失敗：" + (e && e.code || e); };
   db.collection("ideas").orderBy("created_at", "desc").limit(50).onSnapshot((s) => {
-    if (!s.metadata.fromCache) { clearTimeout(timer); msg.className = "msg"; msg.textContent = writable ? "" : "唯讀：只有擁有者能送出。"; $("send").disabled = !writable; }
+    if (!s.metadata.fromCache) { clearTimeout(timer); msg.className = "msg"; msg.textContent = writable ? "" : "唯讀：只有擁有者能送出。"; $("send").disabled = $("scoutSend").disabled = !writable; }
     renderIdeas(s.docs);
   }, fail);
   db.collection("clarify").onSnapshot((s) => { clarifyDocs = s.docs; redraw(); }, fail);
+  db.collection("scouts").orderBy("created_at", "desc").limit(10).onSnapshot((s) => renderScouts(s.docs), fail);
   db.collection("answers").onSnapshot((s) => {
     answered = new Set(s.docs.filter((d) => { const v = d.data() || {}; return v.status === "new" || v.status === "done"; }).map((d) => d.id));
     rejectedNotes = new Map(s.docs.filter((d) => (d.data() || {}).status === "rejected").map((d) => [d.id, String((d.data() || {}).note || "")]));

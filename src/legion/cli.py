@@ -172,10 +172,12 @@ def build_parser() -> argparse.ArgumentParser:
     sc.add_argument("--per-query", type=int, default=25, help="每次搜尋取幾個候選（依星數、依相關度各一次；預設 25）")
     sc.add_argument("--top", type=int, default=10, help="報告列前幾名（預設 10）")
     sc.add_argument("--weights", help="覆寫權重，例如 activity=0.3,adoption=0.05（會自動正規化）")
-    ps = sub.add_parser("phone-sync", help="手機互動頁的想法與答案 ↔ legion（讀 ArtifactData 匯出檔、產生寫回清單；不花額度）")
+    ps = sub.add_parser("phone-sync", help="手機互動頁的想法、答案與找 repo ↔ legion（讀 ArtifactData 匯出檔、產生寫回清單；"
+                                           "不花 Claude 額度，找 repo 用 GitHub API）")
     ps.add_argument("--in", dest="in_dir", required=True, help="ArtifactData list 的 out_dir（含 versions.json）")
     ps.add_argument("--out", dest="out_dir", required=True, help="輸出資料夾：manifest.json 與要寫回的資料檔")
     ps.add_argument("--repos", help="目標專案白名單 key=路徑;key=路徑（覆寫 LEGION_PHONE_REPOS）")
+    ps.add_argument("--no-scout", action="store_true", help="這次不跑找 repo（排程的第二次同步用，讓每小時最多 2 個）")
     dc = sub.add_parser("docs", help="從 diagrams.py 同步 README 的流程圖與儀表說明（不花額度）")
     dc.add_argument("--check", action="store_true", help="只檢查，README 過期時回傳 1")
     return ap
@@ -315,11 +317,13 @@ def main(argv: list[str] | None = None) -> int:
         from pathlib import Path
 
         from .phone import sync
+        from .scout import GhFetcher
 
         init_vault(s)
         try:
             res = asyncio.run(_with_store(s, lambda st: sync(s, st, Path(args.in_dir), Path(args.out_dir),
-                                                             repos_spec=args.repos)))
+                                                             repos_spec=args.repos,
+                                                             fetcher=None if args.no_scout else GhFetcher())))
         except (OSError, ValueError) as e:
             print(f"phone-sync 失敗：{e}", file=sys.stderr)
             return 1
