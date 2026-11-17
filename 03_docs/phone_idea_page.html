@@ -1,0 +1,181 @@
+<title>legion 想法投遞</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f6f4ef;--card:#fffdf8;--fg:#1f2328;--mute:#6a6f76;--line:#e2ddd2;--accent:#2f6f5e;--accent-fg:#fff;--warn:#a4441b;--ok:#2f6f5e;--chip:#ece7dc;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--card:#1d2125;--fg:#e8e6e1;--mute:#9aa0a6;--line:#2e3439;--accent:#6fc2a8;--accent-fg:#0e1512;--warn:#f0a07a;--ok:#6fc2a8;--chip:#262c31;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--card:#1d2125;--fg:#e8e6e1;--mute:#9aa0a6;--line:#2e3439;--accent:#6fc2a8;--accent-fg:#0e1512;--warn:#f0a07a;--ok:#6fc2a8;--chip:#262c31;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:1.35rem;margin:0 0 2px;text-wrap:balance}
+.sub{color:var(--mute);font-size:.85rem;margin:0 0 18px}
+h2{font-size:1rem;margin:26px 0 10px;letter-spacing:.02em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;min-width:0}
+textarea,select{width:100%;box-sizing:border-box;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{min-height:96px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.row>*{flex:1 1 140px;min-width:0}
+label.small{display:block;font-size:.8rem;color:var(--mute);margin-bottom:4px}
+button{font:inherit;border:0;border-radius:8px;padding:11px 14px;background:var(--accent);color:var(--accent-fg);font-weight:600;cursor:pointer}
+button.ghost{background:var(--chip);color:var(--fg);font-weight:500}
+button:disabled{opacity:.5;cursor:default}
+.msg{font-size:.85rem;margin-top:8px;min-height:1.2em}
+.msg.err{color:var(--warn)}
+.chip{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--chip);color:var(--mute);margin-right:6px}
+.chip.ok{color:var(--ok)}.chip.warn{color:var(--warn)}
+.idea-text{margin:6px 0 4px;white-space:pre-wrap;word-break:break-word}
+.meta{font-size:.8rem;color:var(--mute)}
+.q{margin:12px 0 0}
+.q p{margin:0 0 6px;font-weight:600}
+.why{font-weight:400;color:var(--mute);font-size:.8rem;display:block}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer}
+.opt input{margin-top:4px}
+.empty{color:var(--mute);font-size:.9rem}
+.note{font-size:.8rem;color:var(--mute);margin-top:24px;line-height:1.6}
+</style>
+
+<div class="wrap">
+  <h1>legion 想法投遞</h1>
+  <p class="sub">一句話丟想法；規劃者有問題時在這裡點選回答。電腦每小時（08–23 點）同步一次。</p>
+
+  <div class="card">
+    <label class="small" for="text">想法（一句話就好，500 字內）</label>
+    <textarea id="text" maxlength="500" placeholder="例：textkit 加一個計算中文字數的函式"></textarea>
+    <div class="row">
+      <div><label class="small" for="repo">目標專案</label><select id="repo"></select></div>
+      <div><label class="small" for="kind">類型</label>
+        <select id="kind"><option value="write">改程式（write）</option><option value="readonly">只讀分析（readonly）</option></select></div>
+    </div>
+    <div class="row"><button id="send" disabled>送出想法</button></div>
+    <div class="msg" id="sendMsg">連線中…</div>
+  </div>
+
+  <h2>待回答的提問</h2>
+  <div id="clarify"><p class="empty">目前沒有。</p></div>
+
+  <h2>我的想法</h2>
+  <div id="ideas"><p class="empty">還沒有想法。</p></div>
+
+  <p class="note">送出後狀態：<b>等待同步</b> → <b>已排入</b>（附任務編號與目前狀態）或 <b>拒收</b>（附原因）。想法只會被處理一次。目標專案只能從清單選（白名單在電腦端設定）。這一頁只有你自己能寫。</p>
+</div>
+
+<script>
+const FALLBACK_REPOS = ["sandbox", "legion"];
+const STATUS = {new: ["等待同步", ""], queued: ["已排入", "ok"], rejected: ["拒收", "warn"]};
+const $ = (id) => document.getElementById(id);
+let db = null, writable = true;
+
+function chip(text, cls) { const s = document.createElement("span"); s.className = "chip " + (cls || ""); s.textContent = text; return s; }
+function fmt(iso) { try { return new Date(iso).toLocaleString("zh-TW", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"}); } catch (e) { return ""; } }
+
+function setRepos(keys) {
+  const sel = $("repo"), cur = sel.value;
+  sel.textContent = "";
+  for (const k of keys) { const o = document.createElement("option"); o.value = k; o.textContent = k; sel.appendChild(o); }
+  if (keys.includes(cur)) sel.value = cur;
+}
+setRepos(FALLBACK_REPOS);
+
+function renderIdeas(docs) {
+  const box = $("ideas"); box.textContent = "";
+  if (!docs.length) { box.innerHTML = '<p class="empty">還沒有想法。</p>'; return; }
+  for (const d of docs) {
+    const v = d.data() || {};
+    const card = document.createElement("div"); card.className = "card";
+    const [label, cls] = STATUS[v.status] || [String(v.status || "?"), ""];
+    card.appendChild(chip(label, cls));
+    if (v.task_id) card.appendChild(chip(String(v.task_id)));
+    if (v.task_state) card.appendChild(chip(String(v.task_state)));
+    const t = document.createElement("p"); t.className = "idea-text"; t.textContent = String(v.text || ""); card.appendChild(t);
+    const m = document.createElement("div"); m.className = "meta";
+    m.textContent = [v.repo_key, v.kind, fmt(v.created_at), v.note].filter(Boolean).join("　·　");
+    card.appendChild(m);
+    box.appendChild(card);
+  }
+}
+
+function renderClarify(docs, answered, rejectedNotes) {
+  const box = $("clarify"); box.textContent = "";
+  const open = docs.filter((d) => !answered.has(d.id));
+  if (!open.length) { box.innerHTML = '<p class="empty">目前沒有。</p>'; return; }
+  for (const d of open) {
+    const v = d.data() || {}, qs = Array.isArray(v.questions) ? v.questions : [];
+    const card = document.createElement("div"); card.className = "card";
+    card.appendChild(chip(d.id));
+    const t = document.createElement("p"); t.className = "idea-text"; t.textContent = String(v.title || ""); card.appendChild(t);
+    if (rejectedNotes.has(d.id)) {
+      const r = document.createElement("div"); r.className = "msg err";
+      r.textContent = "上次的答案沒有套用：" + rejectedNotes.get(d.id) + "。請重新選擇後送出。"; card.appendChild(r);
+    }
+    qs.forEach((q) => {
+      const wrap = document.createElement("div"); wrap.className = "q";
+      const p = document.createElement("p"); p.textContent = q.id + ". " + String(q.question || "");
+      if (q.why) { const w = document.createElement("span"); w.className = "why"; w.textContent = "為什麼問：" + q.why; p.appendChild(w); }
+      wrap.appendChild(p);
+      (Array.isArray(q.options) ? q.options : []).forEach((opt, i) => {
+        const letter = String.fromCharCode(65 + i);
+        const lab = document.createElement("label"); lab.className = "opt";
+        const r = document.createElement("input"); r.type = "radio"; r.name = d.id + "-" + q.id; r.value = letter; r.checked = opt === q.default;
+        const s = document.createElement("span"); s.textContent = (opt === q.default ? "⭐ " : "") + letter + ". " + opt;
+        lab.append(r, s); wrap.appendChild(lab);
+      });
+      card.appendChild(wrap);
+    });
+    const row = document.createElement("div"); row.className = "row";
+    const send = document.createElement("button"); send.textContent = "送出答案";
+    const defs = document.createElement("button"); defs.className = "ghost"; defs.textContent = "全部採用預設";
+    const msg = document.createElement("div"); msg.className = "msg";
+    const submit = async (useDefaults) => {
+      if (!db || !writable) return;
+      const picks = {};
+      if (!useDefaults) qs.forEach((q) => { const c = card.querySelector('input[name="' + CSS.escape(d.id + "-" + q.id) + '"]:checked'); if (c) picks[q.id] = c.value; });
+      send.disabled = defs.disabled = true; msg.className = "msg"; msg.textContent = "送出中…";
+      try {
+        await db.collection("answers").doc(d.id).set({mode: useDefaults ? "defaults" : "pick", picks, status: "new",
+          asked_at: String(v.asked_at || ""), created_at: new Date().toISOString()});
+        msg.textContent = "已送出，下次同步時套用。";
+      } catch (e) { msg.className = "msg err"; msg.textContent = "送出失敗：" + (e && e.code || e); send.disabled = defs.disabled = false; }
+    };
+    send.onclick = () => submit(false); defs.onclick = () => submit(true);
+    row.append(send, defs); card.append(row, msg); box.appendChild(card);
+  }
+}
+
+$("send").onclick = async () => {
+  const text = $("text").value.trim(), msg = $("sendMsg");
+  if (!text) { msg.className = "msg err"; msg.textContent = "請先寫想法。"; return; }
+  $("send").disabled = true; msg.className = "msg"; msg.textContent = "送出中…";
+  try {
+    const id = "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await db.collection("ideas").doc(id).set({text, repo_key: $("repo").value, kind: $("kind").value, status: "new",
+      created_at: new Date().toISOString()});
+    $("text").value = ""; msg.textContent = "已送出，等待下次同步。";
+  } catch (e) {
+    msg.className = "msg err";
+    msg.textContent = e && e.code === "invalid_argument" ? "這個帳號不能寫入（只有擁有者能用）。" : "送出失敗：" + (e && e.code || e);
+    if (e && e.code === "invalid_argument") writable = false;
+  } finally { $("send").disabled = !writable; }
+};
+
+(async () => {
+  const msg = $("sendMsg");
+  const timer = setTimeout(() => { msg.className = "msg err"; msg.textContent = "資料暫時連不上，稍後再試。"; }, 10000);
+  db = await claude.use("db");
+  if (!db) { clearTimeout(timer); msg.className = "msg err"; msg.textContent = "這個檢視無法使用資料庫（請登入 claude.ai 開啟）。"; return; }
+  const user = await claude.use("user");
+  if (user && user.can) { try { const c = await user.can("data.write"); if (c === false) writable = false; } catch (e) {} }
+  let clarifyDocs = [], answered = new Set(), rejectedNotes = new Map();
+  const redraw = () => renderClarify(clarifyDocs, answered, rejectedNotes);
+  const fail = (e) => { clearTimeout(timer); msg.className = "msg err"; msg.textContent = "讀取失敗：" + (e && e.code || e); };
+  db.collection("ideas").orderBy("created_at", "desc").limit(50).onSnapshot((s) => {
+    if (!s.metadata.fromCache) { clearTimeout(timer); msg.className = "msg"; msg.textContent = writable ? "" : "唯讀：只有擁有者能送出。"; $("send").disabled = !writable; }
+    renderIdeas(s.docs);
+  }, fail);
+  db.collection("clarify").onSnapshot((s) => { clarifyDocs = s.docs; redraw(); }, fail);
+  db.collection("answers").onSnapshot((s) => {
+    answered = new Set(s.docs.filter((d) => { const v = d.data() || {}; return v.status === "new" || v.status === "done"; }).map((d) => d.id));
+    rejectedNotes = new Map(s.docs.filter((d) => (d.data() || {}).status === "rejected").map((d) => [d.id, String((d.data() || {}).note || "")]));
+    redraw();
+  }, fail);
+  db.doc("config/repos").onSnapshot((s) => { const v = s.exists ? s.data() : null; if (v && Array.isArray(v.keys) && v.keys.length) setRepos(v.keys.map(String)); }, () => {});
+})();
+</script>

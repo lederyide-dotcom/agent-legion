@@ -165,6 +165,10 @@ def build_parser() -> argparse.ArgumentParser:
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
     vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON（給手機互動頁讀；不花額度）")
     vj.add_argument("--out", required=True, help="寫入這個檔案（UTF-8、無 BOM）")
+    ps = sub.add_parser("phone-sync", help="手機互動頁的想法與答案 ↔ legion（讀 ArtifactData 匯出檔、產生寫回清單；不花額度）")
+    ps.add_argument("--in", dest="in_dir", required=True, help="ArtifactData list 的 out_dir（含 versions.json）")
+    ps.add_argument("--out", dest="out_dir", required=True, help="輸出資料夾：manifest.json 與要寫回的資料檔")
+    ps.add_argument("--repos", help="目標專案白名單 key=路徑;key=路徑（覆寫 LEGION_PHONE_REPOS）")
     dc = sub.add_parser("docs", help="從 diagrams.py 同步 README 的流程圖與儀表說明（不花額度）")
     dc.add_argument("--check", action="store_true", help="只檢查，README 過期時回傳 1")
     return ap
@@ -283,6 +287,23 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         where = f"{repo}（只改子資料夾 {sub}）" if sub else str(repo)
         print(f"已收下想法 → {p}\n目標 repo：{where}\n下一輪 `legion tick` 會領取；不清楚的地方規劃者會先問你。")
+        return 0
+
+    if args.cmd == "phone-sync":
+        from pathlib import Path
+
+        from .phone import sync
+
+        init_vault(s)
+        try:
+            res = asyncio.run(_with_store(s, lambda st: sync(s, st, Path(args.in_dir), Path(args.out_dir),
+                                                             repos_spec=args.repos)))
+        except (OSError, ValueError) as e:
+            print(f"phone-sync 失敗：{e}", file=sys.stderr)
+            return 1
+        print(json.dumps(res.model_dump(exclude={"writes"}) | {"writes": len(res.writes),
+                                                             "manifest": str(Path(args.out_dir) / "manifest.json")},
+                         ensure_ascii=False, indent=2))
         return 0
 
     if args.cmd == "inbox":

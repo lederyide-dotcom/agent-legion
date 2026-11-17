@@ -119,6 +119,8 @@ class Settings(BaseModel):
         default_factory=lambda: float(os.environ.get("LEGION_CLARIFY_IDLE_MINUTES", "15")))
     # legion idea 沒給 --repo、也不在 git repo 裡時的預設目標 repo
     default_repo: str | None = Field(default_factory=lambda: os.environ.get("LEGION_DEFAULT_REPO") or None)
+    # 手機互動頁可指定的目標專案白名單：key=路徑;key=路徑（相對路徑以專案根目錄為準）。空字串＝全部拒收
+    phone_repos: str = Field(default_factory=lambda: os.environ.get("LEGION_PHONE_REPOS", ""))
     mission_min_call_usd: float = 0.05  # 戰役剩餘額度低於此值就不再呼叫 agent
     advisor_max_consults: int = 2  # 每個任務最多請示幾次，避免「失敗→請示→自動重試」無限循環
     call_timeout_s: int = 900

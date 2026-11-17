@@ -108,3 +108,8 @@ time,schema,task,role,backend,model,session_id,status,cost_usd,note,effort
 2026-11-17T12:42:29+08:00,legion,T-0023,executor,claude,claude-sonnet-5-5,9bdbb52a-d4cb-425a-9e72-e79a054af1f3,completed,0.075041,,
 2026-11-17T12:42:42+08:00,legion,T-0023,reviewer,claude,claude-sonnet-5-5,f0f15b1f-48d7-4080-9a3b-877288a25217,completed,0.055476,,high
 2026-11-17T12:43:07+08:00,legion,T-0023,scribe,claude,claude-haiku-5-5,7322957a-4052-4173-a620-168b6486fee1,completed,0.004773,,
+2026-11-17T19:30:31+08:00,legion,T-0024,planner,claude,claude-opus-5-5,ba19fb7d-c446-415c-af20-d99ec46bacc7,completed,0.101617,,medium
+2026-11-17T19:30:44+08:00,legion,T-0024,spec_reviewer,claude,claude-opus-5-5,048acf9b-d7d4-4350-9994-b20a369215ae,completed,0.096930,,medium
+2026-11-17T19:31:12+08:00,legion,T-0024,executor,claude,claude-sonnet-5-5,9ea4a573-0802-430c-8902-45d7504d5182,completed,0.068803,,
+2026-11-17T19:31:30+08:00,legion,T-0024,reviewer,claude,claude-sonnet-5-5,09348ad4-4c12-450c-84ef-d6f0577f2790,completed,0.074980,,high
+2026-11-17T19:32:29+08:00,legion,T-0024,scribe,claude,claude-haiku-5-5,6d6c5128-5033-4111-8b35-093621dd7f9e,completed,0.008579,,

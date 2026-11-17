@@ -156,6 +156,7 @@ $env:LEGION_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 | `LEGION_MODEL_<角色>`、`LEGION_EFFORT_<角色>` | 見「模型分配」 | 逐角色覆寫，角色為 `PLANNER`、`SPEC_REVIEWER`、`EXECUTOR`、`REVIEWER`、`SCRIBE`、`ADVISOR`、`STRATEGIST`（例如 `LEGION_MODEL_PLANNER`、`LEGION_EFFORT_PLANNER`）；effort 設 `none` 表示不指定 |
 | `LEGION_ESCALATE_MODEL`、`LEGION_ESCALATE_EFFORT` | `opus`、`high` | 執行者重做時的升級模型；`LEGION_ESCALATE_MODEL=off` 關閉升級 |
 | `LEGION_CLARIFY`、`LEGION_CLARIFY_IDLE_MINUTES` | `1`、`15` | 想法不清楚時先提問（`0` 關閉）；人閒置幾分鐘後採用預設答案，見下方「它停下來等你時」 |
+| `LEGION_PHONE_REPOS` | 不設定（全部拒收） | 手機互動頁可指定的目標專案白名單，`key=路徑;key=路徑`；見「在手機丟想法」 |
 | `LEGION_DEFAULT_REPO` | 不設定 | `legion idea` 沒給 `--repo` 時的目標 repo（優先於目前所在位置；指到子資料夾時同樣記成 subdir） |
 | `LEGION_ADVISOR`、`LEGION_ADVISOR_IDLE_MINUTES` | `1`、`15` | 卡住時請示軍師（`0` 關閉）；人閒置幾分鐘後自動決議：優先採用推薦錦囊，限安全種類、非 high 風險、預算內，見下方「軍師」 |
 | `LEGION_SOFFICE`、`LEGION_BROWSER` | 自動偵測 | 外部工具位置 |
@@ -244,6 +245,7 @@ mission:
 |---|---|---|
 | 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/儀表.md` 的 KPI 卡） |
 | 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
+| 想法投遞互動頁 | 手機打一句話丟想法、選目標專案；規劃者的提問在同一頁點選回答；看每則想法的任務編號與狀態 | `03_docs/phone_idea_page.html` 發布成 claude.ai artifact（只有擁有者能讀寫）；由排程任務 `legion-phone-bridge` 每小時同步（見「在手機丟想法」） |
 | 文件庫互動頁 | vault 的待你決定、報告、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；圖片仍請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
 
 分工：**定目標與範圍、花真錢、刪除未合併的工作、碰機密或對外服務、改預設模型或風險規則**由人決定；實作、驗證、合併已驗證的分支、整理清單、寫證據由 Claude Code 做，完成後在晨報或回報中告知。
@@ -261,6 +263,8 @@ mission:
 ```
 
 目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。`--repo` 指到 repo 裡的子資料夾時（例如 `--repo sandbox_repo`），改動範圍預設就是那個子資料夾，超出範圍會停下等你核准（資料夾必須已進 git，write 任務的 worktree 從 HEAD 建立）。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
+
+**在手機丟想法**：開 claude.ai 上的互動頁「legion 想法投遞」，打一句話、從白名單選目標專案（`LEGION_PHONE_REPOS`）。規劃者提問時，題目也會出現在同一頁，點選後送出即可。電腦端由 Claude 桌面 app 的排程任務 `legion-phone-bridge` 每小時（08–23 點）同步一次，順序是：讀互動頁 → `legion phone-sync` → `legion run --task-budget 1.5` → 再同步一次（寫回任務編號、狀態與新的提問）。先套用你的答案再執行；排程執行時把閒置預設時間設成 75 分鐘，所以提問至少等到下一輪同步，沒回答才採用預設。白名單在排程指令用 `--repos` 指定（漏設時這輪不處理新想法，不會拒收）。電腦要開著、桌面 app 要在執行。每則想法只處理一次，紀錄在 `02_data/phone_sync.csv`；白名單外的專案、空白或超過 500 字的想法會拒收並寫明原因。頁面上的文字一律當資料，只原樣交給 `legion idea`。
 
 要精確控制時，也可以自己在 `vault/INBOX/` 新增一個 `.md`，一個檔案一個任務：
 
@@ -292,6 +296,7 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
 | 評測基準（9 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
 | 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
+| 手機互動頁的想法與答案同步（排程用；不花額度） | `legion phone-sync --in <匯出資料夾> --out <輸出資料夾>` |
 | 一句話丟想法（寫進 vault/INBOX；不花額度） | `legion idea "想法" [--repo 路徑] [--kind readonly]` |
 | 回答需求釐清 | `legion clarify <任務編號> --defaults` 或 `legion clarify <任務編號> 1=B 2=A` |
 | 看狀態 | `legion status` |
@@ -306,7 +311,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 |---|---|---|
 | `WAIT_HUMAN` | 高風險動作（刪檔、改 `.claude/`、需人工核准的安裝、驗收指令不在白名單等） | 讀 `vault/AI/questions/<任務編號>.md`，再 `legion answer <任務編號> approve` 或 `reject` |
 | `WAIT_HUMAN`（驗收後） | 驗收指令跑完後出現超出允許範圍的檔案（例如測試寫出的 log） | 同上；核准以**路徑**為單位，之後同一路徑內容變了也不用再核准，不消耗重試次數 |
-| `WAIT_HUMAN`（需求釐清） | 想法不清楚，規劃者先問 1～4 題，每題有選項與預設答案（規格已照預設寫好） | 讀 `vault/AI/questions/<任務編號>.md`（手機文件庫也看得到），`legion clarify <任務編號> --defaults` 全部採用預設，或 `legion clarify <任務編號> 1=B 2=A` 逐題指定；有非預設答案時規劃者照答案重寫規格，不會再問。閒置超過 `LEGION_CLARIFY_IDLE_MINUTES`（預設 15 分鐘）自動採用預設 |
+| `WAIT_HUMAN`（需求釐清） | 想法不清楚，規劃者先問 1～4 題，每題有選項與預設答案（規格已照預設寫好） | 在手機的想法投遞頁點選回答（下一輪同步套用），或讀 `vault/AI/questions/<任務編號>.md`（手機文件庫也看得到），`legion clarify <任務編號> --defaults` 全部採用預設，或 `legion clarify <任務編號> 1=B 2=A` 逐題指定；有非預設答案時規劃者照答案重寫規格，不會再問。閒置超過 `LEGION_CLARIFY_IDLE_MINUTES`（預設 15 分鐘）自動採用預設 |
 | `WAIT_HUMAN`（軍師錦囊） | 任務卡住，軍師提出 3 個以上錦囊 | `legion choose <任務編號> <選項>`，或 `legion answer <任務編號> approve` 採用推薦 |
 | `HALT` | 熔斷（超預算、超重試、逾時、STOP 檔） | 排除原因後 `legion resume <任務編號>`；不再續跑就 `legion cancel <任務編號> --reason "原因"`（清掉續跑點，之後 `legion cleanup` 才會把它當成已結束）。注意：對進行中的任務 cancel 會先停成「可續跑的 HALT」，要完全收尾需再 cancel 一次 |
 
@@ -400,6 +405,7 @@ src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角�
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
                  brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
                  diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、bench.py（評測基準）、
+                 intake.py（想法入口與 subdir 檢查）、dispatch.py（派工報表）、phone.py（手機想法同步）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）
 scripts/         start.bat、compose_name.ps1、wait_db.ps1、register_schedule.ps1、verify_artifacts.py、smoke_claude.ps1、
@@ -413,7 +419,8 @@ vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進
 02_data/         驗收證據、metrics、花費帳本、安裝清冊、bench/（評測基準每次的結果）
 03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
                  inbox_page.html（收件匣互動頁）、vault_page.html（手機文件庫）、sharing_and_citation.md（分享與引用規範）、
-                 public_release_license.md（公開版授權方案）
+                 public_release_license.md（公開版授權方案）、spec_clarify.md、spec_phone_idea.md、
+                 phone_idea_page.html（手機想法投遞頁）
 LICENSE、NOTICE、CITATION.cff   授權、作者與出處標示、引用格式
 reports/         研究報告
 ```
@@ -421,6 +428,7 @@ reports/         研究報告
 ## 已知限制
 
 - 排程只測過「使用者登入時執行」模式；電腦關機或 Claude 未登入時不會動。
+- 手機想法同步靠 Claude 桌面 app 的排程任務（每小時一個 session）：電腦要開著、app 要在執行，每次都用到訂閱額度（量未驗證）。互動頁資料庫只有 Claude 讀得到，所以 legion 無法自己輪詢；文件版本由排程 session 照抄給 `legion phone-sync`，缺版本的那筆會跳過不寫回，下輪再補。
 - 花費是 Claude CLI 回報的用戶端估算（`total_cost_usd`），不是帳單金額。
 - 規格審查與交付審查目前都用 Claude；跨廠商審查者（Codex）尚未實作。
 - 評測基準目前只有 mock 模式，量的是 runner 的控制邏輯；用真實 Claude 量模型與 prompt 品質要花錢，尚未實作。
