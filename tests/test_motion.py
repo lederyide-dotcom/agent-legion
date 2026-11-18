@@ -93,8 +93,10 @@ def test_init_vault_embeds_motion(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     s = Settings()
     init_vault(s)
     assert f"![[{d.VAULT_IMG}/flow.svg]]" in (s.ai_dir / "流程.md").read_text(encoding="utf-8")
-    note = (s.ai_dir / "儀表.md").read_text(encoding="utf-8")
+    # 2026-11-18 David 選 A：KPI 卡與儀表表格移到 總覽.md；儀表.md 保留為轉址
+    note = (s.vault / d.OVERVIEW_NOTE).read_text(encoding="utf-8")
     assert f"![[{d.VAULT_IMG}/dashboard.svg]]" in note and "![[儀表.base]]" in note
+    assert "[[總覽]]" in (s.ai_dir / "儀表.md").read_text(encoding="utf-8")
     assert (s.vault / d.VAULT_IMG / "flow.svg").exists()  # 從 repo 複製，Obsidian 嵌入不會破圖
 
 

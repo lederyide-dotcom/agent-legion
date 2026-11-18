@@ -168,24 +168,36 @@ def flow_markdown() -> str:
     return ("# 閉環流程\n\n> 由 `src/legion/diagrams.py` 產生，與 GitHub README 的圖相同；請改程式，不要手改此檔。\n\n"
             f"![[{VAULT_IMG}/flow.svg]]\n\n圖例：{LEGEND}{MOTION_NOTE}\n\n"
             f"## 靜態版\n\n```mermaid\n{mermaid()}\n```\n\n"
-            "互動版（可拖曳、標註各角色模型）：[[流程.canvas]]；任務總覽：[[儀表]]\n")
-
-
-def dashboard_note() -> str:
-    """Obsidian 的 AI/儀表.md：上方動態 KPI 卡，下方嵌入儀表.base 表格。"""
-    return ("# 儀表\n\n> 由 `src/legion/diagrams.py` 產生；KPI 卡在 `legion brief` 或 `legion docs` 時更新。\n\n"
-            f"![[{VAULT_IMG}/dashboard.svg]]\n\n![[儀表.base]]\n")
+            "互動版（可拖曳、標註各角色模型）：[[流程.canvas]]；任務與計畫總覽：[[總覽]]\n")
 
 
 PLAN_NOTE = ("由 `03_docs/inbox.md` 產生：三格是等你決定／進行中或待做／完成的項目數（已決定的事要標 ✅ 或「結案」才算完成）；"
              "橘點閃的是等你決定的事，「最近完成」依日期由新到舊依序滑入 ✅。圖上有 inbox 的 sha；"
              "只改 inbox 時執行 `legion docs --plan`，`legion brief` 每天也會重產 vault 那份；系統開啟「減少動態」時不播放。")
+OVERVIEW_NOTE = "AI/總覽.md"  # 2026-11-18 David 選 A：儀表.md 與 計畫.md 合成一頁；舊檔名保留為轉址
+
+
+def overview_note() -> str:
+    """Obsidian 的 AI/總覽.md：上方計畫動態圖（inbox），中間 KPI 卡（任務與花費），下方嵌入儀表.base 表格。"""
+    return ("# 總覽\n\n> 由 `src/legion/diagrams.py` 產生，請改程式或 `03_docs/inbox.md`，不要手改此檔。"
+            "計畫圖每次 `legion brief`、`legion docs`（或手機文件庫排程）重產；KPI 卡在 `legion brief` 或 `legion docs` 時更新。\n\n"
+            f"## 計畫（inbox）\n\n![[{VAULT_IMG}/plan.svg]]\n\n{PLAN_NOTE}\n\n"
+            f"## 任務與花費\n\n![[{VAULT_IMG}/dashboard.svg]]\n\n![[儀表.base]]\n\n"
+            "流程圖：[[流程]]；可拖曳的版本：[[流程.canvas]]\n")
+
+
+def _redirect(title: str) -> str:
+    return f"# {title}\n\n> 已併入 [[總覽]]（2026-11-18）。此頁保留只為了讓舊連結不失效。\n"
+
+
+def dashboard_note() -> str:
+    """舊的 AI/儀表.md：轉址到總覽。"""
+    return _redirect("儀表")
 
 
 def plan_note() -> str:
-    """Obsidian 的 AI/計畫.md：嵌入計畫動態圖。"""
-    return ("# 計畫\n\n> 由 `src/legion/plan_motion.py` 從 `03_docs/inbox.md` 產生；請改 inbox，不要手改此檔。\n\n"
-            f"![[{VAULT_IMG}/plan.svg]]\n\n{PLAN_NOTE}\n")
+    """舊的 AI/計畫.md：轉址到總覽。"""
+    return _redirect("計畫")
 
 
 # ---------------------------------------------------------------- canvas（Obsidian 流程.canvas）
@@ -307,7 +319,7 @@ def _blocks() -> dict[str, str]:
             f"```mermaid\n{mermaid()}\n```\n\n</details>")
     dashboard = (f'<p align="center"><img src="{DASHBOARD_SVG}" width="100%" '
                  'alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數、花費，以及最近幾次評測基準的結果"></p>\n\n'
-                 "上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。\n\n"
+                 "上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/總覽.md` 每次 `legion brief` 都會更新。\n\n"
                  + dashboard_markdown())
     plan = (f'<p align="center"><img src="{PLAN_SVG}" width="100%" '
             'alt="計畫動態圖：等你決定、Claude 待做、完成的項目數與清單，以及最近完成的時間軸"></p>\n\n'

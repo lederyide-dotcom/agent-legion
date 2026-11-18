@@ -16,7 +16,7 @@ from .vault import parse_md
 
 # (資料夾或檔案 glob, 分類) ── 順序就是頁面上的分類順序
 SOURCES: tuple[tuple[str, str], ...] = (
-    ("計畫.md", "計畫"),
+    ("總覽.md", "總覽"),
     ("questions/*.md", "待你決定"),
     ("inbox_hold/*.md", "待你決定"),
     ("reports/*.md", "報告"),
@@ -26,8 +26,10 @@ SOURCES: tuple[tuple[str, str], ...] = (
     ("handoffs/*.md", "交接"),
     ("lessons/*.md", "教訓"),
     ("流程.md", "流程"),
-    ("儀表.md", "流程"),
 )
+# vault 以外、也要在手機看的 repo 文件：(相對 repo 根目錄的路徑, 分類, 標題)。
+# 收件匣全表取代舊的「收件匣互動頁」（2026-11-18 David 選 A：併入文件庫）
+EXTRA_DOCS: tuple[tuple[str, str, str], ...] = (("03_docs/inbox.md", "總覽", "收件匣（inbox 全表）"),)
 CATEGORIES = tuple(dict.fromkeys(c for _, c in SOURCES))
 
 # 看起來像機密的字串：Telegram bot token、sk- 金鑰、JWT、GitHub token、AWS key、key=value 形式
@@ -69,7 +71,7 @@ class VaultDoc(BaseModel):
     id: str
     category: str
     title: str
-    path: str          # 相對於 vault
+    path: str          # 相對於 vault；EXTRA_DOCS 則是相對於 repo 根目錄（例如 03_docs/inbox.md）
     updated: str       # 檔案修改時間（ISO，UTC）
     meta: dict[str, str]
     text: str
@@ -113,29 +115,60 @@ def _title(fm: dict[str, object], body: str, path: Path) -> str:
     return str(fm.get("title") or path.stem)
 
 
-def export_vault(vault: Path) -> VaultData:
+def export_vault(vault: Path, repo_root: Path | None = None) -> VaultData:
+    """repo_root：給的話一併匯出 EXTRA_DOCS（例如收件匣全表），放在同分類的 vault 文件之後。
+
+    sha256 涵蓋：所有文件內容（依路徑排序，不受檔案時間影響）、PHONE_IMAGES 的位元組，以及有 repo_root 時的
+    手機頁 `03_docs/vault_page.html` 與本模組程式（頁面或遮蔽規則改了也要重新發布）。不含任何時間，
+    內容沒變時相同，排程用它判斷要不要重新發布。
+    """
     ai = vault / "AI"
     docs: list[VaultDoc] = []
     warnings: list[str] = []
-    digest = hashlib.sha256()
+    parts: dict[str, bytes] = {}
     seen: set[Path] = set()
+
+    def add(path: Path, category: str, rel: str, title: str | None = None) -> None:
+        raw = path.read_text(encoding="utf-8-sig")
+        parts[f"doc:{rel}"] = raw.encode("utf-8")
+        fm, body = parse_md(raw)
+        text, n = redact(_for_phone(body))
+        if n:
+            warnings.append(f"{rel}：遮蔽了 {n} 處疑似機密")
+        meta = {k: str(v) for k, v in fm.items() if v not in (None, "", [], {}) and not isinstance(v, (dict, list))}
+        meta = {k: redact(v)[0] for k, v in meta.items()}
+        updated = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(timespec="seconds")
+        docs.append(VaultDoc(id=f"d{len(docs)}", category=category, title=redact(title or _title(fm, body, path))[0],
+                             path=rel, updated=updated, meta=meta, text=text))
+
+    extras = {cat: [(rel, title) for rel, c, title in EXTRA_DOCS if c == cat] for cat in CATEGORIES}
+    if repo_root is not None:
+        warnings += [f"{rel}：分類「{c}」不存在，未匯出" for rel, c, _ in EXTRA_DOCS if c not in CATEGORIES]
     for pattern, category in SOURCES:
         files = sorted(ai.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
         for path in files:
             if path in seen or not path.is_file():
                 continue
             seen.add(path)
-            raw = path.read_text(encoding="utf-8-sig")
-            digest.update(raw.encode("utf-8"))
-            fm, body = parse_md(raw)
-            text, n = redact(_for_phone(body))
-            rel = path.relative_to(vault).as_posix()
-            if n:
-                warnings.append(f"{rel}：遮蔽了 {n} 處疑似機密")
-            meta = {k: str(v) for k, v in fm.items() if v not in (None, "", [], {}) and not isinstance(v, (dict, list))}
-            meta = {k: redact(v)[0] for k, v in meta.items()}
-            updated = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(timespec="seconds")
-            docs.append(VaultDoc(id=f"d{len(docs)}", category=category, title=redact(_title(fm, body, path))[0],
-                                 path=rel, updated=updated, meta=meta, text=text))
+            add(path, category, path.relative_to(vault).as_posix())
+        if repo_root is not None:
+            for rel, title in extras.pop(category, []):
+                src = repo_root / rel
+                if src.is_file():
+                    add(src, category, rel, title)
+                else:
+                    warnings.append(f"{rel}：找不到，未匯出")
+    for name in PHONE_IMAGES:
+        img = ai / "img" / name
+        if img.is_file():
+            parts[f"img:{name}"] = img.read_bytes()
+    if repo_root is not None:
+        page = repo_root / "03_docs" / "vault_page.html"
+        if page.is_file():
+            parts["page"] = page.read_bytes()
+        parts["code"] = Path(__file__).read_bytes().replace(b"\r\n", b"\n")
+    digest = hashlib.sha256()
+    for key in sorted(parts):
+        digest.update(key.encode("utf-8") + b"\0" + parts[key] + b"\0")
     return VaultData(generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                      sha256=digest.hexdigest()[:12], categories=list(CATEGORIES), warnings=warnings, docs=docs)

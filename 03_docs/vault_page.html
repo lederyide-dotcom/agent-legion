@@ -19,7 +19,7 @@
   --accent:#7fb0dc; --accent-soft:#1f3245; --code:#202a35;
   --ok:#6cc690; --ok-soft:#1c3326; --wait:#e2a656; --wait-soft:#3a2c17; --no:#e58a8a; --no-soft:#3b2121; color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.7}
-.wrap{max-width:860px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 h1{font-size:1.4rem;margin:0;text-wrap:balance}
 .sub{color:var(--muted);margin:0;font-size:.85rem}
 .warn{background:var(--wait-soft);color:var(--wait);border-radius:8px;padding:10px 14px;font-size:.9rem}
@@ -156,8 +156,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   }
 
   function renderMarkdown(text) {
-    var html = window.marked ? marked.parse(text, {gfm: true}) : "<pre>" + esc(text) + "</pre>";
-    html = window.DOMPurify ? DOMPurify.sanitize(html) : html;
+    // 消毒函式庫沒載入時不渲染 HTML（文件裡有手機送來的文字），只顯示純文字
+    var html = (window.marked && window.DOMPurify) ? DOMPurify.sanitize(marked.parse(text, {gfm: true}))
+      : "<pre>" + esc(text) + "</pre>";
     var box = document.createElement("div");
     box.innerHTML = html;
     box.querySelectorAll("table").forEach(function (t) {
@@ -187,7 +188,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       '</div><div class="md">' + renderMarkdown(d.text) + "</div></article>" +
       '<div class="nav">' + (prev ? '<button type="button" data-id="' + prev.id + '">← ' + esc(prev.title) + "</button>" : "<span></span>") +
       (next ? '<button type="button" data-id="' + next.id + '">' + esc(next.title) + " →</button>" : "<span></span>") + "</div>" +
-      '<p class="foot">正本：桌機 Obsidian 的 vault/' + esc(d.path) + "｜agent-legion © 2026 DavidY-tw</p>";
+      '<p class="foot">正本：' + (d.path.indexOf("AI/") === 0 ? "桌機 Obsidian 的 vault/" : "repo 的 ") + esc(d.path) +
+      "｜agent-legion © 2026 DavidY-tw</p>";
     document.getElementById("back").addEventListener("click", function () { location.hash = ""; });
     app.querySelectorAll(".nav [data-id]").forEach(function (b) {
       b.addEventListener("click", function () { location.hash = b.getAttribute("data-id"); });

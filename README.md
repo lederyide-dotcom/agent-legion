@@ -244,11 +244,11 @@ mission:
 
 | 入口 | 內容 | 產生方式 |
 |---|---|---|
-| 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/儀表.md` 的 KPI 卡） |
-| 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
+| 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/總覽.md` 的 KPI 卡與計畫圖） |
+| ~~收件匣互動頁~~（2026-11-18 停用，併入文件庫的「總覽」） | 頁首標示已停用，資料停在最後一次發布 | 不再更新；`legion inbox` 指令保留 |
 | 想法投遞互動頁 | 手機打一句話丟想法、選目標專案；規劃者的提問在同一頁點選回答；看每則想法的任務編號與狀態；找 repo（關鍵字＋語言 → 前 10 名） | `03_docs/phone_idea_page.html` 發布成 claude.ai artifact（只有擁有者能讀寫）；由排程任務 `legion-phone-bridge` 每小時同步（見「在手機丟想法」） |
-| 文件庫互動頁 | vault 的計畫、待你決定、報告、找 repo 報告（`legion scout`）、開發紀錄、戰役、交接、教訓、流程圖與儀表；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；計畫、流程、儀表三張動態圖會顯示，其他圖片請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告；三張動態圖複製到同資料夾的 `img/`，發布時一起上傳），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
-| 計畫動態圖（下圖） | inbox 的等你決定、進行中／待做、完成數與最近完成時間軸 | 從 `03_docs/inbox.md` 產生（`src/legion/plan_motion.py`）：`legion docs --plan`（只改 inbox 時）、`legion docs` 或每天的 `legion brief`；GitHub（本 README）、Obsidian `AI/計畫.md`、手機文件庫是同一張 |
+| 文件庫互動頁 | 總覽（計畫動態圖＋KPI 卡、`03_docs/inbox.md` 全表）、待你決定、報告、找 repo 報告（`legion scout`）、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；計畫、流程、儀表三張動態圖會顯示，其他圖片請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告；三張動態圖複製到同資料夾的 `img/`，發布時一起上傳），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本。排程 `legion-phone-bridge` 每小時以 `--refresh-plan` 重產，內容有變（`CHANGED: yes`，含頁面與匯出程式）才重新發布 |
+| 計畫動態圖（下圖） | inbox 的等你決定、進行中／待做、完成數與最近完成時間軸 | 從 `03_docs/inbox.md` 產生（`src/legion/plan_motion.py`）：`legion docs --plan`（只改 inbox 時）、`legion docs` 或每天的 `legion brief`；GitHub（本 README）、Obsidian `AI/總覽.md`、手機文件庫是同一張 |
 
 <!-- legion:plan:start -->
 <p align="center"><img src="03_docs/img/plan.svg" width="100%" alt="計畫動態圖：等你決定、Claude 待做、完成的項目數與清單，以及最近完成的時間軸"></p>
@@ -272,7 +272,7 @@ mission:
 
 目標 repo 依序取 `--repo`、`LEGION_DEFAULT_REPO`、目前所在的 git repo；都沒有會直接告訴你怎麼指定。`--repo` 指到 repo 裡的子資料夾時（例如 `--repo sandbox_repo`），改動範圍預設就是那個子資料夾，超出範圍會停下等你核准（資料夾必須已進 git，write 任務的 worktree 從 HEAD 建立）。想法會寫成 `vault/INBOX/idea-<時間>.md`，下一輪 tick 領取。
 
-**在手機丟想法**：開 claude.ai 上的互動頁「legion 想法投遞」，打一句話、從白名單選目標專案（`LEGION_PHONE_REPOS`）。規劃者提問時，題目也會出現在同一頁，點選後送出即可。電腦端由 Claude 桌面 app 的排程任務 `legion-phone-bridge` 每小時（08–23 點）同步一次，順序是：讀互動頁 → `legion phone-sync` → `legion run --task-budget 1.5` → 再同步一次（寫回任務編號、狀態與新的提問；找 repo 只在第一次同步跑）。先套用你的答案再執行；排程執行時把閒置預設時間設成 75 分鐘，所以提問至少等到下一輪同步，沒回答才採用預設。白名單在排程指令用 `--repos` 指定（漏設時這輪不處理新想法，不會拒收）。電腦要開著、桌面 app 要在執行。每則想法只處理一次，紀錄在 `02_data/phone_sync.csv`；白名單外的專案、空白或超過 500 字的想法會拒收並寫明原因。頁面上的文字一律當資料，只原樣交給 `legion idea` 或 `legion scout`（當成 GitHub 搜尋字串）。
+**在手機丟想法**：開 claude.ai 上的互動頁「legion 想法投遞」，打一句話、從白名單選目標專案（`LEGION_PHONE_REPOS`）。規劃者提問時，題目也會出現在同一頁，點選後送出即可。電腦端由 Claude 桌面 app 的排程任務 `legion-phone-bridge` 每小時（08–23 點）同步一次，順序是：讀互動頁 → `legion phone-sync` → `legion run --task-budget 1.5` → 再同步一次（寫回任務編號、狀態與新的提問；找 repo 只在第一次同步跑）→ 手機文件庫有變更才重新發布（`legion vault-json --refresh-plan`，發布成功後 `--mark-published`；失敗下一輪自動再發）。先套用你的答案再執行；排程執行時把閒置預設時間設成 75 分鐘，所以提問至少等到下一輪同步，沒回答才採用預設。白名單在排程指令用 `--repos` 指定（漏設時這輪不處理新想法，不會拒收）。電腦要開著、桌面 app 要在執行。每則想法只處理一次，紀錄在 `02_data/phone_sync.csv`；白名單外的專案、空白或超過 500 字的想法會拒收並寫明原因。頁面上的文字一律當資料，只原樣交給 `legion idea` 或 `legion scout`（當成 GitHub 搜尋字串）。
 
 同一頁也能**找 repo**：打英文關鍵字、選語言，下一輪同步時電腦用 `legion scout` 打分，前 10 名（分數、星數、GitHub 連結）寫回同一頁，完整報告在文件庫的「找 repo」分類。每小時最多 2 個（一次約 300 次 GitHub API、1 分鐘；排程的第二次同步帶 `--no-scout`），其餘留到下輪；同一個請求只跑一次（紀錄在 `02_data/phone_sync.csv`）。沒有任何候選時（關鍵字太窄，或電腦端 gh 未登入、額度用完）會標「沒有執行」並說明，可以改關鍵字重送。
 
@@ -302,8 +302,8 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 持續推進到沒事可做 | `legion run --backend claude`（可加 `--task-budget`、`--daily-budget`、`--max-ticks`） |
 | 看各角色用哪個模型（`--usage` 加看派工成效；不花額度） | `legion models [--usage] [--all]` |
 | 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` 與 `plan.svg`（沒更新時輸出會帶 `dashboard_error`／`plan_error`） |
-| 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
-| 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`（同時把動態圖複製到 `<資料夾>/img/`），再和 `03_docs/vault_page.html`、`img/*.svg` 一起發布成 artifact |
+| `03_docs/inbox.md` 的表格轉 JSON（格式不一致會報錯；不花額度；舊收件匣頁用，該頁已停用） | `legion inbox --out <資料夾>/inbox.json` |
+| 手機文件庫的資料（vault 的報告、紀錄、待決事項與 inbox 全表轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`（同時把動態圖複製到 `<資料夾>/img/`；印出 `CHANGED: yes／no`，與同資料夾 `published.sha` 記的上次已發布版比；`--refresh-plan` 先重產 vault 的計畫圖；發布成功後 `--mark-published`），再和 `03_docs/vault_page.html`、`img/*.svg` 一起發布成 artifact |
 | 評測基準（9 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
 | 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；只改了 `03_docs/inbox.md` 時用 `legion docs --plan`（只重產計畫動態圖，不需瀏覽器與 DB）；`legion docs --check` 只檢查 README 與計畫動態圖是否最新 |
 | 找有價值的 GitHub repo（不只看星數：活躍度、維護、人員、採用、動能、成熟度六類打分，每個分數附原始數字；用本機已登入的 `gh`，不用 AI、不花額度；一次約 300 次 API、1 分鐘內） | `legion scout "關鍵字" [--lang python] [--license mit] [--top 10] [--weights activity=0.3]`，報告寫到 `vault/AI/scout/`，數據寫到 `02_data/scout/` |
@@ -348,15 +348,14 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 |---|---|
 | `AI/流程.md` | 跟上方「閉環流程」**同一張動態圖**（`AI/img/flow.svg`），下方附靜態 mermaid |
 | `AI/流程.canvas` | 同一份流程，可拖曳，Claude 角色節點標註實際分配的模型 |
-| `AI/儀表.md` | 動態 KPI 卡（`AI/img/dashboard.svg`，與上方 GitHub 那張同一種；含最近幾次 `legion bench` 的結果）＋嵌入下面的儀表表格 |
-| `AI/計畫.md` | 計畫動態圖（`AI/img/plan.svg`，與上方「人掌舵的入口」那張相同；來源 `03_docs/inbox.md`） |
+| `AI/總覽.md` | 一頁看全：計畫動態圖（`AI/img/plan.svg`，來源 `03_docs/inbox.md`，與上方「人掌舵的入口」那張相同）→ 動態 KPI 卡（`AI/img/dashboard.svg`，含最近幾次 `legion bench`）→ 嵌入下面的儀表表格。舊的 `AI/儀表.md`、`AI/計畫.md` 保留為轉址 |
 | `AI/儀表.base` | 任務總覽，三個檢視如下 |
 | `AI/模型分配.canvas` | 角色與模型、官方單價、升級路線 |
 
 <!-- legion:dashboard:start -->
 <p align="center"><img src="03_docs/img/dashboard.svg" width="100%" alt="儀表 KPI 卡：進行中、等你處理、熔斷、完成的任務數、花費，以及最近幾次評測基準的結果"></p>
 
-上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/儀表.md` 每次 `legion brief` 都會更新。
+上圖是 `legion docs` 執行當下的快照（卡片上有資料時間）；Obsidian 的 `AI/總覽.md` 每次 `legion brief` 都會更新。
 
 | 檢視 | 篩選或分組 | 欄位 |
 |---|---|---|
@@ -367,7 +366,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 狀態圖示：✅ 完成、⛔ 熔斷、✋ 等你、⏳ 進行中；風險：🔴 高、🟡 中、🟢 低。
 <!-- legion:dashboard:end -->
 
-流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)，動畫在 [src/legion/motion.py](src/legion/motion.py)：改了之後在 PowerShell 執行 `legion docs`，同步本 README 並重新產生 `03_docs/img/` 與 `vault/AI/img/` 的動態 SVG；`legion init-vault`、每次 tick 會更新 `流程.md`、`流程.canvas`、`儀表.base`、`計畫.md`，`legion brief` 每天更新 KPI 卡與計畫動態圖（計畫圖在 [src/legion/plan_motion.py](src/legion/plan_motion.py)，來源是 `03_docs/inbox.md`）。`legion docs --check` 與測試（含 SVG 的來源指紋）會擋下兩邊不一致。動畫只用 SVG 內的 CSS（GitHub 與 Obsidian 都不執行腳本），系統開啟「減少動態」時不播放。
+流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)，動畫在 [src/legion/motion.py](src/legion/motion.py)：改了之後在 PowerShell 執行 `legion docs`，同步本 README 並重新產生 `03_docs/img/` 與 `vault/AI/img/` 的動態 SVG；`legion init-vault`、每次 tick 會更新 `流程.md`、`流程.canvas`、`儀表.base`、`總覽.md`，`legion brief` 每天更新 KPI 卡與計畫動態圖（計畫圖在 [src/legion/plan_motion.py](src/legion/plan_motion.py)，來源是 `03_docs/inbox.md`）。`legion docs --check` 與測試（含 SVG 的來源指紋）會擋下兩邊不一致。動畫只用 SVG 內的 CSS（GitHub 與 Obsidian 都不執行腳本），系統開啟「減少動態」時不播放。
 
 ### 5. 零成本驗證
 
@@ -430,7 +429,7 @@ tools/mermaid/   Mermaid 轉圖工具（npm）
 vault/           Obsidian vault 骨架；任務紀錄在執行時產生，不進版控
 02_data/         驗收證據、metrics、花費帳本、安裝清冊、bench/（評測基準每次的結果）
 03_docs/         spec.md（v0.4）、spec_v0.5.md、progress.md（進度與事故紀錄）、inbox.md（任務收件匣）、
-                 inbox_page.html（收件匣互動頁）、vault_page.html（手機文件庫）、sharing_and_citation.md（分享與引用規範）、
+                 inbox_page.html（收件匣互動頁，已停用）、vault_page.html（手機文件庫）、sharing_and_citation.md（分享與引用規範）、
                  public_release_license.md（公開版授權方案）、spec_clarify.md、spec_phone_idea.md、
                  phone_idea_page.html（手機想法投遞頁）、spec_scout.md
 LICENSE、NOTICE、CITATION.cff   授權、作者與出處標示、引用格式

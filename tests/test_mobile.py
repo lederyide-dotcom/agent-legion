@@ -86,4 +86,6 @@ def test_cli_writes_json_without_bom(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert main(["vault-json", "--out", str(out)]) == 0
     raw = out.read_bytes()
     assert not raw.startswith(b"\xef\xbb\xbf")
-    assert len(json.loads(raw.decode("utf-8"))["docs"]) == 6  # _vault 的 6 份（含 scout）
+    docs = json.loads(raw.decode("utf-8"))["docs"]
+    # _vault 的 6 份（含 scout）＋CLI 一併匯出的 repo inbox 全表（2026-11-18 收件匣頁併入文件庫）
+    assert len(docs) == 7 and sum(x["path"] == "03_docs/inbox.md" for x in docs) == 1

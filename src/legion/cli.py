@@ -163,8 +163,13 @@ def build_parser() -> argparse.ArgumentParser:
     ib = sub.add_parser("inbox", help="把 03_docs/inbox.md 的表格轉成 JSON（給互動頁讀；不花額度）")
     ib.add_argument("--file", help="inbox 檔案路徑（預設 03_docs/inbox.md）")
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
-    vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON，並把計畫／流程／儀表動態圖複製到同資料夾的 img/（給手機互動頁讀；不花額度）")
-    vj.add_argument("--out", required=True, help="寫入這個檔案（UTF-8、無 BOM）")
+    vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項與 inbox 全表轉成 JSON，並把計畫／流程／儀表動態圖複製到同資料夾的 img/（給手機互動頁讀；不花額度）")
+    vj.add_argument("--out", required=True,
+                    help="寫入這個檔案（UTF-8、無 BOM）；印出 CHANGED: yes／no（與同資料夾 published.sha 記的上次已發布版比）")
+    vj.add_argument("--mark-published", action="store_true",
+                    help="不匯出，只把 --out 那份 vault.json 的 sha 記為已發布（排程在發布成功後執行）")
+    vj.add_argument("--refresh-plan", action="store_true",
+                    help="先依 03_docs/inbox.md 重產 vault 裡的計畫動態圖（只寫 vault，不動 repo；排程用）")
     sc = sub.add_parser("scout", help="找有價值的 GitHub repo：用 gh 抓活躍度、維護、人員、採用、動能、成熟度並打分（不用 AI）")
     sc.add_argument("keywords", help="搜尋關鍵字（GitHub 搜尋語法）")
     sc.add_argument("--lang", help="限定語言，例如 python")
@@ -225,18 +230,47 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "vault-json":
+        import json as _json
         from pathlib import Path
 
+        from .config import PROJECT_ROOT
         from .mobile import copy_phone_images, export_vault
 
-        data = export_vault(s.vault)
+        out = Path(args.out)
+        # 「已發布」的 sha 另存：只有確定發布成功後（--mark-published）才寫，發布失敗下一輪會再發
+        marker = out.parent / "published.sha"
+        if args.mark_published:
+            try:
+                sha = _json.loads(out.read_text(encoding="utf-8"))["sha256"]
+                marker.write_text(str(sha) + "\n", encoding="utf-8", newline="\n")
+            except (ValueError, OSError, KeyError, TypeError) as e:
+                print(f"標記失敗：{e}", file=sys.stderr)
+                return 1
+            print(f"已標記為已發布：sha {sha}")
+            return 0
+        if args.refresh_plan:  # 只寫 vault 那份計畫圖（不動 repo，排程用；排程不 commit）
+            from .plan_motion import write_plan
+
+            try:
+                write_plan(s)
+            except (ValueError, OSError) as e:
+                print(f"計畫動態圖未更新（{type(e).__name__}）：{e}", file=sys.stderr)
+                print("PLAN: failed")
+        data = export_vault(s.vault, PROJECT_ROOT)
         try:
-            Path(args.out).write_text(data.model_dump_json() + "\n", encoding="utf-8", newline="\n")  # 無 BOM
-            imgs = copy_phone_images(s.vault, Path(args.out).parent / "img")
+            prev = marker.read_text(encoding="utf-8").strip() if marker.is_file() else ""
+        except OSError:
+            prev = ""
+        try:
+            out.parent.mkdir(parents=True, exist_ok=True)  # 排程第一次跑時資料夾還不存在
+            out.write_text(data.model_dump_json() + "\n", encoding="utf-8", newline="\n")  # 無 BOM
+            imgs = copy_phone_images(s.vault, out.parent / "img")
         except OSError as e:
             print(f"寫入失敗：{e}", file=sys.stderr)
             return 1
         print(f"已寫入 {args.out}（{len(data.docs)} 份文件，遮蔽警告 {len(data.warnings)} 筆，sha {data.sha256}）")
+        # 給排程看的固定一行：內容（含頁面、匯出程式與動態圖）與上次「已發布」的相同就不必重新發布
+        print("CHANGED: no" if prev == data.sha256 else "CHANGED: yes")
         print(f"動態圖：{', '.join(p.name for p in imgs) or '沒有（先執行 legion docs）'} → 發布時以 img/<檔名> 一併上傳")
         for w in data.warnings:
             print(f"  ⚠ {w}")

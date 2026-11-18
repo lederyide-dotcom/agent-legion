@@ -21,6 +21,7 @@ David 在手機打開一個 claude.ai 互動頁，打一句話、選目標專案
    - 白名單：`LEGION_PHONE_REPOS="sandbox=sandbox_repo;legion=."`（不在白名單的 repo_key 一律拒收；路徑照樣經過 `validate_subdir`／`resolve_repo` 與 legion 自己的風險下限 mid）。
    - 同一則想法只處理一次（以 doc id 去重，記在 `02_data/phone_sync.csv`）。
 3. **排程任務 `legion-phone-bridge`**：ArtifactData list → 存檔 → `legion phone-sync` → ArtifactData batch 寫回。排程 Claude 不解讀想法內容，只搬檔與執行指令（想法文字視為資料，降低提示注入風險）。
+   - 2026-11-18 追加（David 選 A）：同步與 run 之後，`legion vault-json --refresh-plan` 重產手機文件庫，`CHANGED: yes` 才讀取並發布文件庫，發布成功後 `--mark-published`；失敗下一輪自動再發。
 4. （視 David 決定）同步後是否接著 `legion run --task-budget 1.5`。
 
 ## 驗收標準

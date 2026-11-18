@@ -36,6 +36,7 @@
 | D17 | 手機丟想法：每小時 08–23 同步、同步後自動 `legion run`、白名單 sandbox＋legion；手機來源改 legion 自己的 write 任務風險維持 mid（選項窗 A／A／A，後續 B） | ✅ 2026-11-17 已實作（d2a913e）；mid＝守門只通知、成果留分支不自動合併 | `02_data/verify_20261117.md` 第 4 節 |
 | D18 | `legion scout`：找有價值的 GitHub repo，不只看星數（David 選 A）。待確認：某類整類沒資料時（目前「動能」因 GitHub 不給 stargazers 清單而全部量不到），該類權重按比例分給其他類，而不是記 0 分 | ✅ 2026-11-18 David 選 A（分給其他類），維持現行實作（97b1093） | `02_data/verify_20261117.md` 第 5 節 |
 | D19 | 手機想法投遞頁加「找 repo」入口（David 選 A）：關鍵字＋語言 → 排程第一次同步跑 `legion scout`，前 10 名寫回同一頁，完整報告在文件庫 | ✅ 2026-11-18 已實作；每小時最多 2 個 | `02_data/verify_20261118.md` |
+| D20 | 成品整併（選項窗 A／A／A／A）：收件匣頁併入文件庫、文件庫由排程自動發布、Obsidian 儀表＋計畫合成總覽、刪 2 個停用排程 | ✅ 2026-11-18 已實作（A23） | `02_data/verify_20261118.md` 第 3 節 |
 | D16 | 「頂尖作法提案」做成技能（選項：A 做） | ✅ 2026-11-15 David 已上傳到 claude.ai（帳號技能 frontier-proposal-tw）；本 session 的技能清單要新開 session 才會出現 | `03_docs/skills/frontier-proposal-tw/SKILL.md` |
 
 ## Claude Code 可自主做
@@ -63,7 +64,8 @@
 | A19 | 評測基準 `legion bench`：8 道固定題目驗證閉環控制邏輯（mock），儀表畫趨勢 | ✅ 2026-11-15 | 8/8；三個變異測試都會失敗（刪檔規則、執行後範圍檢查、守門放行 high） | `02_data/verify_20261115.md` 第 1 節；6963955 |
 | A20 | 改檔防護四層：.gitattributes LF、產生器寫 LF、Claude hook 寫檔當下檢查、git pre-commit；14 檔換行一次統一 | ✅ 2026-11-15 | 探測檔（CRLF、斷行字串）被 hook 與 pre-commit 都擋下 | `02_data/verify_20261115.md` 第 2 節；2ca4f0e、e3b4566 |
 | A21 | 想法入口 `legion idea`＋需求釐清（規劃者先問、附預設答案、閒置採用預設；`legion clarify`） | ✅ 2026-11-17 | 13 項測試；評測 9/9；全套 331 passed；真實 Claude 提問品質未驗證 | `02_data/verify_20261117.md` 第 1 節；`03_docs/spec_clarify.md` |
-| A22 | 計畫動態圖（David 選 A）：本檔產生 `plan.svg`，README、Obsidian `AI/計畫.md`、手機文件庫共用；`legion docs --plan`／`legion brief` 重產，`docs --check` 擋過期 | ✅ 2026-11-18 | 瀏覽器 375px 與動畫時間窗實測；GitHub 與 Obsidian 實際播放待確認 | `02_data/verify_20261118.md` 第 2 節 |
+| A22 | 計畫動態圖（David 選 A）：本檔產生 `plan.svg`，README、Obsidian `AI/總覽.md`、手機文件庫共用；`legion docs --plan`／`legion brief` 重產，`docs --check` 擋過期 | ✅ 2026-11-18 | 瀏覽器 375px 與動畫時間窗實測；GitHub 與 Obsidian 實際播放待確認 | `02_data/verify_20261118.md` 第 2 節 |
+| A23 | 成品整併（D20）：收件匣頁停用、inbox 全表併入文件庫「總覽」；排程每小時有變更才發布文件庫（發布成功才記帳）；Obsidian 儀表＋計畫合成 `AI/總覽.md`；刪 2 個舊一次性排程 | ✅ 2026-11-18 | 375px 抽查 8 份文件無橫向捲動；CHANGED／漏發重發測試；排程實際發布待下一輪確認 | `02_data/verify_20261118.md` 第 3 節 |
 
 ## inbox_hold 分流建議（給 D7）
 

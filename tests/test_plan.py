@@ -1,4 +1,4 @@
-"""計畫動態圖：由 03_docs/inbox.md 產生，GitHub README、Obsidian 計畫.md、手機文件庫共用同一張 SVG。"""
+"""計畫動態圖：由 03_docs/inbox.md 產生，GitHub README、Obsidian 總覽.md、手機文件庫共用同一張 SVG。"""
 from __future__ import annotations
 
 import re
@@ -149,8 +149,9 @@ def test_readme_obsidian_and_phone_embed_plan(tmp_path: Path, monkeypatch: pytes
     monkeypatch.setenv("LEGION_VAULT", str(tmp_path / "vault"))
     s = Settings()
     init_vault(s)
-    note = (s.ai_dir / "計畫.md").read_text(encoding="utf-8")
-    assert f"![[{d.VAULT_IMG}/plan.svg]]" in note
+    note = (s.vault / d.OVERVIEW_NOTE).read_text(encoding="utf-8")  # 計畫與儀表合成總覽（2026-11-18）
+    assert note.index(f"![[{d.VAULT_IMG}/plan.svg]]") < note.index(f"![[{d.VAULT_IMG}/dashboard.svg]]")
+    assert "[[總覽]]" in (s.ai_dir / "計畫.md").read_text(encoding="utf-8")  # 舊連結轉址
     assert (s.vault / d.VAULT_IMG / "plan.svg").exists()  # 從 repo 複製，Obsidian 嵌入不會破圖
     out = write_plan(s, inbox_path=ROOT / "03_docs" / "inbox.md")
     assert out == s.ai_dir / "img" / "plan.svg"
@@ -160,6 +161,66 @@ def test_readme_obsidian_and_phone_embed_plan(tmp_path: Path, monkeypatch: pytes
     assert phone.count("img/plan.svg") == 1
     page = (ROOT / "03_docs" / "vault_page.html").read_text(encoding="utf-8")
     assert ".md img{display:block;max-width:100%" in page  # 560px 以上的 SVG 在手機不會撐出橫向捲動
+    # 網格欄不能被內容撐寬（inbox 全表在 375px 曾撐到 431px），寬表格改在 .tbl 內捲動
+    assert "display:grid;grid-template-columns:minmax(0,1fr)" in page
     copied = copy_phone_images(s.vault, tmp_path / "pub" / "img")
     assert {p.name for p in copied} >= {"plan.svg"}
     assert (tmp_path / "pub" / "img" / "plan.svg").read_bytes() == out.read_bytes()
+
+
+def test_phone_export_has_overview_with_inbox_and_sha_tracks_changes(tmp_path: Path,
+                                                                      monkeypatch: pytest.MonkeyPatch) -> None:
+    """收件匣互動頁併入文件庫：總覽分類 = 總覽.md＋inbox 全表；sha 只隨內容（含動態圖）變，排程用它決定要不要發布。"""
+    from legion.mobile import export_vault
+
+    monkeypatch.setenv("LEGION_VAULT", str(tmp_path / "vault"))
+    s = Settings()
+    init_vault(s)
+    repo = tmp_path / "repo"
+    (repo / "03_docs").mkdir(parents=True)
+    (repo / "03_docs" / "inbox.md").write_text(INBOX, encoding="utf-8", newline="\n")
+    data = export_vault(s.vault, repo)
+    assert data.categories[0] == "總覽"
+    head = [(x.category, x.title, x.path) for x in data.docs[:2]]
+    assert head == [("總覽", "總覽", d.OVERVIEW_NOTE), ("總覽", "收件匣（inbox 全表）", "03_docs/inbox.md")]
+    assert "| A4 | 還沒做 | ⏳ |" in data.docs[1].text
+    assert "![計畫動態圖](img/plan.svg)" in data.docs[0].text
+    assert not any(x.path.endswith(("計畫.md", "儀表.md")) for x in data.docs)  # 轉址頁不匯出
+    assert export_vault(s.vault, repo).sha256 == data.sha256  # 內容沒變 → 相同
+    import os
+
+    flow = s.ai_dir / "流程.md"
+    os.utime(flow, (1, 1))  # 只改檔案時間（排序會變）→ sha 不變
+    assert export_vault(s.vault, repo).sha256 == data.sha256
+    (repo / "03_docs" / "vault_page.html").write_text("<p>新頁面</p>", encoding="utf-8")
+    assert export_vault(s.vault, repo).sha256 != data.sha256  # 只改手機頁也要重新發布
+    (repo / "03_docs" / "vault_page.html").unlink()
+    (s.vault / d.VAULT_IMG / "plan.svg").write_bytes(b"<svg/>")
+    assert export_vault(s.vault, repo).sha256 != data.sha256  # 只有圖變也算變更
+    assert export_vault(s.vault).sha256 != export_vault(s.vault, repo).sha256  # 沒給 repo 就沒有 inbox
+    missing = export_vault(s.vault, tmp_path / "nowhere")
+    assert any("找不到" in w for w in missing.warnings)
+
+
+def test_vault_json_cli_reports_changed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                        capsys: pytest.CaptureFixture[str]) -> None:
+    from legion.cli import main
+
+    monkeypatch.setenv("LEGION_VAULT", str(tmp_path / "vault"))
+    init_vault(Settings())
+    out = tmp_path / "pub" / "vault.json"  # 資料夾不存在也要能寫（排程第一次跑）
+    assert main(["vault-json", "--refresh-plan", "--out", str(out)]) == 0
+    assert "CHANGED: yes" in capsys.readouterr().out
+    assert (tmp_path / "pub" / "img" / "plan.svg").exists()
+    assert (tmp_path / "vault" / d.VAULT_IMG / "plan.svg").read_bytes() == (ROOT / d.PLAN_SVG).read_bytes()
+    # 還沒標記已發布（例如上一輪發布失敗）→ 下一輪仍要發布，不會漏發
+    assert main(["vault-json", "--refresh-plan", "--out", str(out)]) == 0
+    assert "CHANGED: yes" in capsys.readouterr().out
+    assert main(["vault-json", "--mark-published", "--out", str(out)]) == 0
+    capsys.readouterr()
+    assert main(["vault-json", "--refresh-plan", "--out", str(out)]) == 0
+    assert "CHANGED: no" in capsys.readouterr().out
+    (tmp_path / "vault" / "AI" / "reports" / "new.md").write_text("# 新報告\n", encoding="utf-8")
+    assert main(["vault-json", "--out", str(out)]) == 0
+    assert "CHANGED: yes" in capsys.readouterr().out
+    assert main(["vault-json", "--mark-published", "--out", str(tmp_path / "nope" / "vault.json")]) == 1

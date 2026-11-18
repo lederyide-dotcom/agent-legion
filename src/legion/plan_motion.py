@@ -1,4 +1,4 @@
-"""計畫動態圖：從 03_docs/inbox.md 產生 plan.svg，GitHub README、Obsidian AI/計畫.md、手機文件庫共用同一張。
+"""計畫動態圖：從 03_docs/inbox.md 產生 plan.svg，GitHub README、Obsidian AI/總覽.md、手機文件庫共用同一張。
 
 和 motion.py 的流程圖一樣只用 SVG 內的 CSS 動畫（GitHub 與 Obsidian 都不執行腳本），跟隨亮暗配色與「減少動態」。
 獨立成一個模組：指紋只算本檔，改計畫圖版面不會讓需要瀏覽器才能重產的流程圖跟著過期。
