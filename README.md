@@ -247,7 +247,14 @@ mission:
 | 每日晨報 `vault/AI/reports/brief-<日期>.md` | 等你處理的任務、停下的任務、待 merge 分支、可清理的分支、戰役進度、花費 | `legion brief`（不花額度；可排程每天跑；同時更新 Obsidian `AI/儀表.md` 的 KPI 卡） |
 | 收件匣互動頁 | `03_docs/inbox.md` 的「待掌舵」「已決定」「可自主做」與後續想法分流；可篩選、展開，選好決定後複製回覆貼回對話 | `legion inbox --out <資料夾>/inbox.json`，和 `03_docs/inbox_page.html` 一起發布成 claude.ai artifact（私人連結，改 inbox 後重產並重新發布，連結不變） |
 | 想法投遞互動頁 | 手機打一句話丟想法、選目標專案；規劃者的提問在同一頁點選回答；看每則想法的任務編號與狀態；找 repo（關鍵字＋語言 → 前 10 名） | `03_docs/phone_idea_page.html` 發布成 claude.ai artifact（只有擁有者能讀寫）；由排程任務 `legion-phone-bridge` 每小時同步（見「在手機丟想法」） |
-| 文件庫互動頁 | vault 的待你決定、報告、找 repo 報告（`legion scout`）、開發紀錄、戰役、交接、教訓、流程圖；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；圖片仍請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
+| 文件庫互動頁 | vault 的計畫、待你決定、報告、找 repo 報告（`legion scout`）、開發紀錄、戰役、交接、教訓、流程圖與儀表；手機可分類、搜尋、閱讀（Obsidian 只在桌機用時的手機入口；計畫、流程、儀表三張動態圖會顯示，其他圖片請在桌機看） | `legion vault-json --out <資料夾>/vault.json`（匯出前遮蔽疑似機密並列出警告；三張動態圖複製到同資料夾的 `img/`，發布時一起上傳），和 `03_docs/vault_page.html` 一起發布成 claude.ai artifact；vault 仍是正本 |
+| 計畫動態圖（下圖） | inbox 的等你決定、進行中／待做、完成數與最近完成時間軸 | 從 `03_docs/inbox.md` 產生（`src/legion/plan_motion.py`）：`legion docs --plan`（只改 inbox 時）、`legion docs` 或每天的 `legion brief`；GitHub（本 README）、Obsidian `AI/計畫.md`、手機文件庫是同一張 |
+
+<!-- legion:plan:start -->
+<p align="center"><img src="03_docs/img/plan.svg" width="100%" alt="計畫動態圖：等你決定、Claude 待做、完成的項目數與清單，以及最近完成的時間軸"></p>
+
+由 `03_docs/inbox.md` 產生：三格是等你決定／進行中或待做／完成的項目數（已決定的事要標 ✅ 或「結案」才算完成）；橘點閃的是等你決定的事，「最近完成」依日期由新到舊依序滑入 ✅。圖上有 inbox 的 sha；只改 inbox 時執行 `legion docs --plan`，`legion brief` 每天也會重產 vault 那份；系統開啟「減少動態」時不播放。完整清單與證據見 [03_docs/inbox.md](03_docs/inbox.md)。
+<!-- legion:plan:end -->
 
 分工：**定目標與範圍、花真錢、刪除未合併的工作、碰機密或對外服務、改預設模型或風險規則**由人決定；實作、驗證、合併已驗證的分支、整理清單、寫證據由 Claude Code 做，完成後在晨報或回報中告知。
 
@@ -294,11 +301,11 @@ allowed_paths:         # 選填：只能改這些路徑（相對 repo 根目錄�
 | 推進一輪（每輪每個任務走一步） | `legion tick --backend claude`（模型依角色分配，見上方「模型分配」） |
 | 持續推進到沒事可做 | `legion run --backend claude`（可加 `--task-budget`、`--daily-budget`、`--max-ticks`） |
 | 看各角色用哪個模型（`--usage` 加看派工成效；不花額度） | `legion models [--usage] [--all]` |
-| 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` |
+| 每日晨報（等你處理的事、停下的任務、待 merge 分支、戰役、花費；不花額度） | `legion brief`，寫到 `vault/AI/reports/brief-<日期>.md`，並更新 `vault/AI/img/dashboard.svg` 與 `plan.svg`（沒更新時輸出會帶 `dashboard_error`／`plan_error`） |
 | 收件匣互動頁的資料（`03_docs/inbox.md` 的表格轉 JSON；格式不一致會報錯；不花額度） | `legion inbox --out <資料夾>/inbox.json`，再和 `03_docs/inbox_page.html` 一起發布成 artifact |
-| 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`，再和 `03_docs/vault_page.html` 一起發布成 artifact |
+| 手機文件庫的資料（vault 的報告、紀錄、待決事項轉 JSON；遮蔽疑似機密；不花額度） | `legion vault-json --out <資料夾>/vault.json`（同時把動態圖複製到 `<資料夾>/img/`），再和 `03_docs/vault_page.html`、`img/*.svg` 一起發布成 artifact |
 | 評測基準（9 道固定題目驗證閉環控制邏輯，mock、不花額度；有不符預期就回傳 1） | `legion bench` |
-| 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；`legion docs --check` 只檢查 README |
+| 同步 README 的流程圖與儀表說明，並重新產生動態 SVG（`03_docs/img/` 與 `vault/AI/img/`；流程圖需要瀏覽器與 mmdc，請在 PowerShell 執行；儀表需要 DB） | `legion docs`；只改了 `03_docs/inbox.md` 時用 `legion docs --plan`（只重產計畫動態圖，不需瀏覽器與 DB）；`legion docs --check` 只檢查 README 與計畫動態圖是否最新 |
 | 找有價值的 GitHub repo（不只看星數：活躍度、維護、人員、採用、動能、成熟度六類打分，每個分數附原始數字；用本機已登入的 `gh`，不用 AI、不花額度；一次約 300 次 API、1 分鐘內） | `legion scout "關鍵字" [--lang python] [--license mit] [--top 10] [--weights activity=0.3]`，報告寫到 `vault/AI/scout/`，數據寫到 `02_data/scout/` |
 | 手機互動頁的想法、答案與找 repo 同步（排程用；不花 Claude 額度，找 repo 用 GitHub API） | `legion phone-sync --in <匯出資料夾> --out <輸出資料夾> [--no-scout]` |
 | 一句話丟想法（寫進 vault/INBOX；不花額度） | `legion idea "想法" [--repo 路徑] [--kind readonly]` |
@@ -342,6 +349,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 | `AI/流程.md` | 跟上方「閉環流程」**同一張動態圖**（`AI/img/flow.svg`），下方附靜態 mermaid |
 | `AI/流程.canvas` | 同一份流程，可拖曳，Claude 角色節點標註實際分配的模型 |
 | `AI/儀表.md` | 動態 KPI 卡（`AI/img/dashboard.svg`，與上方 GitHub 那張同一種；含最近幾次 `legion bench` 的結果）＋嵌入下面的儀表表格 |
+| `AI/計畫.md` | 計畫動態圖（`AI/img/plan.svg`，與上方「人掌舵的入口」那張相同；來源 `03_docs/inbox.md`） |
 | `AI/儀表.base` | 任務總覽，三個檢視如下 |
 | `AI/模型分配.canvas` | 角色與模型、官方單價、升級路線 |
 
@@ -359,7 +367,7 @@ AI 只在 `.worktrees/<任務編號>/` 的獨立副本裡改檔，**原 repo 不
 狀態圖示：✅ 完成、⛔ 熔斷、✋ 等你、⏳ 進行中；風險：🔴 高、🟡 中、🟢 低。
 <!-- legion:dashboard:end -->
 
-流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)，動畫在 [src/legion/motion.py](src/legion/motion.py)：改了之後在 PowerShell 執行 `legion docs`，同步本 README 並重新產生 `03_docs/img/` 與 `vault/AI/img/` 的動態 SVG；`legion init-vault`、每次 tick 會更新 `流程.md`、`流程.canvas`、`儀表.base`，`legion brief` 每天更新 KPI 卡。`legion docs --check` 與測試（含 SVG 的來源指紋）會擋下兩邊不一致。動畫只用 SVG 內的 CSS（GitHub 與 Obsidian 都不執行腳本），系統開啟「減少動態」時不播放。
+流程圖、畫布與儀表都定義在 [src/legion/diagrams.py](src/legion/diagrams.py)，動畫在 [src/legion/motion.py](src/legion/motion.py)：改了之後在 PowerShell 執行 `legion docs`，同步本 README 並重新產生 `03_docs/img/` 與 `vault/AI/img/` 的動態 SVG；`legion init-vault`、每次 tick 會更新 `流程.md`、`流程.canvas`、`儀表.base`、`計畫.md`，`legion brief` 每天更新 KPI 卡與計畫動態圖（計畫圖在 [src/legion/plan_motion.py](src/legion/plan_motion.py)，來源是 `03_docs/inbox.md`）。`legion docs --check` 與測試（含 SVG 的來源指紋）會擋下兩邊不一致。動畫只用 SVG 內的 CSS（GitHub 與 Obsidian 都不執行腳本），系統開啟「減少動態」時不播放。
 
 ### 5. 零成本驗證
 
@@ -382,7 +390,7 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 | `.gitattributes` | `* text=auto eol=lf`：不管用什麼工具改，進 repo 都是 LF | clone 後自動生效 |
 | 程式產生的檔 | 所有 `write_text` 加 `newline="\n"`、CSV 寫入器加 `lineterminator="\n"` | 已內建 |
 | Claude Code hook | 每次寫檔後檢查那個檔、執行指令後檢查工作目錄的變動：不得有 CRLF、`.py` 要能編譯；不通過就當場回報給 Claude | `.claude/settings.json`（專案層級） |
-| git pre-commit | 提交前檢查暫存內容（同上），加上 ruff、`legion docs --check`，以及「整檔只改換行」偵測；legion 在 `.worktrees/` 自動提交時會用主目錄的 `.venv` | clone 後先跑 `scripts\start.bat` 建好 `.venv`，再執行一次 `git config core.hooksPath .githooks` |
+| git pre-commit | 提交前檢查暫存內容（同上），加上 ruff、`legion docs --check`（所以改了 `03_docs/inbox.md` 要先跑 `legion docs --plan` 才能提交），以及「整檔只改換行」偵測；legion 在 `.worktrees/` 自動提交時會用主目錄的 `.venv` | clone 後先跑 `scripts\start.bat` 建好 `.venv`，再執行一次 `git config core.hooksPath .githooks` |
 
 檢查程式是 [scripts/check_text_files.py](scripts/check_text_files.py)，中文或含空白的檔名也會檢查。只改格式的 commit 列在 `.git-blame-ignore-revs`（`git config blame.ignoreRevsFile .git-blame-ignore-revs`）。
 
@@ -408,7 +416,7 @@ pytest 需要 DB 已啟動（`start.bat` 或 `docker compose up -d db`）。
 src/legion/      runner.py（狀態機）、agents.py（Claude CLI／Mock、角色權限）、prompts.py、risk.py、
                  installs.py、ledger.py、db.py、vault.py、evidence.py、record.py、checks.py、export.py、
                  brief.py（晨報）、cleanup.py（清理已併入分支）、inbox.py（收件匣轉 JSON）、
-                 diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、mobile.py（vault 轉手機文件庫 JSON）、bench.py（評測基準）、
+                 diagrams.py（流程圖與儀表的單一來源）、motion.py（動態 SVG）、plan_motion.py（inbox 轉計畫動態圖）、mobile.py（vault 轉手機文件庫 JSON）、bench.py（評測基準）、
                  intake.py（想法入口與 subdir 檢查）、dispatch.py（派工報表）、phone.py（手機想法同步）、scout.py（找 repo）、
                  demo.py、config.py、cli.py
 tests/           pytest 驗收（需 DB）

@@ -163,7 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     ib = sub.add_parser("inbox", help="把 03_docs/inbox.md 的表格轉成 JSON（給互動頁讀；不花額度）")
     ib.add_argument("--file", help="inbox 檔案路徑（預設 03_docs/inbox.md）")
     ib.add_argument("--out", help="寫入這個檔案（UTF-8、無 BOM）。給頁面用一定要用這個，PowerShell 5.1 的 > 會轉成 UTF-16")
-    vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON（給手機互動頁讀；不花額度）")
+    vj = sub.add_parser("vault-json", help="把 vault 的報告、紀錄、待決事項轉成 JSON，並把計畫／流程／儀表動態圖複製到同資料夾的 img/（給手機互動頁讀；不花額度）")
     vj.add_argument("--out", required=True, help="寫入這個檔案（UTF-8、無 BOM）")
     sc = sub.add_parser("scout", help="找有價值的 GitHub repo：用 gh 抓活躍度、維護、人員、採用、動能、成熟度並打分（不用 AI）")
     sc.add_argument("keywords", help="搜尋關鍵字（GitHub 搜尋語法）")
@@ -178,8 +178,10 @@ def build_parser() -> argparse.ArgumentParser:
     ps.add_argument("--out", dest="out_dir", required=True, help="輸出資料夾：manifest.json 與要寫回的資料檔")
     ps.add_argument("--repos", help="目標專案白名單 key=路徑;key=路徑（覆寫 LEGION_PHONE_REPOS）")
     ps.add_argument("--no-scout", action="store_true", help="這次不跑找 repo（排程的第二次同步用，讓每小時最多 2 個）")
-    dc = sub.add_parser("docs", help="從 diagrams.py 同步 README 的流程圖與儀表說明（不花額度）")
-    dc.add_argument("--check", action="store_true", help="只檢查，README 過期時回傳 1")
+    dc = sub.add_parser("docs", help="從 diagrams.py 同步 README 的流程圖與儀表說明，並從 inbox.md 重產計畫動態圖（不花額度）")
+    dc.add_argument("--check", action="store_true", help="只檢查，README 或計畫動態圖過期時回傳 1")
+    dc.add_argument("--plan", action="store_true",
+                    help="只同步 README 並重產計畫動態圖（只改了 inbox.md 時用；不需瀏覽器與 DB）")
     return ap
 
 
@@ -213,8 +215,11 @@ def main(argv: list[str] | None = None) -> int:
 
         async def make(st: Store) -> dict[str, Any]:
             b, _ = await build(s, st)
-            return {k: b[k] for k in ("headline", "file", "waiting", "recent_halts", "pending_merge",
-                                      "cost_yesterday", "cost_today")}
+            out = {k: b[k] for k in ("headline", "file", "waiting", "recent_halts", "pending_merge",
+                                     "cost_yesterday", "cost_today")}
+            # 附屬圖沒更新時要看得到（晨報本身照常產生）
+            out.update({k: b[k] for k in ("dashboard_error", "plan_error") if k in b})
+            return out
 
         print(json.dumps(asyncio.run(_with_store(s, make)), ensure_ascii=False, indent=2))
         return 0
@@ -222,22 +227,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "vault-json":
         from pathlib import Path
 
-        from .mobile import export_vault
+        from .mobile import copy_phone_images, export_vault
 
         data = export_vault(s.vault)
         try:
             Path(args.out).write_text(data.model_dump_json() + "\n", encoding="utf-8", newline="\n")  # 無 BOM
+            imgs = copy_phone_images(s.vault, Path(args.out).parent / "img")
         except OSError as e:
             print(f"寫入失敗：{e}", file=sys.stderr)
             return 1
         print(f"已寫入 {args.out}（{len(data.docs)} 份文件，遮蔽警告 {len(data.warnings)} 筆，sha {data.sha256}）")
+        print(f"動態圖：{', '.join(p.name for p in imgs) or '沒有（先執行 legion docs）'} → 發布時以 img/<檔名> 一併上傳")
         for w in data.warnings:
             print(f"  ⚠ {w}")
         return 0
 
     if args.cmd == "docs":
         from .config import PROJECT_ROOT
-        from .diagrams import sync_readme
+        from .diagrams import PLAN_SVG, sync_readme
 
         readme = PROJECT_ROOT / "README.md"
         old = readme.read_text(encoding="utf-8")
@@ -246,15 +253,35 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as e:
             print(e, file=sys.stderr)
             return 1
+        from .plan_motion import plan_is_fresh, write_plan
+
         if args.check:
+            stale = []
             if new != old:
-                print("README 的流程圖或儀表說明過期：請執行 legion docs", file=sys.stderr)
+                stale.append("README 的流程圖、儀表或計畫說明（請執行 legion docs）")
+            try:
+                if not plan_is_fresh(PROJECT_ROOT / PLAN_SVG):
+                    stale.append(f"{PLAN_SVG}：inbox.md 改了但圖沒重產（請執行 legion docs --plan）")
+            except (ValueError, OSError) as e:
+                stale.append(f"{PLAN_SVG}：inbox.md 無法讀取或解析（{e}）")
+            if stale:
+                print("過期：" + "；".join(stale), file=sys.stderr)
                 return 1
-            print("README 已是最新")
+            print("README 與計畫動態圖已是最新")
             return 0
         if new != old:
             readme.write_bytes(new.encode("utf-8"))
         print("已更新 README 的流程圖與儀表說明" if new != old else "README 已是最新")
+        rc = 0
+        try:
+            print(f"計畫動態圖：{write_plan(s, PROJECT_ROOT)}")
+        except ValueError as e:  # inbox 表格格式不一致：要改 inbox
+            print(f"計畫動態圖產生失敗，請修正 03_docs/inbox.md：{e}", file=sys.stderr)
+            rc = 1
+        except OSError as e:
+            print(f"計畫動態圖未更新（{type(e).__name__}，保留舊檔）：{e}", file=sys.stderr)
+        if args.plan:  # 只改了 inbox：不必動需要瀏覽器的流程圖與需要 DB 的儀表
+            return rc
         # 動態 SVG：流程圖需要瀏覽器與 mmdc，儀表需要 DB。環境問題（沒瀏覽器、逾時、DB 連不上）只提示並保留舊檔；
         # animate_flow 的 ValueError 表示 mermaid 輸出格式變了，是程式要改，回傳 1
         import subprocess
@@ -263,7 +290,6 @@ def main(argv: list[str] | None = None) -> int:
 
         from .motion import write_dashboard, write_flow
 
-        rc = 0
         try:
             print(f"流程動態圖：{asyncio.run(write_flow(s, PROJECT_ROOT))}")
         except (OSError, RuntimeError, subprocess.TimeoutExpired) as e:

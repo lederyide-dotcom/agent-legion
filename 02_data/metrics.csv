@@ -623,3 +623,5 @@ date,commit,metric,value,command
 2026-11-18T01:15:00+08:00,f2743be（未提交工作目錄）,phone.scout.e2e.wall_s,46.4,legion phone-sync（scouts/s-e2e-test；02_data/scout/20261118-011419_rag-pipeline.json）
 2026-11-18T01:15:00+08:00,f2743be（未提交工作目錄）,phone.scout.e2e.api_calls,272,同上
 2026-11-18T02:00:00+08:00,f2743be（未提交工作目錄）,tests.passed,394,pytest -q (PowerShell)
+2026-11-18T21:00:00+08:00,8a0300d（未提交工作目錄）,plan.svg.mobile_scale_375,0.748,瀏覽器 375px 文件庫頁 img.clientWidth/naturalWidth
+2026-11-18T21:00:00+08:00,8a0300d（未提交工作目錄）,tests.passed,404,pytest -q (PowerShell)

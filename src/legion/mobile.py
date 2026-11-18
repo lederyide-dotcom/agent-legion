@@ -1,6 +1,7 @@
 """把 vault 的報告、紀錄、待決事項匯出成 JSON，給手機互動頁讀（Obsidian 只在桌機用）。
 
 vault 仍是正本；這裡只讀不寫。匯出前先遮蔽看起來像機密的字串，並把遮蔽次數寫進 warnings。
+legion 自己產生的動態圖（計畫、流程、儀表 SVG）由 copy_phone_images 複製到發布資料夾的 img/，文件裡改成相對連結。
 """
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from .vault import parse_md
 
 # (資料夾或檔案 glob, 分類) ── 順序就是頁面上的分類順序
 SOURCES: tuple[tuple[str, str], ...] = (
+    ("計畫.md", "計畫"),
     ("questions/*.md", "待你決定"),
     ("inbox_hold/*.md", "待你決定"),
     ("reports/*.md", "報告"),
@@ -24,6 +26,7 @@ SOURCES: tuple[tuple[str, str], ...] = (
     ("handoffs/*.md", "交接"),
     ("lessons/*.md", "教訓"),
     ("流程.md", "流程"),
+    ("儀表.md", "流程"),
 )
 CATEGORIES = tuple(dict.fromkeys(c for _, c in SOURCES))
 
@@ -42,6 +45,24 @@ SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
 MASK = "‹已遮蔽›"
 _IMG = re.compile(r"!\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]+\)")
 _WIKI = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]")
+
+
+# legion 自己產生的動態 SVG（motion.py，只用 CSS 動畫）：手機頁以 <img> 顯示，即使檔內有腳本也不會執行
+PHONE_IMAGES: dict[str, str] = {"plan.svg": "計畫動態圖", "flow.svg": "閉環流程動態圖", "dashboard.svg": "儀表 KPI 卡"}
+_PHONE_IMG = re.compile(r"!\[\[AI/img/(" + "|".join(re.escape(k) for k in PHONE_IMAGES) + r")\]\]")
+
+
+def copy_phone_images(vault: Path, out_dir: Path) -> list[Path]:
+    """把 vault/AI/img 裡的 PHONE_IMAGES 複製到 out_dir（發布時放在頁面旁的 img/）；不存在的略過。"""
+    out: list[Path] = []
+    for name in PHONE_IMAGES:
+        src = vault / "AI" / "img" / name
+        if src.is_file():
+            out_dir.mkdir(parents=True, exist_ok=True)
+            dst = out_dir / name
+            dst.write_bytes(src.read_bytes())
+            out.append(dst)
+    return out
 
 
 class VaultDoc(BaseModel):
@@ -75,8 +96,13 @@ def redact(text: str) -> tuple[str, int]:
 
 
 def _for_phone(body: str) -> str:
-    """圖片在手機頁顯示不出來（沒有一併匯出），改成提示；Obsidian 的 [[連結]] 改成純文字。"""
-    body = _IMG.sub("（圖片請在桌機 Obsidian 看）", body)
+    """legion 產生的動態圖（PHONE_IMAGES）改成相對路徑 img/<檔名>，和頁面一起發布；其他圖片顯示不出來，改成提示。
+    Obsidian 的 [[連結]] 改成純文字。"""
+    def img(m: re.Match[str]) -> str:
+        own = _PHONE_IMG.fullmatch(m.group(0))
+        return f"![{PHONE_IMAGES[own.group(1)]}](img/{own.group(1)})" if own else "（圖片請在桌機 Obsidian 看）"
+
+    body = _IMG.sub(img, body)
     return _WIKI.sub(lambda m: m.group(2) or m.group(1), body)
 
 

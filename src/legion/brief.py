@@ -132,6 +132,12 @@ async def build(settings: Settings, store: Store, today: date | None = None) -> 
         await write_dashboard(settings, store, brief=b)
     except OSError as e:
         b["dashboard_error"] = str(e)
+    from .plan_motion import write_plan  # 計畫動態圖也跟著 inbox 重產（附屬功能，失敗不影響晨報；錯誤由 CLI 印出）
+
+    try:
+        write_plan(settings)
+    except (OSError, ValueError) as e:
+        b["plan_error"] = str(e)
     b["headline"] = headline(b)
     b["file"] = str(path)
     return b, path

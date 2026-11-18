@@ -63,6 +63,7 @@
 | A19 | 評測基準 `legion bench`：8 道固定題目驗證閉環控制邏輯（mock），儀表畫趨勢 | ✅ 2026-11-15 | 8/8；三個變異測試都會失敗（刪檔規則、執行後範圍檢查、守門放行 high） | `02_data/verify_20261115.md` 第 1 節；6963955 |
 | A20 | 改檔防護四層：.gitattributes LF、產生器寫 LF、Claude hook 寫檔當下檢查、git pre-commit；14 檔換行一次統一 | ✅ 2026-11-15 | 探測檔（CRLF、斷行字串）被 hook 與 pre-commit 都擋下 | `02_data/verify_20261115.md` 第 2 節；2ca4f0e、e3b4566 |
 | A21 | 想法入口 `legion idea`＋需求釐清（規劃者先問、附預設答案、閒置採用預設；`legion clarify`） | ✅ 2026-11-17 | 13 項測試；評測 9/9；全套 331 passed；真實 Claude 提問品質未驗證 | `02_data/verify_20261117.md` 第 1 節；`03_docs/spec_clarify.md` |
+| A22 | 計畫動態圖（David 選 A）：本檔產生 `plan.svg`，README、Obsidian `AI/計畫.md`、手機文件庫共用；`legion docs --plan`／`legion brief` 重產，`docs --check` 擋過期 | ✅ 2026-11-18 | 瀏覽器 375px 與動畫時間窗實測；GitHub 與 Obsidian 實際播放待確認 | `02_data/verify_20261118.md` 第 2 節 |
 
 ## inbox_hold 分流建議（給 D7）
 

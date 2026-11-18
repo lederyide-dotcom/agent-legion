@@ -138,10 +138,11 @@ def init_vault(settings: Settings) -> None:
     (settings.ai_dir / "儀表.base").write_text(BASE_YAML, encoding="utf-8", newline="\n")
     (settings.ai_dir / "流程.md").write_text(diagrams.flow_markdown(), encoding="utf-8", newline="\n")
     (settings.ai_dir / "儀表.md").write_text(diagrams.dashboard_note(), encoding="utf-8", newline="\n")
+    (settings.ai_dir / "計畫.md").write_text(diagrams.plan_note(), encoding="utf-8", newline="\n")
     # 動態 SVG：vault 裡還沒有時，先放 repo 的版本（legion docs 產生），Obsidian 的嵌入才不會破圖
     img = settings.vault / diagrams.VAULT_IMG
     img.mkdir(parents=True, exist_ok=True)
-    for rel in (diagrams.FLOW_SVG, diagrams.DASHBOARD_SVG):
+    for rel in (diagrams.FLOW_SVG, diagrams.DASHBOARD_SVG, diagrams.PLAN_SVG):
         src, dst = PROJECT_ROOT / rel, img / Path(rel).name
         if src.exists() and not dst.exists():
             dst.write_bytes(src.read_bytes())
