@@ -1,0 +1,1655 @@
+{
+  "query": "Agent team",
+  "weights": {
+    "activity": 0.2,
+    "maintenance": 0.2,
+    "people": 0.15,
+    "adoption": 0.15,
+    "momentum": 0.1,
+    "maturity": 0.2
+  },
+  "created": "2026-11-18T00:01:41+00:00",
+  "candidates": 42,
+  "stars_available": false,
+  "api_calls": 346,
+  "wall_s": 62.9,
+  "ranked": [
+    {
+      "metrics": {
+        "full_name": "mlflow/mlflow",
+        "description": "The open source AI engineering platform for agents, LLMs, and ML models. MLflow enables teams of all sizes to debug, evaluate, monitor, and optimize production-quality AI applications while controllin",
+        "url": "https://github.com/mlflow/mlflow",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 28862,
+        "forks": 6625,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 15,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.68,
+        "issue_median_close_days": 0.5,
+        "pr_merged_ratio": 0.82,
+        "top_contributor_share": 0.241,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": 5.0,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 95.0,
+        "people": 100.0,
+        "adoption": 97.5,
+        "momentum": null,
+        "maturity": 81.2
+      },
+      "total": 94.3,
+      "rank": 1
+    },
+    {
+      "metrics": {
+        "full_name": "elder-plinius/T3MP3ST",
+        "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+        "url": "https://github.com/elder-plinius/T3MP3ST",
+        "language": "TypeScript",
+        "license": "AGPL-3.0",
+        "archived": false,
+        "stars": 7071,
+        "forks": 1464,
+        "pushed_days": 70.3,
+        "commits_90d": 35,
+        "authors_90d": 6,
+        "releases_365d": 1,
+        "issue_closed_ratio": 0.88,
+        "issue_median_close_days": 0.6,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.342,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 88.5,
+        "maintenance": 100.0,
+        "people": 100.0,
+        "adoption": 83.8,
+        "momentum": null,
+        "maturity": 95.0
+      },
+      "total": 93.6,
+      "rank": 2
+    },
+    {
+      "metrics": {
+        "full_name": "promptfoo/promptfoo",
+        "description": "Test your prompts, agents, and RAGs. Red teaming/pentesting/vulnerability scanning for AI. Compare performance of GPT, Claude, Gemini, DeepSeek, and more. Simple declarative configs with command line ",
+        "url": "https://github.com/promptfoo/promptfoo",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 27391,
+        "forks": 2786,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 12,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.208,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": 0.98,
+        "top_contributor_share": 0.336,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 75.3,
+        "people": 100.0,
+        "adoption": 93.8,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 93.5,
+      "rank": 3
+    },
+    {
+      "metrics": {
+        "full_name": "rowboatlabs/rowboat",
+        "description": "Your agent team, in one group chat.",
+        "url": "https://github.com/rowboatlabs/rowboat",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 18289,
+        "forks": 1832,
+        "pushed_days": 0.2,
+        "commits_90d": 100,
+        "authors_90d": 7,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.588,
+        "issue_median_close_days": 6.0,
+        "pr_merged_ratio": 0.98,
+        "top_contributor_share": 0.41,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 91.2,
+        "people": 100.0,
+        "adoption": 89.5,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 92.6,
+      "rank": 4
+    },
+    {
+      "metrics": {
+        "full_name": "Yeachan-Heo/oh-my-claudecode",
+        "description": "Teams-first Multi-agent orchestration for Claude Code",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 40908,
+        "forks": 3649,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 10,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.806,
+        "issue_median_close_days": 0.4,
+        "pr_merged_ratio": 0.7,
+        "top_contributor_share": 0.823,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 100.0,
+        "people": 67.7,
+        "adoption": 97.2,
+        "momentum": null,
+        "maturity": 90.3
+      },
+      "total": 92.0,
+      "rank": 5
+    },
+    {
+      "metrics": {
+        "full_name": "Yeachan-Heo/oh-my-codex",
+        "description": "OmX - Oh My codeX: Your codex is not alone. Add hooks, agent teams, HUDs, and so much more.",
+        "url": "https://github.com/Yeachan-Heo/oh-my-codex",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 33801,
+        "forks": 2547,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 11,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.912,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.82,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 100.0,
+        "people": 68.0,
+        "adoption": 94.2,
+        "momentum": null,
+        "maturity": 90.3
+      },
+      "total": 91.5,
+      "rank": 6
+    },
+    {
+      "metrics": {
+        "full_name": "yc-software/qm",
+        "description": "Multiplayer agent harness for teams",
+        "url": "https://github.com/yc-software/qm",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 15730,
+        "forks": 1964,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 8,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.5,
+        "issue_median_close_days": 0.7,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.652,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 87.5,
+        "people": 84.8,
+        "adoption": 89.2,
+        "momentum": null,
+        "maturity": 87.3
+      },
+      "total": 90.1,
+      "rank": 7
+    },
+    {
+      "metrics": {
+        "full_name": "AgenticResourceRegistry/AgenticResourceRegistry",
+        "description": "Share and discover coding agent resources across your team. Self-hosted, Apache 2.0, works with Claude Code, Kiro, Cursor, Codex, Pi and more.",
+        "url": "https://github.com/AgenticResourceRegistry/AgenticResourceRegistry",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 4300,
+        "forks": 1154,
+        "pushed_days": 2.7,
+        "commits_90d": 100,
+        "authors_90d": 10,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.04,
+        "issue_median_close_days": 2.6,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.42,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": 9.7,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 68.3,
+        "people": 100.0,
+        "adoption": 80.0,
+        "momentum": null,
+        "maturity": 99.2
+      },
+      "total": 89.4,
+      "rank": 8
+    },
+    {
+      "metrics": {
+        "full_name": "nexu-io/open-design",
+        "description": "The 1st Collaborative AI Design Agent Workspace. Local-first and open source. Create motion, prototypes, websites, apps, dashboards, presentations, images, and videos with your team and AI agents. Sha",
+        "url": "https://github.com/nexu-io/open-design",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 108103,
+        "forks": 12274,
+        "pushed_days": 0.6,
+        "commits_90d": 100,
+        "authors_90d": 19,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.06,
+        "issue_median_close_days": 0.0,
+        "pr_merged_ratio": 0.58,
+        "top_contributor_share": 0.187,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 63.5,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 87.3
+      },
+      "total": 89.1,
+      "rank": 9
+    },
+    {
+      "metrics": {
+        "full_name": "iOfficeAI/AionUi",
+        "description": "Open-source 24/7 Cowork app for OpenClaw, Hermes, Claude Code, Codex, OpenCode and 20+ more CLI Agent | Customize your assistants | Team them up｜Star if you like it!",
+        "url": "https://github.com/iOfficeAI/AionUi",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 34348,
+        "forks": 3591,
+        "pushed_days": 12.8,
+        "commits_90d": 45,
+        "authors_90d": 12,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.12,
+        "issue_median_close_days": 3.1,
+        "pr_merged_ratio": 0.74,
+        "top_contributor_share": 0.219,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 94.3,
+        "maintenance": 71.7,
+        "people": 100.0,
+        "adoption": 96.3,
+        "momentum": null,
+        "maturity": 87.3
+      },
+      "total": 89.0,
+      "rank": 10
+    },
+    {
+      "metrics": {
+        "full_name": "github/squad",
+        "description": "Squad: AI agent teams for any project",
+        "url": "https://github.com/github/squad",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 3405,
+        "forks": 521,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 7,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.38,
+        "issue_median_close_days": 1.4,
+        "pr_merged_ratio": 0.8,
+        "top_contributor_share": 0.661,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 82.5,
+        "people": 83.9,
+        "adoption": 74.3,
+        "momentum": null,
+        "maturity": 95.7
+      },
+      "total": 88.2,
+      "rank": 11
+    },
+    {
+      "metrics": {
+        "full_name": "agentscope-ai/AgentTeams",
+        "description": "An open-source Collaborative Multi-Agent OS for transparent, human-in-the-loop task coordination via Matrix rooms.",
+        "url": "https://github.com/agentscope-ai/AgentTeams",
+        "language": "Go",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 6035,
+        "forks": 742,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 7,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.38,
+        "issue_median_close_days": 4.7,
+        "pr_merged_ratio": 0.8,
+        "top_contributor_share": 0.409,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 82.5,
+        "people": 100.0,
+        "adoption": 79.0,
+        "momentum": null,
+        "maturity": 79.0
+      },
+      "total": 87.9,
+      "rank": 12
+    },
+    {
+      "metrics": {
+        "full_name": "multica-ai/multica",
+        "description": "Make humans and AI agents work as one team — open-source and self-hostable.",
+        "url": "https://github.com/multica-ai/multica",
+        "language": "Go",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 56475,
+        "forks": 7447,
+        "pushed_days": 0.2,
+        "commits_90d": 100,
+        "authors_90d": 22,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.54,
+        "issue_median_close_days": 0.2,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.269,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 89.2,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 54.0
+      },
+      "total": 87.4,
+      "rank": 13
+    },
+    {
+      "metrics": {
+        "full_name": "langgenius/dify",
+        "description": "Build Agentic workflows, RAG pipelines, with rich AI model and tool support on one collaborative workspace. Deploy on cloud, VPC, or self-hosted, so teams move from prototype to production without reb",
+        "url": "https://github.com/langgenius/dify",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 161378,
+        "forks": 25518,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 29,
+        "releases_365d": 25,
+        "issue_closed_ratio": 0.22,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.86,
+        "top_contributor_share": 0.108,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 75.8,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 66.7
+      },
+      "total": 87.2,
+      "rank": 14
+    },
+    {
+      "metrics": {
+        "full_name": "msoedov/agentic_security",
+        "description": "Agentic LLM Vulnerability Scanner / AI red teaming kit 🧪",
+        "url": "https://github.com/msoedov/agentic_security",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 2047,
+        "forks": 312,
+        "pushed_days": 1.6,
+        "commits_90d": 85,
+        "authors_90d": 16,
+        "releases_365d": 1,
+        "issue_closed_ratio": 0.96,
+        "issue_median_close_days": 66.5,
+        "pr_merged_ratio": 0.74,
+        "top_contributor_share": 0.755,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 98.8,
+        "maintenance": 88.5,
+        "people": 74.5,
+        "adoption": 69.0,
+        "momentum": null,
+        "maturity": 95.0
+      },
+      "total": 86.6,
+      "rank": 15
+    },
+    {
+      "metrics": {
+        "full_name": "lobehub/lobehub",
+        "description": "🤯 LobeHub - Super-Agents on Your Team. Add super-agents to the chats your team already uses.They take on work by themselves and get better every week.",
+        "url": "https://github.com/lobehub/lobehub",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 85711,
+        "forks": 16341,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 10,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.25,
+        "issue_median_close_days": 0.6,
+        "pr_merged_ratio": 0.92,
+        "top_contributor_share": 0.353,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 77.1,
+        "people": 100.0,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 62.3
+      },
+      "total": 86.5,
+      "rank": 16
+    },
+    {
+      "metrics": {
+        "full_name": "Orkas-AI/Orkas",
+        "description": "Orkas is an open-source (MIT), local-first AI team for your desktop: a Commander turns your goal into to-dos and coordinates 16 built-in specialist agents plus Claude Code, Codex, OpenCode, OpenClaw a",
+        "url": "https://github.com/Orkas-AI/Orkas",
+        "language": "JavaScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 9434,
+        "forks": 561,
+        "pushed_days": 0.9,
+        "commits_90d": 100,
+        "authors_90d": 5,
+        "releases_365d": 23,
+        "issue_closed_ratio": 0.167,
+        "issue_median_close_days": 1.4,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 0.444,
+        "stars_90d": null,
+        "health_pct": 42,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 73.6,
+        "people": 100.0,
+        "adoption": 79.4,
+        "momentum": null,
+        "maturity": 80.7
+      },
+      "total": 86.4,
+      "rank": 17
+    },
+    {
+      "metrics": {
+        "full_name": "larksuite/cli",
+        "description": "The official Lark/飞书 CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings,",
+        "url": "https://github.com/larksuite/cli",
+        "language": "Go",
+        "license": "MIT",
+        "archived": false,
+        "stars": 18142,
+        "forks": 1374,
+        "pushed_days": 0.5,
+        "commits_90d": 100,
+        "authors_90d": 41,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.02,
+        "issue_median_close_days": 2.0,
+        "pr_merged_ratio": 0.6,
+        "top_contributor_share": 0.129,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 62.7,
+        "people": 100.0,
+        "adoption": 87.7,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 85.9,
+      "rank": 18
+    },
+    {
+      "metrics": {
+        "full_name": "SigNoz/signoz",
+        "description": "SigNoz is an open-source, OpenTelemetry-native observability platform for your team and their AI agents. Get logs, metrics, and traces in one tool with features like APM, distributed tracing, log mana",
+        "url": "https://github.com/SigNoz/signoz",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 32669,
+        "forks": 2609,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 18,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.065,
+        "issue_median_close_days": 2.9,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.081,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 69.4,
+        "people": 100.0,
+        "adoption": 94.2,
+        "momentum": null,
+        "maturity": 66.7
+      },
+      "total": 84.8,
+      "rank": 19
+    },
+    {
+      "metrics": {
+        "full_name": "BitterSecurity/Decepticon",
+        "description": "Autonomous Hacking Agent for Red Team",
+        "url": "https://github.com/BitterSecurity/Decepticon",
+        "language": "Python",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 6635,
+        "forks": 1271,
+        "pushed_days": 0.9,
+        "commits_90d": 100,
+        "authors_90d": 2,
+        "releases_365d": 30,
+        "issue_closed_ratio": 1.0,
+        "issue_median_close_days": 0.6,
+        "pr_merged_ratio": 0.88,
+        "top_contributor_share": 0.713,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": 6.7,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 100.0,
+        "people": 41.2,
+        "adoption": 82.6,
+        "momentum": null,
+        "maturity": 88.5
+      },
+      "total": 84.7,
+      "rank": 20
+    },
+    {
+      "metrics": {
+        "full_name": "OfficeDev/microsoft-365-agents-toolkit",
+        "description": "Developer tools for building Teams apps",
+        "url": "https://github.com/OfficeDev/microsoft-365-agents-toolkit",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 790,
+        "forks": 316,
+        "pushed_days": 0.3,
+        "commits_90d": 100,
+        "authors_90d": 16,
+        "releases_365d": 29,
+        "issue_closed_ratio": 0.65,
+        "issue_median_close_days": 3.9,
+        "pr_merged_ratio": 0.78,
+        "top_contributor_share": 0.078,
+        "stars_90d": null,
+        "health_pct": 87,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 93.7,
+        "people": 100.0,
+        "adoption": 64.7,
+        "momentum": null,
+        "maturity": 62.3
+      },
+      "total": 84.3,
+      "rank": 21
+    },
+    {
+      "metrics": {
+        "full_name": "windmill-labs/windmill",
+        "description": "Code-first platform for workflows, apps and AI agents, on the fastest self-hostable orchestrator (benchmarked against Airflow, Prefect and Temporal). Business teams build with AI, engineers control wh",
+        "url": "https://github.com/windmill-labs/windmill",
+        "language": "Rust",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 18622,
+        "forks": 1165,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 8,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.714,
+        "issue_median_close_days": 0.2,
+        "pr_merged_ratio": 0.9,
+        "top_contributor_share": 0.647,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 96.4,
+        "people": 85.3,
+        "adoption": 86.9,
+        "momentum": null,
+        "maturity": 54.0
+      },
+      "total": 84.3,
+      "rank": 22
+    },
+    {
+      "metrics": {
+        "full_name": "NanmiCoder/dsh-agent-teams",
+        "description": "DeepSeek Harness 的 Agent Teams 多智能体协作插件，支持多个 AI Agent 组成团队，协同完成复杂任务，实现任务分配、并行执行、成员通信与团队协作。 AgentTeams plugin for DeepSeek Harness",
+        "url": "https://github.com/NanmiCoder/dsh-agent-teams",
+        "language": "JavaScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 2998,
+        "forks": 245,
+        "pushed_days": 4.9,
+        "commits_90d": 100,
+        "authors_90d": 5,
+        "releases_365d": 25,
+        "issue_closed_ratio": 0.66,
+        "issue_median_close_days": 1.8,
+        "pr_merged_ratio": 0.74,
+        "top_contributor_share": 0.916,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 94.2,
+        "people": 58.4,
+        "adoption": 69.3,
+        "momentum": null,
+        "maturity": 85.7
+      },
+      "total": 83.5,
+      "rank": 23
+    },
+    {
+      "metrics": {
+        "full_name": "Agenta-AI/agenta",
+        "description": "Agenta is a workspace where you and your team build agents and automations.",
+        "url": "https://github.com/Agenta-AI/agenta",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 4914,
+        "forks": 732,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 7,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.267,
+        "issue_median_close_days": 6.7,
+        "pr_merged_ratio": 0.64,
+        "top_contributor_share": 0.316,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 74.9,
+        "people": 100.0,
+        "adoption": 78.0,
+        "momentum": null,
+        "maturity": 66.7
+      },
+      "total": 83.4,
+      "rank": 24
+    },
+    {
+      "metrics": {
+        "full_name": "777genius/agent-teams-ai",
+        "description": "You're the boss, agents are your team. They handle tasks on their own, message each other, and review each other's work. You just watch the kanban board and give high-level commands. Codex/Claude/Open",
+        "url": "https://github.com/777genius/agent-teams-ai",
+        "language": "TypeScript",
+        "license": "AGPL-3.0",
+        "archived": false,
+        "stars": 2504,
+        "forks": 406,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 4,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.357,
+        "issue_median_close_days": 0.3,
+        "pr_merged_ratio": 0.94,
+        "top_contributor_share": 0.905,
+        "stars_90d": null,
+        "health_pct": 100,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 81.5,
+        "people": 47.0,
+        "adoption": 71.4,
+        "momentum": null,
+        "maturity": 100.0
+      },
+      "total": 82.3,
+      "rank": 25
+    },
+    {
+      "metrics": {
+        "full_name": "trailhq/Trail-Code",
+        "description": "One shared memory for every coding agent on your team. Claude Code, Cursor and Codex get a map of your code and your team's past decisions, so they pick up where you left off.",
+        "url": "https://github.com/trailhq/Trail-Code",
+        "language": "TypeScript",
+        "license": "MIT",
+        "archived": false,
+        "stars": 11321,
+        "forks": 1020,
+        "pushed_days": 0.2,
+        "commits_90d": 100,
+        "authors_90d": 34,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.22,
+        "issue_median_close_days": 2.9,
+        "pr_merged_ratio": 0.98,
+        "top_contributor_share": 0.485,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": 7.1,
+        "missing": [
+          "stars_90d"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.7,
+        "maintenance": 75.8,
+        "people": 100.0,
+        "adoption": 83.8,
+        "momentum": null,
+        "maturity": 80.2
+      },
+      "total": 80.1,
+      "rank": 26
+    },
+    {
+      "metrics": {
+        "full_name": "win4r/ClawTeam-OpenClaw",
+        "description": "ClawTeam fork fully adapted for OpenClaw — multi-agent swarm coordination with OpenClaw as the default agent",
+        "url": "https://github.com/win4r/ClawTeam-OpenClaw",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 1475,
+        "forks": 315,
+        "pushed_days": 10.4,
+        "commits_90d": 13,
+        "authors_90d": 1,
+        "releases_365d": 3,
+        "issue_closed_ratio": 0.933,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": 0.391,
+        "top_contributor_share": 0.443,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 85.7,
+        "maintenance": 85.3,
+        "people": 50.0,
+        "adoption": 67.5,
+        "momentum": null,
+        "maturity": 90.3
+      },
+      "total": 77.6,
+      "rank": 27
+    },
+    {
+      "metrics": {
+        "full_name": "openai/symphony",
+        "description": "Symphony turns project work into isolated, autonomous implementation runs, allowing teams to manage work instead of supervising coding agents.",
+        "url": "https://github.com/openai/symphony",
+        "language": "Elixir",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 28077,
+        "forks": 2894,
+        "pushed_days": 63.1,
+        "commits_90d": 3,
+        "authors_90d": 1,
+        "releases_365d": 4,
+        "issue_closed_ratio": null,
+        "issue_median_close_days": null,
+        "pr_merged_ratio": 0.74,
+        "top_contributor_share": 0.723,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "issue_closed_ratio",
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 73.4,
+        "maintenance": 100.0,
+        "people": 27.7,
+        "adoption": 94.2,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 77.4,
+      "rank": 28
+    },
+    {
+      "metrics": {
+        "full_name": "TencentCloud/TencentDB-Agent-Memory",
+        "description": "TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, s",
+        "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 30974,
+        "forks": 3030,
+        "pushed_days": 7.4,
+        "commits_90d": 63,
+        "authors_90d": 37,
+        "releases_365d": 22,
+        "issue_closed_ratio": 0.06,
+        "issue_median_close_days": 5.9,
+        "pr_merged_ratio": 0.32,
+        "top_contributor_share": 0.262,
+        "stars_90d": null,
+        "health_pct": 62,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 96.7,
+        "maintenance": 51.1,
+        "people": 100.0,
+        "adoption": 94.8,
+        "momentum": null,
+        "maturity": 54.0
+      },
+      "total": 77.3,
+      "rank": 29
+    },
+    {
+      "metrics": {
+        "full_name": "NanmiCoder/cc-haha",
+        "description": "本地优先的跨平台 Claude Code / AI Agent 桌面工作台：多 Agent 协作、Git Worktree、代码 Diff、技能市场、多模型、Computer Use、桌面宠物；支持微信、飞书、钉钉及 H5 等远程访问。 | Local-first Claude Code / AI Agent desktop workspace: multi-agent teams, Git wo",
+        "url": "https://github.com/NanmiCoder/cc-haha",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 15479,
+        "forks": 8617,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 3,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.7,
+        "issue_median_close_days": 1.8,
+        "pr_merged_ratio": 0.98,
+        "top_contributor_share": 0.935,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 95.8,
+        "people": 31.5,
+        "adoption": 94.6,
+        "momentum": null,
+        "maturity": 57.0
+      },
+      "total": 77.2,
+      "rank": 30
+    },
+    {
+      "metrics": {
+        "full_name": "backnotprop/plannotator",
+        "description": "The workspace to stay in the loop and on top of agents - shape, decide, plan, annotate, review code, share with team, and send all feedback to agents with one click. ",
+        "url": "https://github.com/backnotprop/plannotator",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 13057,
+        "forks": 1313,
+        "pushed_days": 0.0,
+        "commits_90d": 100,
+        "authors_90d": 1,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.314,
+        "issue_median_close_days": 0.7,
+        "pr_merged_ratio": 0.82,
+        "top_contributor_share": 0.959,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 100.0,
+        "maintenance": 79.7,
+        "people": 4.1,
+        "adoption": 85.9,
+        "momentum": null,
+        "maturity": 95.0
+      },
+      "total": 76.0,
+      "rank": 31
+    },
+    {
+      "metrics": {
+        "full_name": "VoltAgent/awesome-agent-skills",
+        "description": "A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.",
+        "url": "https://github.com/VoltAgent/awesome-agent-skills",
+        "language": null,
+        "license": "MIT",
+        "archived": false,
+        "stars": 37298,
+        "forks": 4156,
+        "pushed_days": 2.2,
+        "commits_90d": 100,
+        "authors_90d": 42,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.833,
+        "issue_median_close_days": 0.9,
+        "pr_merged_ratio": 0.5,
+        "top_contributor_share": 0.788,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.7,
+        "maintenance": 90.5,
+        "people": 71.2,
+        "adoption": 97.5,
+        "momentum": null,
+        "maturity": 50.0
+      },
+      "total": 74.2,
+      "rank": 32
+    },
+    {
+      "metrics": {
+        "full_name": "HKUDS/ClawTeam",
+        "description": "\"ClawTeam: Agent Swarm Intelligence\" (One Command → Full Automation)",
+        "url": "https://github.com/HKUDS/ClawTeam",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 5555,
+        "forks": 759,
+        "pushed_days": 192.7,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 2,
+        "issue_closed_ratio": 0.72,
+        "issue_median_close_days": 1.0,
+        "pr_merged_ratio": 0.66,
+        "top_contributor_share": 0.68,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 50.5,
+        "maintenance": 94.8,
+        "people": 32.0,
+        "adoption": 78.8,
+        "momentum": null,
+        "maturity": 79.0
+      },
+      "total": 68.3,
+      "rank": 33
+    },
+    {
+      "metrics": {
+        "full_name": "hesreallyhim/awesome-claude-code",
+        "description": "A hand-picked collection of the finest of resources for the most awesome of agents, Claude Code, the undisputed champion of coding companions, from the unstoppable team at Anthropic PBC (no affiliatio",
+        "url": "https://github.com/hesreallyhim/awesome-claude-code",
+        "language": "Python",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 58243,
+        "forks": 4976,
+        "pushed_days": 0.1,
+        "commits_90d": 100,
+        "authors_90d": 1,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.1,
+        "issue_median_close_days": 0.0,
+        "pr_merged_ratio": 1.0,
+        "top_contributor_share": 0.863,
+        "stars_90d": null,
+        "health_pct": 85,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 66.7,
+        "maintenance": 70.8,
+        "people": 13.7,
+        "adoption": 100.0,
+        "momentum": null,
+        "maturity": 61.7
+      },
+      "total": 63.2,
+      "rank": 34
+    },
+    {
+      "metrics": {
+        "full_name": "team9ai/team9",
+        "description": "Team9 is a collaborative workspace for AI agents, currently built on OpenClaw and its ecosystem.",
+        "url": "https://github.com/team9ai/team9",
+        "language": "TypeScript",
+        "license": "NOASSERTION",
+        "archived": false,
+        "stars": 1952,
+        "forks": 216,
+        "pushed_days": 112.7,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.5,
+        "issue_median_close_days": 1.2,
+        "pr_merged_ratio": 0.96,
+        "top_contributor_share": 0.63,
+        "stars_90d": null,
+        "health_pct": 37,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 58.4,
+        "maintenance": 87.5,
+        "people": 37.0,
+        "adoption": 66.6,
+        "momentum": null,
+        "maturity": 45.7
+      },
+      "total": 59.8,
+      "rank": 35
+    },
+    {
+      "metrics": {
+        "full_name": "revfactory/harness",
+        "description": "A meta-skill that designs domain-specific agent teams, defines specialized agents, and generates the skills they use.",
+        "url": "https://github.com/revfactory/harness",
+        "language": null,
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 9375,
+        "forks": 1347,
+        "pushed_days": 50.8,
+        "commits_90d": 4,
+        "authors_90d": 2,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.923,
+        "issue_median_close_days": 33.7,
+        "pr_merged_ratio": 0.244,
+        "top_contributor_share": 0.875,
+        "stars_90d": null,
+        "health_pct": 71,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 42.9,
+        "maintenance": 73.2,
+        "people": 25.0,
+        "adoption": 84.5,
+        "momentum": null,
+        "maturity": 57.0
+      },
+      "total": 56.7,
+      "rank": 36
+    },
+    {
+      "metrics": {
+        "full_name": "openai/swarm",
+        "description": "Educational framework exploring ergonomic, lightweight multi-agent orchestration. Managed by OpenAI Solution team.",
+        "url": "https://github.com/openai/swarm",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 22146,
+        "forks": 2356,
+        "pushed_days": 216.3,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.256,
+        "issue_median_close_days": 29.3,
+        "pr_merged_ratio": 0.64,
+        "top_contributor_share": 0.24,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 14.8,
+        "maintenance": 70.2,
+        "people": 50.0,
+        "adoption": 91.8,
+        "momentum": null,
+        "maturity": 50.0
+      },
+      "total": 53.6,
+      "rank": 37
+    },
+    {
+      "metrics": {
+        "full_name": "HKUDS/AgentSpace",
+        "description": "\"AgentSpace: Human + Agents. One Team. One Workspace\"",
+        "url": "https://github.com/HKUDS/AgentSpace",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": false,
+        "stars": 1034,
+        "forks": 136,
+        "pushed_days": 116.8,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.235,
+        "issue_median_close_days": 3.9,
+        "pr_merged_ratio": 0.65,
+        "top_contributor_share": 0.873,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 24.7,
+        "maintenance": 74.1,
+        "people": 12.7,
+        "adoption": 61.0,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 52.8,
+      "rank": 38
+    },
+    {
+      "metrics": {
+        "full_name": "business-science/ai-data-science-team",
+        "description": "An AI-powered data science team of agents to help you perform common data science tasks 10X faster.",
+        "url": "https://github.com/business-science/ai-data-science-team",
+        "language": "Python",
+        "license": "MIT",
+        "archived": false,
+        "stars": 5512,
+        "forks": 947,
+        "pushed_days": 293.3,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 1,
+        "issue_closed_ratio": 0.52,
+        "issue_median_close_days": 3.4,
+        "pr_merged_ratio": 0.143,
+        "top_contributor_share": 0.997,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 40.5,
+        "maintenance": 61.8,
+        "people": 0.3,
+        "adoption": 80.0,
+        "momentum": null,
+        "maturity": 50.0
+      },
+      "total": 47.2,
+      "rank": 39
+    },
+    {
+      "metrics": {
+        "full_name": "vijaythecoder/awesome-claude-agents",
+        "description": "An orchestrated sub agent dev team powered by claude code",
+        "url": "https://github.com/vijaythecoder/awesome-claude-agents",
+        "language": null,
+        "license": "MIT",
+        "archived": false,
+        "stars": 4408,
+        "forks": 534,
+        "pushed_days": 384.0,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 0,
+        "issue_closed_ratio": 0.212,
+        "issue_median_close_days": 0.1,
+        "pr_merged_ratio": 0.375,
+        "top_contributor_share": 0.884,
+        "stars_90d": null,
+        "health_pct": 57,
+        "has_ci": false,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 0.0,
+        "maintenance": 60.0,
+        "people": 11.6,
+        "adoption": 75.7,
+        "momentum": null,
+        "maturity": 52.3
+      },
+      "total": 39.5,
+      "rank": 40
+    },
+    {
+      "metrics": {
+        "full_name": "RooCodeInc/Roo-Code",
+        "description": "Roo Code gives you a whole dev team of AI agents in your code editor.",
+        "url": "https://github.com/RooCodeInc/Roo-Code",
+        "language": "TypeScript",
+        "license": "Apache-2.0",
+        "archived": true,
+        "stars": 24237,
+        "forks": 3439,
+        "pushed_days": 186.2,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.08,
+        "issue_median_close_days": 0.3,
+        "pr_merged_ratio": 0.5,
+        "top_contributor_share": 0.33,
+        "stars_90d": null,
+        "health_pct": 50,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 51.1,
+        "maintenance": 60.5,
+        "people": 50.0,
+        "adoption": 94.4,
+        "momentum": null,
+        "maturity": 83.3
+      },
+      "total": 13.5,
+      "rank": 41
+    },
+    {
+      "metrics": {
+        "full_name": "Gentleman-Programming/agent-teams-lite",
+        "description": "Spec-Driven Development with AI Sub-Agents. An orchestrator + 9 specialized sub-agents for structured feature development. Zero dependencies. Pure Markdown. Works with Claude Code, OpenCode, Cursor, a",
+        "url": "https://github.com/Gentleman-Programming/agent-teams-lite",
+        "language": "Shell",
+        "license": "MIT",
+        "archived": true,
+        "stars": 1245,
+        "forks": 161,
+        "pushed_days": 236.2,
+        "commits_90d": 0,
+        "authors_90d": 0,
+        "releases_365d": 30,
+        "issue_closed_ratio": 0.34,
+        "issue_median_close_days": 0.4,
+        "pr_merged_ratio": 0.125,
+        "top_contributor_share": 0.986,
+        "stars_90d": null,
+        "health_pct": 75,
+        "has_ci": true,
+        "scorecard": null,
+        "missing": [
+          "stars_90d",
+          "scorecard"
+        ],
+        "error": null
+      },
+      "scores": {
+        "activity": 46.1,
+        "maintenance": 53.5,
+        "people": 1.4,
+        "adoption": 62.8,
+        "momentum": null,
+        "maturity": 91.7
+      },
+      "total": 10.6,
+      "rank": 42
+    }
+  ],
+  "json_path": "D:\\202611_agent-legion\\02_data\\scout\\20261118-080141_Agent-team.json",
+  "md_path": "D:\\202611_agent-legion\\vault\\AI\\scout\\20261118-080141_Agent-team.md"
+}
